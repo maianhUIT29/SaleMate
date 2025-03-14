@@ -1,1 +1,1 @@
-# IS216-Java
+# Salesmate

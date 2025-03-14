@@ -1,5 +1,4 @@
 com\salesmate\model\User.class
-DBConnection\java.class
 com\salesmate\view\LoginForm$GradientPanel.class
 com\salesmate\database\DBConnection.class
 com\salesmate\view\LoginForm$1.class

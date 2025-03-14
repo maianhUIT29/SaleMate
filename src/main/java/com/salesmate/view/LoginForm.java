@@ -26,7 +26,7 @@ public class LoginForm extends JFrame {
 
         userController = new UserController();
         setTitle("🔑 Đăng nhập - SalesMate");
-        setSize(400, 300);
+        setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
