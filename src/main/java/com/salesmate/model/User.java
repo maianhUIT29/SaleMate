@@ -1,17 +1,101 @@
 package com.salesmate.model;
 
-public class User {
-    private int id;
-    private String username;
-    private String password;
+import java.util.Date;
+import jakarta.persistence.*;
 
-    public User(int id, String username, String password) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
+/*
+User Schema in oracle
+    users_id INT PRIMARY KEY,
+    username VARCHAR2(50) NOT NULL,
+    role VARCHAR2(20) CHECK (role IN ('Store Manager', 'Warehouse Manager', 'Sales Staff')) NOT NULL,
+    created_at DATE DEFAULT SYSDATE,
+    avatar VARCHAR2(255),
+    email VARCHAR2(255),
+    status VARCHAR2(20)
+);
+*/
+
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "users_id")
+    private int usersId;
+
+    @Column(name = "username", nullable = false, length = 50)
+    private String username;
+
+    @Column(name = "role", nullable = false, length = 20)
+    private String role;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", columnDefinition = "DATE DEFAULT SYSDATE")
+    private Date createdAt;
+
+    @Column(name = "avatar", length = 255)
+    private String avatar;
+
+    @Column(name = "email", length = 255)
+    private String email;
+
+    @Column(name = "status", length = 20)
+    private String status;
+
+    // Getters and Setters
+    public int getUsersId() {
+        return usersId;
     }
 
-    public int getId() { return id; }
-    public String getUsername() { return username; }
-    public String getPassword() { return password; }
+    public void setUsersId(int usersId) {
+        this.usersId = usersId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
