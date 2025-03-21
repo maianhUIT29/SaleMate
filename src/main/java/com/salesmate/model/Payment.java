@@ -1,7 +1,17 @@
 package com.salesmate.model;
 
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /*
 Payment Schema in oracle
@@ -35,6 +45,18 @@ public class Payment {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "payment_date", columnDefinition = "DATE DEFAULT SYSDATE")
     private Date paymentDate;
+
+    // Constructors
+    public Payment() {
+    }
+
+    public Payment(int paymentId, Invoice invoice, String paymentMethod, double amount, Date paymentDate) {
+        this.paymentId = paymentId;
+        this.invoice = invoice;
+        this.paymentMethod = paymentMethod;
+        this.amount = amount;
+        this.paymentDate = paymentDate;
+    }
 
     // Getters and Setters
     public int getPaymentId() {

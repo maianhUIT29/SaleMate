@@ -1,7 +1,17 @@
 package com.salesmate.model;
 
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /*
 Purchase Schema in oracle
@@ -37,6 +47,18 @@ public class Purchase {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "purchase_date", columnDefinition = "DATE DEFAULT SYSDATE")
     private Date purchaseDate;
+
+    // Constructors
+    public Purchase() {
+    }
+
+    public Purchase(int purchaseId, Supplier supplier, User user, double totalAmount, Date purchaseDate) {
+        this.purchaseId = purchaseId;
+        this.supplier = supplier;
+        this.user = user;
+        this.totalAmount = totalAmount;
+        this.purchaseDate = purchaseDate;
+    }
 
     // Getters and Setters
     public int getPurchaseId() {

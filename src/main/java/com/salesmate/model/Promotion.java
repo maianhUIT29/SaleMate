@@ -1,7 +1,15 @@
 package com.salesmate.model;
 
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /*
 Promotion Schema in oracle
@@ -42,6 +50,21 @@ public class Promotion {
 
     @Column(name = "status", nullable = false, length = 20)
     private String status = "Active"; // Default value set to 'Active'
+
+
+    // Constructors
+    public Promotion() {
+    }
+
+    public Promotion(int promotionId, String promotionName, String discountType, double discountValue, Date startDate, Date endDate, String status) {
+        this.promotionId = promotionId;
+        this.promotionName = promotionName;
+        this.discountType = discountType;
+        this.discountValue = discountValue;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.status = status;
+    }
 
     // Getters and Setters
     public int getPromotionId() {

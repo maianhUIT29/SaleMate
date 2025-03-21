@@ -1,7 +1,15 @@
 package com.salesmate.model;
 
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /*
 Supplier Schema in oracle
@@ -41,6 +49,23 @@ public class Supplier {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "DATE DEFAULT SYSDATE")
     private Date createdAt;
+
+
+    // Constructors
+    public Supplier() {
+    }
+
+    public Supplier(int supplierId, String supplierName, String contactName, String phone, String email, String address, Date createdAt) {
+        this.supplierId = supplierId;
+        this.supplierName = supplierName;
+        this.contactName = contactName;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+        this.createdAt = createdAt;
+    }
+
+    
 
     // Getters and Setters
     public int getSupplierId() {

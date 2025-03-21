@@ -1,6 +1,13 @@
 package com.salesmate.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /*
 Detail Schema in oracle
@@ -35,6 +42,18 @@ public class Detail {
 
     @Column(name = "price", precision = 10, scale = 2)
     private double price;
+
+    // Constructors
+    public Detail() {
+    }
+
+    public Detail(int detailId, Invoice invoice, Product product, int quantity, double price) {
+        this.detailId = detailId;
+        this.invoice = invoice;
+        this.product = product;
+        this.quantity = quantity;
+        this.price = price;
+    }
 
     // Getters and Setters
     public int getDetailId() {

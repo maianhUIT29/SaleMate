@@ -2,7 +2,13 @@ package com.salesmate.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /*
 Invoice Schema in oracle
@@ -32,6 +38,18 @@ public class Invoice {
 
     @Column(name = "status", length = 50)
     private String status;
+
+    // Constructors
+    public Invoice() {
+    }
+
+    public Invoice(int invoiceId, int usersId, BigDecimal total, Date createdAt, String status) {
+        this.invoiceId = invoiceId;
+        this.usersId = usersId;
+        this.total = total;
+        this.createdAt = createdAt;
+        this.status = status;
+    }
 
     // Getters and Setters
     public int getInvoiceId() {

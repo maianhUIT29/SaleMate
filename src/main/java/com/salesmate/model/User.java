@@ -1,7 +1,15 @@
 package com.salesmate.model;
 
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /*
 User Schema in oracle
@@ -41,6 +49,23 @@ public class User {
 
     @Column(name = "status", length = 20)
     private String status;
+
+    @Column(name = "password", length = 255)
+    private String password;
+
+    // Constructors
+    public User() {
+    }
+
+    public User(int usersId, String username, String role, Date createdAt, String avatar, String email, String status) {
+        this.usersId = usersId;
+        this.username = username;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.avatar = avatar;
+        this.email = email;
+        this.status = status;
+    }
 
     // Getters and Setters
     public int getUsersId() {
@@ -97,5 +122,9 @@ public class User {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }

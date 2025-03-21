@@ -1,6 +1,9 @@
 package com.salesmate.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /*
 ProductPromotion Schema in oracle
@@ -22,6 +25,16 @@ public class ProductPromotion {
     @ManyToOne
     @JoinColumn(name = "promotion_id", nullable = false)
     private Promotion promotion;
+
+
+    // Constructors
+    public ProductPromotion() {
+    }
+
+    public ProductPromotion(Product product, Promotion promotion) {
+        this.product = product;
+        this.promotion = promotion;
+    }
 
     // Getters and Setters
     public Product getProduct() {

@@ -2,7 +2,13 @@ package com.salesmate.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /*
 Product Schema in oracle
@@ -40,6 +46,21 @@ public class Product {
 
     @Column(name = "image", length = 255)
     private String image;
+
+
+    // Constructors
+    public Product() {
+    }
+
+    public Product(int productId, String productName, BigDecimal price, int quantity, String barcode, Date createdAt, String image) {
+        this.productId = productId;
+        this.productName = productName;
+        this.price = price;
+        this.quantity = quantity;
+        this.barcode = barcode;
+        this.createdAt = createdAt;
+        this.image = image;
+    }
 
     // Getters and Setters
     public int getProductId() {

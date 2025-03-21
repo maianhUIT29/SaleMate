@@ -1,7 +1,17 @@
 package com.salesmate.model;
 
 import java.util.Date;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /*
 Stock Schema in oracle
@@ -35,6 +45,19 @@ public class Stock {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_updated", columnDefinition = "DATE DEFAULT SYSDATE")
     private Date lastUpdated;
+
+    // Constructors
+    public Stock() {
+    }
+
+    public Stock(int stockId, Product product, int quantity, String storageLocation, Date lastUpdated) {
+        this.stockId = stockId;
+        this.product = product;
+        this.quantity = quantity;
+        this.storageLocation = storageLocation;
+        this.lastUpdated = lastUpdated;
+    }
+    
 
     // Getters and Setters
     public int getStockId() {
