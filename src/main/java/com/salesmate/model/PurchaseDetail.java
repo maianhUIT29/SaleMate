@@ -43,16 +43,20 @@ public class PurchaseDetail {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private double price;
 
+    @Column(name = "total", nullable = false, precision = 10, scale = 2)
+    private double total;
+
     // Constructors
     public PurchaseDetail() {
     }
 
-    public PurchaseDetail(int purchaseDetailId, Purchase purchase, Product product, int quantity, double price) {
+    public PurchaseDetail(int purchaseDetailId, Purchase purchase, Product product, int quantity, double price, double total) {
         this.purchaseDetailId = purchaseDetailId;
         this.purchase = purchase;
         this.product = product;
         this.quantity = quantity;
         this.price = price;
+        this.total = total;
     }
     
 
@@ -96,4 +100,13 @@ public class PurchaseDetail {
     public void setPrice(double price) {
         this.price = price;
     }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+    
 }

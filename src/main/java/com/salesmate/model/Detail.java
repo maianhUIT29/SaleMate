@@ -16,6 +16,7 @@ Detail Schema in oracle
     product_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2),
+    total DECIMAL(10,2),
     FOREIGN KEY (invoice_id) REFERENCES INVOICE(invoice_id),
     FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id)
 );
@@ -43,16 +44,20 @@ public class Detail {
     @Column(name = "price", precision = 10, scale = 2)
     private double price;
 
+    @Column(name = "total", precision = 10, scale = 2)
+    private double total;
+
     // Constructors
     public Detail() {
     }
 
-    public Detail(int detailId, Invoice invoice, Product product, int quantity, double price) {
+    public Detail(int detailId, Invoice invoice, Product product, int quantity, double price , double total) {
         this.detailId = detailId;
         this.invoice = invoice;
         this.product = product;
         this.quantity = quantity;
         this.price = price;
+        this.total = total;
     }
 
     // Getters and Setters
@@ -94,5 +99,13 @@ public class Detail {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
     }
 }

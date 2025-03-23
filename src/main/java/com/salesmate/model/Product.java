@@ -1,7 +1,6 @@
 package com.salesmate.model;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,9 +40,6 @@ public class Product {
     @Column(name = "barcode", length = 20)
     private String barcode;
 
-    @Column(name = "created_at", columnDefinition = "DATE DEFAULT SYSDATE")
-    private Date createdAt;
-
     @Column(name = "image", length = 255)
     private String image;
 
@@ -52,13 +48,12 @@ public class Product {
     public Product() {
     }
 
-    public Product(int productId, String productName, BigDecimal price, int quantity, String barcode, Date createdAt, String image) {
+    public Product(int productId, String productName, BigDecimal price, int quantity, String barcode, String image) {
         this.productId = productId;
         this.productName = productName;
         this.price = price;
         this.quantity = quantity;
         this.barcode = barcode;
-        this.createdAt = createdAt;
         this.image = image;
     }
 
@@ -101,14 +96,6 @@ public class Product {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
     }
 
     public String getImage() {

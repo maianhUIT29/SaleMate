@@ -18,7 +18,6 @@ Stock Schema in oracle
     stock_id INT PRIMARY KEY,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
-    storage_location VARCHAR2(100),
     last_updated DATE DEFAULT SYSDATE,
     FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id)
 );
@@ -39,9 +38,6 @@ public class Stock {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @Column(name = "storage_location", length = 100)
-    private String storageLocation;
-
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_updated", columnDefinition = "DATE DEFAULT SYSDATE")
     private Date lastUpdated;
@@ -50,11 +46,10 @@ public class Stock {
     public Stock() {
     }
 
-    public Stock(int stockId, Product product, int quantity, String storageLocation, Date lastUpdated) {
+    public Stock(int stockId, Product product, int quantity, Date lastUpdated) {
         this.stockId = stockId;
         this.product = product;
         this.quantity = quantity;
-        this.storageLocation = storageLocation;
         this.lastUpdated = lastUpdated;
     }
     
@@ -82,14 +77,6 @@ public class Stock {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public String getStorageLocation() {
-        return storageLocation;
-    }
-
-    public void setStorageLocation(String storageLocation) {
-        this.storageLocation = storageLocation;
     }
 
     public Date getLastUpdated() {
