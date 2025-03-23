@@ -32,7 +32,7 @@
 
         <!-- Hibernate -->
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>6.3.1.Final</version>
         </dependency>
@@ -131,6 +131,13 @@
         </dependency>
 
     </dependencies>
+    
+    <repositories>
+        <repository>
+            <id>djl-releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -147,7 +154,13 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.salesmate.view.LoginForm</mainClass> 
+                    <mainClass>com.salesmate.view.LoginForm</mainClass>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>java.library.path</key>
+                            <value>${project.basedir}/src/main/resources/opencv</value> <!-- Đường dẫn tới thư mục chứa thư viện OpenCV -->
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
             </plugin>
 

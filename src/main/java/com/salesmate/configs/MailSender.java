@@ -1,13 +1,16 @@
 package com.salesmate.configs;
 
+import java.io.FileInputStream; // Correct import statement
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
-import javax.mail.*;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-
 
 public class MailSender {
 
@@ -23,13 +26,12 @@ public class MailSender {
     }
 
     private void loadConfig() {
-        Properties properties = new Properties();
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            if (input == null) {
-                System.out.println("Sorry, unable to find config.properties");
-                return;
-            }
-            properties.load(input);
+        FileInputStream inputStream = null;
+        try {
+            // Đọc cấu hình từ file config.properties
+            Properties properties = new Properties();
+            inputStream = new FileInputStream("config.properties");  // Đảm bảo đường dẫn chính xác
+            properties.load(inputStream);
             host = properties.getProperty("EMAIL_HOST");
             user = properties.getProperty("EMAIL_USER");
             pass = properties.getProperty("EMAIL_PASS");
