@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -31,9 +29,8 @@ public class Salary {
     @Column(name = "salary_id")
     private int salaryId;
 
-    @ManyToOne
-    @JoinColumn(name = "users_id", nullable = false)
-    private User user;
+    @Column(name = "users_id", nullable = false)
+    private int userId;
 
     @Column(name = "salary_amount", precision = 10, scale = 2)
     private double salaryAmount;
@@ -46,9 +43,9 @@ public class Salary {
     public Salary() {
     }
 
-    public Salary(int salaryId, User user, double salaryAmount, Date paymentDate) {
+    public Salary(int salaryId, int userId, double salaryAmount, Date paymentDate) {
         this.salaryId = salaryId;
-        this.user = user;
+        this.userId = userId;
         this.salaryAmount = salaryAmount;
         this.paymentDate = paymentDate;
     }
@@ -62,12 +59,12 @@ public class Salary {
         this.salaryId = salaryId;
     }
 
-    public User getUser() {
-        return user;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public double getSalaryAmount() {

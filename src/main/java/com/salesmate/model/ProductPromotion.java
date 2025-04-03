@@ -1,8 +1,7 @@
 package com.salesmate.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /*
@@ -18,42 +17,39 @@ ProductPromotion Schema in oracle
 @Entity
 @Table(name = "product_promotion")
 public class ProductPromotion {
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Id
+    private int productId;
 
-    @ManyToOne
-    @JoinColumn(name = "promotion_id", nullable = false)
-    private Promotion promotion;
-
+    @Id
+    private int promotionId;
 
     // Constructors
     public ProductPromotion() {
     }
 
-    public ProductPromotion(Product product, Promotion promotion) {
-        this.product = product;
-        this.promotion = promotion;
+    public ProductPromotion(int productId, int promotionId) {
+        this.productId = productId;
+        this.promotionId = promotionId;
     }
 
     // Getters and Setters
-    public Product getProduct() {
-        return product;
+    public int getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(int productId) {
+        this.productId = productId;
     }
 
-    public Promotion getPromotion() {
-        return promotion;
+    public int getPromotionId() {
+        return promotionId;
     }
 
-    public void setPromotion(Promotion promotion) {
-        this.promotion = promotion;
+    public void setPromotionId(int promotionId) {
+        this.promotionId = promotionId;
     }
 
-    // Optionally, you can implement the equals and hashCode methods based on product_id and promotion_id 
+    // Optionally, you can implement the equals and hashCode methods based on productId and promotionId
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -61,14 +57,14 @@ public class ProductPromotion {
 
         ProductPromotion that = (ProductPromotion) o;
 
-        if (!product.equals(that.product)) return false;
-        return promotion.equals(that.promotion);
+        if (productId != that.productId) return false;
+        return promotionId == that.promotionId;
     }
 
     @Override
     public int hashCode() {
-        int result = product.hashCode();
-        result = 31 * result + promotion.hashCode();
+        int result = productId;
+        result = 31 * result + promotionId;
         return result;
     }
 }

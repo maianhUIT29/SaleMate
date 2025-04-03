@@ -5,8 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /*
@@ -29,13 +27,11 @@ public class PurchaseDetail {
     @Column(name = "purchase_detail_id")
     private int purchaseDetailId;
 
-    @ManyToOne
-    @JoinColumn(name = "purchase_id", nullable = false)
-    private Purchase purchase;
+    @Column(name = "purchase_id", nullable = false)
+    private int purchaseId;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private int productId;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
@@ -50,15 +46,14 @@ public class PurchaseDetail {
     public PurchaseDetail() {
     }
 
-    public PurchaseDetail(int purchaseDetailId, Purchase purchase, Product product, int quantity, double price, double total) {
+    public PurchaseDetail(int purchaseDetailId, int purchaseId, int productId, int quantity, double price, double total) {
         this.purchaseDetailId = purchaseDetailId;
-        this.purchase = purchase;
-        this.product = product;
+        this.purchaseId = purchaseId;
+        this.productId = productId;
         this.quantity = quantity;
         this.price = price;
         this.total = total;
     }
-    
 
     // Getters and Setters
     public int getPurchaseDetailId() {
@@ -69,20 +64,20 @@ public class PurchaseDetail {
         this.purchaseDetailId = purchaseDetailId;
     }
 
-    public Purchase getPurchase() {
-        return purchase;
+    public int getPurchaseId() {
+        return purchaseId;
     }
 
-    public void setPurchase(Purchase purchase) {
-        this.purchase = purchase;
+    public void setPurchaseId(int purchaseId) {
+        this.purchaseId = purchaseId;
     }
 
-    public Product getProduct() {
-        return product;
+    public int getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(int productId) {
+        this.productId = productId;
     }
 
     public int getQuantity() {
@@ -108,5 +103,4 @@ public class PurchaseDetail {
     public void setTotal(double total) {
         this.total = total;
     }
-    
 }
