@@ -4,17 +4,25 @@
  */
 package com.salesmate.component;
 
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import javax.swing.ImageIcon;
 
 import com.salesmate.model.Product;
+import com.salesmate.view.CashierPanel;
 
 public class ProductCard extends javax.swing.JPanel {
 
-    /**
-     * Creates new form ProductCard
-     */
-    public ProductCard() {
+    private Product product;
+    private CashierPanel cashierPanel;
+
+    public ProductCard(CashierPanel cashierPanel) {
+        this.cashierPanel = cashierPanel;
         initComponents();
+        addClickEvent();
+        setPreferredSize(new Dimension(200, 300)); // Adjust dimensions as needed
     }
 
     /**
@@ -55,16 +63,11 @@ public class ProductCard extends javax.swing.JPanel {
         jPanel6.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel1.setText("Tên sản phẩm");
-
-        jLabel2.setText("jLabel2");
-
+        jLabel2.setText(""); // Product name value
         jLabel3.setText("Còn lại");
-
-        jLabel4.setText("jLabel4");
-
+        jLabel4.setText(""); // Quantity value
         jLabel5.setText("Giá tiền");
-
-        jLabel6.setText("jLabel6");
+        jLabel6.setText(""); // Price value
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -73,30 +76,27 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE))
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel3)
                     .addComponent(jLabel5))
                 .addGap(101, 101, 101)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(77, 77, 77))
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel6))
+                .addContainerGap(77, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 22, Short.MAX_VALUE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -129,9 +129,10 @@ public class ProductCard extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void setProductDetails(Product product) {
-        jLabel1.setText("Tên sản phẩm: " + product.getProductName());
-        jLabel3.setText("Còn lại: " + product.getQuantity());
-        jLabel5.setText("Giá tiền: " + product.getPrice().toString());
+        this.product = product;
+        jLabel2.setText(product.getProductName());
+        jLabel4.setText(String.valueOf(product.getQuantity()));
+        jLabel6.setText(product.getPrice().toString());
         if (product.getImage() != null && !product.getImage().isEmpty()) {
             jPanel5.removeAll();
             jPanel5.add(new javax.swing.JLabel(new ImageIcon(product.getImage())));
@@ -141,6 +142,17 @@ public class ProductCard extends javax.swing.JPanel {
         }
         jPanel5.revalidate();
         jPanel5.repaint();
+    }
+
+    private void addClickEvent() {
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (product != null && cashierPanel != null) {
+                    cashierPanel.addToCheckout(product);
+                }
+            }
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

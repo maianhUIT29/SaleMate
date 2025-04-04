@@ -1,6 +1,7 @@
 com\salesmate\model\Salary.class
 com\salesmate\model\Stock.class
 com\salesmate\model\Payment.class
+com\salesmate\view\CashierPanel$4.class
 com\salesmate\view\LoginForm$3.class
 com\salesmate\utils\SessionManager.class
 com\salesmate\view\CashierPanel.class
@@ -13,6 +14,7 @@ com\salesmate\view\ForgotPasswordForm$GradientPanel.class
 com\salesmate\configs\DBConnection.class
 com\salesmate\configs\OpenCVConfig.class
 com\salesmate\utils\ColorPalette.class
+com\salesmate\view\CashierPanel$3.class
 com\salesmate\configs\MailSender$1.class
 com\salesmate\model\User.class
 com\salesmate\view\ForgotPasswordForm.class
@@ -30,10 +32,12 @@ com\salesmate\view\LoginFaceID$1.class
 com\salesmate\component\ProductSelectionCard.class
 com\salesmate\component\ProductSelectionPanel.class
 com\salesmate\view\ForgotPasswordForm$2.class
+com\salesmate\view\CashierPanel$5.class
 com\salesmate\model\Report.class
 com\salesmate\configs\MailSender.class
 com\salesmate\view\AdminView$1.class
 com\salesmate\view\ForgotPasswordForm$1.class
+com\salesmate\component\ProductCard$1.class
 com\salesmate\view\LoginForm$GradientPanel.class
 com\salesmate\dao\InvoiceDAO.class
 com\salesmate\view\LoginForm$1.class
@@ -43,8 +47,10 @@ com\salesmate\model\Purchase.class
 com\salesmate\model\PurchaseDetail.class
 com\salesmate\component\ProductCard.class
 com\salesmate\model\Detail.class
+com\salesmate\view\CashierPanel$2.class
 com\salesmate\configs\WebcamConfig.class
 com\salesmate\dao\DetailDAO.class
 com\salesmate\view\LoginForm$4.class
+com\salesmate\component\HeaderPanel.class
 com\salesmate\controller\UserController.class
 com\salesmate\model\Supplier.class

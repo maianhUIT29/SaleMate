@@ -9,6 +9,22 @@ import com.salesmate.model.Product;
 import com.salesmate.component.ProductCard;
 import java.awt.GridLayout;
 import java.util.List;
+import java.math.BigDecimal;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.stream.Collectors;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -17,6 +33,13 @@ import java.util.List;
 public class CashierPanel extends javax.swing.JFrame {
 
     private ProductController productController;
+    private BigDecimal totalPrice = BigDecimal.ZERO;
+    private javax.swing.JPanel checkoutContainer;
+    private javax.swing.JLabel totalPriceLabel;
+    private List<Product> allProducts; // Store all products for search functionality
+    private Map<Product, JPanel> checkoutItems; // Map to track products and their checkout panels
+    private JTable checkoutTable;
+    private DefaultTableModel tableModel;
 
     /**
      * Creates new form CashierPanel
@@ -29,39 +52,165 @@ public class CashierPanel extends javax.swing.JFrame {
         
         // Load product list into the ProductSelectionContainer
         loadProductList();
+        setupCheckoutSection();
+        setupSearchFunctionality();
+        setupPaymentConfirmationDialogs();
+        checkoutItems = new HashMap<>();
     }
 
     private void loadProductList() {
         System.out.println("Loading product list...");
 
-        List<Product> products = productController.getAllProducts();
-        if (products == null || products.isEmpty()) {
+        allProducts = productController.getAllProducts();
+        if (allProducts == null || allProducts.isEmpty()) {
             System.out.println("No products found.");
             return;
         }
 
-        System.out.println("Number of products found: " + products.size());
+        System.out.println("Number of products found: " + allProducts.size());
+        displayProducts(allProducts);
+    }
 
-        // Create a panel to hold the ProductCard components
+    private void displayProducts(List<Product> products) {
         javax.swing.JPanel productContainer = new javax.swing.JPanel();
         productContainer.setLayout(new GridLayout(0, 3, 10, 10)); // 3 columns, adjustable rows
 
-        // Add ProductCard components to the panel
         for (Product product : products) {
-            System.out.println("Adding product: " + product.getProductName());
-            ProductCard productCard = new ProductCard();
+            ProductCard productCard = new ProductCard(this);
             productCard.setProductDetails(product);
             productContainer.add(productCard);
         }
 
-        // Set the panel as the viewport view of the JScrollPane
         jScrollPane2.setViewportView(productContainer);
-
-        // Refresh the JScrollPane
         jScrollPane2.revalidate();
         jScrollPane2.repaint();
+    }
 
-        System.out.println("Product list loaded successfully.");
+    private void setupCheckoutSection() {
+        // Initialize table model with columns
+        tableModel = new DefaultTableModel(new Object[]{"Product Name", "Price", "Quantity", "Actions"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Allow editing only for the quantity column
+                return column == 2;
+            }
+        };
+
+        // Initialize table
+        checkoutTable = new JTable(tableModel) {
+            @Override
+            public Class<?> getColumnClass(int column) {
+                // Set the "Actions" column to display buttons
+                return column == 3 ? JButton.class : super.getColumnClass(column);
+            }
+        };
+        checkoutTable.setRowHeight(30);
+        checkoutTable.getColumnModel().getColumn(0).setPreferredWidth(150); // Product Name
+        checkoutTable.getColumnModel().getColumn(1).setPreferredWidth(80);  // Price
+        checkoutTable.getColumnModel().getColumn(2).setPreferredWidth(60);  // Quantity
+        checkoutTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Actions
+
+        // Add table to a scroll pane
+        JScrollPane scrollPane = new JScrollPane(checkoutTable);
+        jScrollPane1.setViewportView(scrollPane);
+
+        // Add total price label at the bottom
+        totalPriceLabel = new JLabel("Total Price: 0");
+        totalPriceLabel.setHorizontalAlignment(JLabel.RIGHT);
+        jPanel1.add(totalPriceLabel);
+    }
+
+    private void setupSearchFunctionality() {
+        SearchInput.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String query = SearchInput.getText().toLowerCase();
+                List<Product> filteredProducts = allProducts.stream()
+                        .filter(product -> product.getProductName().toLowerCase().contains(query))
+                        .collect(Collectors.toList());
+                displayProducts(filteredProducts);
+            }
+        });
+    }
+
+    public void addToCheckout(Product product) {
+        // Check if the product already exists in the table
+        boolean productExists = false;
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            if (tableModel.getValueAt(i, 0).equals(product.getProductName())) {
+                // Increment quantity
+                int currentQuantity = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
+                tableModel.setValueAt(currentQuantity + 1, i, 2);
+                productExists = true;
+                break;
+            }
+        }
+
+        if (!productExists) {
+            // Add new product to the table
+            JButton deleteButton = new JButton("Delete");
+            deleteButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Remove the row from the table
+                    for (int i = 0; i < tableModel.getRowCount(); i++) {
+                        if (tableModel.getValueAt(i, 3) == deleteButton) {
+                            tableModel.removeRow(i);
+                            updateTotalPrice();
+                            break;
+                        }
+                    }
+                }
+            });
+
+            tableModel.addRow(new Object[]{product.getProductName(), product.getPrice(), 1, deleteButton});
+        }
+
+        updateTotalPrice();
+    }
+
+    private void updateTotalPrice() {
+        totalPrice = BigDecimal.ZERO;
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            BigDecimal price = (BigDecimal) tableModel.getValueAt(i, 1);
+            int quantity = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
+            totalPrice = totalPrice.add(price.multiply(BigDecimal.valueOf(quantity)));
+        }
+        totalPriceLabel.setText("Total Price: " + totalPrice.toString());
+    }
+
+    private void setupPaymentConfirmationDialogs() {
+        jButton1.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to proceed with cash payment?",
+                    "Confirm Payment",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this, "Payment successful!");
+                clearCheckout();
+            }
+        });
+
+        jButton2.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to proceed with bank transfer?",
+                    "Confirm Payment",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this, "Payment successful!");
+                clearCheckout();
+            }
+        });
+    }
+
+    private void clearCheckout() {
+        // Clear the checkout table or container
+        tableModel.setRowCount(0); // Assuming tableModel is used for the checkout table
+        updateTotalPrice(); // Update the total price to reflect the cleared checkout
     }
 
     /**
