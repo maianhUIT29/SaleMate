@@ -12,11 +12,13 @@ import javax.swing.ImageIcon;
 
 import com.salesmate.model.Product;
 import com.salesmate.view.CashierPanel;
+import java.net.URL;
+import javax.swing.JLabel;
 
 public class ProductCard extends javax.swing.JPanel {
 
     private Product product;
-    private CashierPanel cashierPanel;
+    private final CashierPanel cashierPanel;
 
     public ProductCard(CashierPanel cashierPanel) {
         this.cashierPanel = cashierPanel;
@@ -129,21 +131,40 @@ public class ProductCard extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void setProductDetails(Product product) {
-        this.product = product;
-        jLabel2.setText(product.getProductName());
-        jLabel4.setText(String.valueOf(product.getQuantity()));
-        jLabel6.setText(product.getPrice().toString());
-        if (product.getImage() != null && !product.getImage().isEmpty()) {
+    this.product = product;
+    jLabel2.setText(product.getProductName());
+    jLabel4.setText(String.valueOf(product.getQuantity()));
+    jLabel6.setText(product.getPrice().toString());
+
+    // Load the product image if available
+    if (product.getImage() != null && !product.getImage().isEmpty()) {
+        try {
+            // Assuming product.getImage() is a valid image path in the "product" folder
+            String imagePath = "/img/product/" + product.getImage(); // Correct path to your product folder
+            URL imageUrl = getClass().getResource(imagePath); // Load the image URL
+
+            if (imageUrl != null) {
+                ImageIcon imageIcon = new ImageIcon(imageUrl); // Load the image
+                jPanel5.removeAll();
+                jPanel5.add(new JLabel(imageIcon)); // Add image to panel
+            } else {
+                // Image not found, show a default message
+                jPanel5.removeAll();
+                jPanel5.add(new JLabel("No Image Available"));
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading image: " + e.getMessage());
             jPanel5.removeAll();
-            jPanel5.add(new javax.swing.JLabel(new ImageIcon(product.getImage())));
-        } else {
-            jPanel5.removeAll();
-            jPanel5.add(new javax.swing.JLabel("No Image"));
+            jPanel5.add(new JLabel("No Image"));
         }
-        jPanel5.revalidate();
-        jPanel5.repaint();
+    } else {
+        jPanel5.removeAll();
+        jPanel5.add(new JLabel("No Image")); // Display message when no image is provided
     }
 
+    jPanel5.revalidate();
+    jPanel5.repaint();
+}
     private void addClickEvent() {
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -155,6 +176,7 @@ public class ProductCard extends javax.swing.JPanel {
         });
     }
 
+  
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
