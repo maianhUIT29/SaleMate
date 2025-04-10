@@ -24,7 +24,6 @@ public class ProductDAO {
             System.out.println("Executing query: " + query);
 
             while (rs.next()) {
-                System.out.println("Found product: " + rs.getString("product_name"));
                 Product product = new Product(
                         rs.getInt("product_id"),
                         rs.getString("product_name"),

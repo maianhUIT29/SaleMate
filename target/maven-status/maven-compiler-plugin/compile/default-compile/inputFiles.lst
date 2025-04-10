@@ -13,7 +13,6 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Salar
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Payment.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\PurchaseDetail.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierHeader.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductSelectionCard.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\UserController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\UserDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginForm.java
@@ -32,5 +31,4 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\Sessi
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\CashierPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginFaceID.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\AdminView.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\PaymentMethod.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductCard.java

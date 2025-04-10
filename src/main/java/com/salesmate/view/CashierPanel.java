@@ -1,337 +1,113 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.salesmate.view;
 
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
-import com.salesmate.component.ProductCard;
-import java.awt.GridLayout;
 import java.util.List;
-import java.math.BigDecimal;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.util.stream.Collectors;
-import javax.swing.JButton;
-import javax.swing.JTextField;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.HashMap;
-import java.util.Map;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.JScrollPane;
-import javax.swing.JOptionPane;
 
-/**
- *
- * @author Nhan
- */
 public class CashierPanel extends javax.swing.JFrame {
 
     private ProductController productController;
-    private BigDecimal totalPrice = BigDecimal.ZERO;
-    private javax.swing.JPanel checkoutContainer;
-    private javax.swing.JLabel totalPriceLabel;
-    private List<Product> allProducts; // Store all products for search functionality
-    private Map<Product, JPanel> checkoutItems; // Map to track products and their checkout panels
-    private JTable checkoutTable;
-    private DefaultTableModel tableModel;
 
-    /**
-     * Creates new form CashierPanel
-     */
     public CashierPanel() {
-        initComponents();
-        
-        // Initialize ProductController
-        productController = new ProductController();
-        
-        // Load product list into the ProductSelectionContainer
-        loadProductList();
-        setupCheckoutSection();
-        setupSearchFunctionality();
-        setupPaymentConfirmationDialogs();
-        checkoutItems = new HashMap<>();
+        initComponents();  // Đừng thay đổi mã này, vì IDE đã tự động khởi tạo các thành phần UI
+        loadProductList();  // Gọi phương thức tải sản phẩm
+        // Đảm bảo rằng ProductSelectionPanel tự động kích thước phù hợp.
+        productSelectionPanel.setPreferredSize(new java.awt.Dimension(650, 500));  // Bạn có thể điều chỉnh kích thước nếu cần
+
     }
 
     private void loadProductList() {
-        System.out.println("Loading product list...");
-
-        allProducts = productController.getAllProducts();
-        if (allProducts == null || allProducts.isEmpty()) {
-            System.out.println("No products found.");
-            return;
-        }
-
-        System.out.println("Number of products found: " + allProducts.size());
-        displayProducts(allProducts);
+        productController = new ProductController();
+        List<Product> products = productController.getAllProducts();  // Lấy sản phẩm từ controller
+        productSelectionPanel.setProducts(products);  // Truyền danh sách sản phẩm vào ProductSelectionPanel
     }
 
-    private void displayProducts(List<Product> products) {
-        javax.swing.JPanel productContainer = new javax.swing.JPanel();
-        productContainer.setLayout(new GridLayout(0, 3, 10, 10)); // 3 columns, adjustable rows
-
-        for (Product product : products) {
-            ProductCard productCard = new ProductCard(this);
-            productCard.setProductDetails(product);
-            productContainer.add(productCard);
-        }
-
-        jScrollPane2.setViewportView(productContainer);
-        jScrollPane2.revalidate();
-        jScrollPane2.repaint();
-    }
-
-    private void setupCheckoutSection() {
-        // Initialize table model with columns
-        tableModel = new DefaultTableModel(new Object[]{"Product Name", "Price", "Quantity", "Actions"}, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                // Allow editing only for the quantity column
-                return column == 2;
-            }
-        };
-
-        // Initialize table
-        checkoutTable = new JTable(tableModel) {
-            @Override
-            public Class<?> getColumnClass(int column) {
-                // Set the "Actions" column to display buttons
-                return column == 3 ? JButton.class : super.getColumnClass(column);
-            }
-        };
-        checkoutTable.setRowHeight(30);
-        checkoutTable.getColumnModel().getColumn(0).setPreferredWidth(150); // Product Name
-        checkoutTable.getColumnModel().getColumn(1).setPreferredWidth(80);  // Price
-        checkoutTable.getColumnModel().getColumn(2).setPreferredWidth(60);  // Quantity
-        checkoutTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Actions
-
-        // Add table to a scroll pane
-        JScrollPane scrollPane = new JScrollPane(checkoutTable);
-        jScrollPane1.setViewportView(scrollPane);
-
-        // Add total price label at the bottom
-        totalPriceLabel = new JLabel("Total Price: 0");
-        totalPriceLabel.setHorizontalAlignment(JLabel.RIGHT);
-        jPanel1.add(totalPriceLabel);
-    }
-
-    private void setupSearchFunctionality() {
-        SearchInput.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                String query = SearchInput.getText().toLowerCase();
-                List<Product> filteredProducts = allProducts.stream()
-                        .filter(product -> product.getProductName().toLowerCase().contains(query))
-                        .collect(Collectors.toList());
-                displayProducts(filteredProducts);
-            }
-        });
-    }
-
-    public void addToCheckout(Product product) {
-        // Check if the product already exists in the table
-        boolean productExists = false;
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            if (tableModel.getValueAt(i, 0).equals(product.getProductName())) {
-                // Increment quantity
-                int currentQuantity = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
-                tableModel.setValueAt(currentQuantity + 1, i, 2);
-                productExists = true;
-                break;
-            }
-        }
-
-        if (!productExists) {
-            // Add new product to the table
-            JButton deleteButton = new JButton("Delete");
-            deleteButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // Remove the row from the table
-                    for (int i = 0; i < tableModel.getRowCount(); i++) {
-                        if (tableModel.getValueAt(i, 3) == deleteButton) {
-                            tableModel.removeRow(i);
-                            updateTotalPrice();
-                            break;
-                        }
-                    }
-                }
-            });
-
-            tableModel.addRow(new Object[]{product.getProductName(), product.getPrice(), 1, deleteButton});
-        }
-
-        updateTotalPrice();
-    }
-
-    private void updateTotalPrice() {
-        totalPrice = BigDecimal.ZERO;
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            BigDecimal price = (BigDecimal) tableModel.getValueAt(i, 1);
-            int quantity = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
-            totalPrice = totalPrice.add(price.multiply(BigDecimal.valueOf(quantity)));
-        }
-        totalPriceLabel.setText("Total Price: " + totalPrice.toString());
-    }
-
-    private void setupPaymentConfirmationDialogs() {
-        jButton1.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    this,
-                    "Are you sure you want to proceed with cash payment?",
-                    "Confirm Payment",
-                    JOptionPane.YES_NO_OPTION
-            );
-            if (confirm == JOptionPane.YES_OPTION) {
-                JOptionPane.showMessageDialog(this, "Payment successful!");
-                clearCheckout();
-            }
-        });
-
-        jButton2.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    this,
-                    "Are you sure you want to proceed with bank transfer?",
-                    "Confirm Payment",
-                    JOptionPane.YES_NO_OPTION
-            );
-            if (confirm == JOptionPane.YES_OPTION) {
-                JOptionPane.showMessageDialog(this, "Payment successful!");
-                clearCheckout();
-            }
-        });
-    }
-
-    private void clearCheckout() {
-        // Clear the checkout table or container
-        tableModel.setRowCount(0); // Assuming tableModel is used for the checkout table
-        updateTotalPrice(); // Update the total price to reflect the cleared checkout
-    }
-
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jPanel2 = new javax.swing.JPanel();
-        CheckoutContainer = new javax.swing.JPanel();
-        CheckoutTitle = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jPanel1 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        PaymentMethodTitle = new javax.swing.JLabel();
-        ProductSelectionContainer = new javax.swing.JPanel();
-        SearchInput = new javax.swing.JTextField();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        cashierHeader1 = new com.salesmate.component.CashierHeader();
+        cashierHeader = new com.salesmate.component.CashierHeader();
+        tpCashier = new javax.swing.JTabbedPane();
+        panelSaleContainer = new javax.swing.JPanel();
+        PanelSale = new javax.swing.JPanel();
+        checkoutCashier = new com.salesmate.component.CheckoutPanel();
+        productSelectionPanel = new com.salesmate.component.ProductSelectionPanel();
+        panelAccountContainer = new javax.swing.JPanel();
+        panelSalaryContainer = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        CheckoutContainer.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        tpCashier.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        tpCashier.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        CheckoutTitle.setFont(new java.awt.Font("Segoe UI Black", 1, 14)); // NOI18N
-        CheckoutTitle.setText("THÔNG TIN HOÁ ĐƠN");
+        panelSaleContainer.setLayout(new java.awt.BorderLayout());
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        checkoutCashier.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jButton1.setText("Tiền mặt");
-
-        jButton2.setText("Chuyển khoản");
-
-        PaymentMethodTitle.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        PaymentMethodTitle.setText("Phương thức thanh toán");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton2)
-                .addGap(14, 14, 14))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addComponent(PaymentMethodTitle)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        javax.swing.GroupLayout checkoutCashierLayout = new javax.swing.GroupLayout(checkoutCashier);
+        checkoutCashier.setLayout(checkoutCashierLayout);
+        checkoutCashierLayout.setHorizontalGroup(
+            checkoutCashierLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 336, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        checkoutCashierLayout.setVerticalGroup(
+            checkoutCashierLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout PanelSaleLayout = new javax.swing.GroupLayout(PanelSale);
+        PanelSale.setLayout(PanelSaleLayout);
+        PanelSaleLayout.setHorizontalGroup(
+            PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PanelSaleLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(PaymentMethodTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 601, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
-                    .addComponent(jButton1))
+                .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        PanelSaleLayout.setVerticalGroup(
+            PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelSaleLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 473, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
-        javax.swing.GroupLayout CheckoutContainerLayout = new javax.swing.GroupLayout(CheckoutContainer);
-        CheckoutContainer.setLayout(CheckoutContainerLayout);
-        CheckoutContainerLayout.setHorizontalGroup(
-            CheckoutContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(CheckoutContainerLayout.createSequentialGroup()
-                .addGap(33, 33, 33)
-                .addComponent(CheckoutTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(34, 34, 34))
-            .addGroup(CheckoutContainerLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addGroup(CheckoutContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(25, 25, 25))
+        panelSaleContainer.add(PanelSale, java.awt.BorderLayout.CENTER);
+
+        tpCashier.addTab("Bán hàng", panelSaleContainer);
+
+        javax.swing.GroupLayout panelAccountContainerLayout = new javax.swing.GroupLayout(panelAccountContainer);
+        panelAccountContainer.setLayout(panelAccountContainerLayout);
+        panelAccountContainerLayout.setHorizontalGroup(
+            panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 957, Short.MAX_VALUE)
         );
-        CheckoutContainerLayout.setVerticalGroup(
-            CheckoutContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(CheckoutContainerLayout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(CheckoutTitle)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(26, 26, 26))
+        panelAccountContainerLayout.setVerticalGroup(
+            panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 485, Short.MAX_VALUE)
         );
 
-        ProductSelectionContainer.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        tpCashier.addTab("Tài khoản", panelAccountContainer);
 
-        SearchInput.setText("Nhập tên sản phẩm cần tìm");
+        panelSalaryContainer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
-        javax.swing.GroupLayout ProductSelectionContainerLayout = new javax.swing.GroupLayout(ProductSelectionContainer);
-        ProductSelectionContainer.setLayout(ProductSelectionContainerLayout);
-        ProductSelectionContainerLayout.setHorizontalGroup(
-            ProductSelectionContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(ProductSelectionContainerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(ProductSelectionContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(ProductSelectionContainerLayout.createSequentialGroup()
-                        .addComponent(jScrollPane2)
-                        .addContainerGap())
-                    .addGroup(ProductSelectionContainerLayout.createSequentialGroup()
-                        .addComponent(SearchInput, javax.swing.GroupLayout.DEFAULT_SIZE, 462, Short.MAX_VALUE)
-                        .addGap(199, 199, 199))))
+        javax.swing.GroupLayout panelSalaryContainerLayout = new javax.swing.GroupLayout(panelSalaryContainer);
+        panelSalaryContainer.setLayout(panelSalaryContainerLayout);
+        panelSalaryContainerLayout.setHorizontalGroup(
+            panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 955, Short.MAX_VALUE)
         );
-        ProductSelectionContainerLayout.setVerticalGroup(
-            ProductSelectionContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(ProductSelectionContainerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(SearchInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2)
-                .addContainerGap())
+        panelSalaryContainerLayout.setVerticalGroup(
+            panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 483, Short.MAX_VALUE)
         );
+
+        tpCashier.addTab("Lương", panelSalaryContainer);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -340,77 +116,51 @@ public class CashierPanel extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cashierHeader1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(ProductSelectionContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(CheckoutContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(cashierHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tpCashier))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cashierHeader1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(16, 16, 16)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(ProductSelectionContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(CheckoutContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(15, 15, 15))
+                .addComponent(cashierHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tpCashier))
         );
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
 
-        setBounds(0, 0, 985, 620);
+        setBounds(0, 0, 985, 598);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(CashierPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(CashierPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(CashierPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(CashierPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new CashierPanel().setVisible(true);
-            }
-        });
+        java.awt.EventQueue.invokeLater(new RunnableImpl());
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel CheckoutContainer;
-    private javax.swing.JLabel CheckoutTitle;
-    private javax.swing.JLabel PaymentMethodTitle;
-    private javax.swing.JPanel ProductSelectionContainer;
-    private javax.swing.JTextField SearchInput;
-    private com.salesmate.component.CashierHeader cashierHeader1;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel PanelSale;
+    private com.salesmate.component.CashierHeader cashierHeader;
+    private com.salesmate.component.CheckoutPanel checkoutCashier;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JPanel panelAccountContainer;
+    private javax.swing.JPanel panelSalaryContainer;
+    private javax.swing.JPanel panelSaleContainer;
+    private com.salesmate.component.ProductSelectionPanel productSelectionPanel;
+    private javax.swing.JTabbedPane tpCashier;
     // End of variables declaration//GEN-END:variables
+
+    private static class RunnableImpl implements Runnable {
+
+        public RunnableImpl() {
+        }
+
+        @Override
+        public void run() {
+            new CashierPanel().setVisible(true);
+        }
+    }
 }

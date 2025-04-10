@@ -54,9 +54,9 @@
               <Component id="lblSearch" min="-2" pref="20" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
               <Component id="txtSearch" pref="147" max="32767" attributes="0"/>
-              <EmptySpace min="-2" pref="202" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="213" max="-2" attributes="0"/>
               <Component id="lblHeaderTitle" pref="180" max="32767" attributes="0"/>
-              <EmptySpace min="-2" pref="253" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="242" max="-2" attributes="0"/>
               <Component id="lblAvatar" min="-2" pref="45" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="65" max="-2" attributes="0"/>
           </Group>
@@ -72,12 +72,12 @@
           <Group type="102" attributes="0">
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="lblHeaderTitle" alignment="3" max="32767" attributes="0"/>
                   <Component id="txtSearch" alignment="3" max="32767" attributes="0"/>
                   <Component id="lblAvatar" alignment="3" pref="45" max="32767" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
           </Group>
+          <Component id="lblHeaderTitle" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
