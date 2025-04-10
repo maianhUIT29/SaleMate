@@ -48,6 +48,7 @@ com\salesmate\model\Report.class
 com\salesmate\configs\MailSender.class
 com\salesmate\view\AdminView$1.class
 com\salesmate\view\ForgotPasswordForm$1.class
+com\salesmate\component\ProductCard$1.class
 com\salesmate\view\LoginForm$GradientPanel.class
 com\salesmate\dao\InvoiceDAO.class
 com\salesmate\view\LoginForm$1.class

@@ -1,6 +1,7 @@
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\DetailDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\ForgotPasswordForm.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\MailSender.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\DetailController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\OpenCVConfig.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Stock.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Product.java
@@ -11,6 +12,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Detai
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Supplier.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Salary.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Payment.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\InvoiceController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\PurchaseDetail.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierHeader.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\UserController.java

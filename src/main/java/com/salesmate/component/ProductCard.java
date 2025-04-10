@@ -41,22 +41,20 @@ public class ProductCard extends javax.swing.JPanel {
         setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         setLayout(new java.awt.BorderLayout());
 
-        panelImageContainer.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
         javax.swing.GroupLayout panelImageContainerLayout = new javax.swing.GroupLayout(panelImageContainer);
         panelImageContainer.setLayout(panelImageContainerLayout);
         panelImageContainerLayout.setHorizontalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelImageContainerLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)
+                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)
                 .addContainerGap())
         );
         panelImageContainerLayout.setVerticalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelImageContainerLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)
+                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -196,7 +194,40 @@ public class ProductCard extends javax.swing.JPanel {
         }
 
         panelImageContainer.revalidate();  // Cập nhật lại UI của panel
-        panelImageContainer.repaint();     // Vẽ lại các thay đổi trên giao diện
+        panelImageContainer.repaint(); // Vẽ lại các thay đổi trên giao diện
+    }
+
+    public void enhanceUI() {
+        // Thay đổi màu nền của ProductCardContainer và các thành phần khác
+        setBackground(new java.awt.Color(245, 245, 245));  // Màu nền xám nhạt cho card
+
+        // Thay đổi màu viền của card
+        setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 2));  // Viền mỏng và nhẹ nhàng
+
+        // Thay đổi màu nền cho panel chứa hình ảnh
+        panelImageContainer.setBackground(new java.awt.Color(240, 240, 240));  // Màu nền nhẹ cho panel hình ảnh
+
+        // Thay đổi màu chữ cho các thông tin sản phẩm
+        lblProductNameValue.setForeground(new java.awt.Color(40, 40, 40));  // Màu chữ đậm, dễ đọc
+        lblProductQuantityKey.setForeground(new java.awt.Color(100, 100, 100));  // Màu chữ xám cho các label
+        lblProductPriceKey.setForeground(new java.awt.Color(100, 100, 100));  // Màu chữ xám cho các label
+        lblProductQuantityValue.setForeground(new java.awt.Color(80, 80, 80));  // Màu chữ cho giá trị
+        lblProductPriceValue.setForeground(new java.awt.Color(80, 80, 80));  // Màu chữ cho giá trị
+
+        // Thêm hiệu ứng hover cho card (di chuột qua card sẽ thay đổi màu nền)
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                setBackground(new java.awt.Color(230, 230, 230));  // Màu nền khi hover
+                setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(150, 150, 150), 2));  // Đổi màu viền khi hover
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                setBackground(new java.awt.Color(245, 245, 245));  // Màu nền trở lại khi không hover
+                setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 2));  // Viền trở lại màu cũ
+            }
+        });
     }
 
 

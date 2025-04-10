@@ -61,6 +61,38 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         this.revalidate();
         this.repaint();
         System.out.println("Danh sach san pham da duoc hien thi.");
+        enhanceUI();
+    }
+
+    public void enhanceUI() {
+        setBackground(new java.awt.Color(245, 245, 245));  // Đặt màu nền dịu mắt cho panel chính
+        setLayout(new java.awt.BorderLayout());  // Đảm bảo không gian hợp lý giữa các phần tử
+
+        // Cải thiện các hiệu ứng cuộn và các thành phần khác
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Cải thiện cuộn dọc
+
+        // Tạo khoảng cách hợp lý giữa các sản phẩm và các thành phần trong container
+        JPanel productContainer = new JPanel();
+        int columns = 3;
+        int rows = (int) Math.ceil(products.size() / (double) columns);
+        productContainer.setLayout(new GridLayout(rows, columns, 20, 20));  // Tăng khoảng cách giữa các sản phẩm
+
+        // Duyệt qua tất cả sản phẩm và thêm vào panel
+        for (Product product : products) {
+            ProductCard productCard = new ProductCard();
+            productCard.setProductDetails(product);
+            productCard.setPreferredSize(new java.awt.Dimension(220, 260));  // Giảm kích thước ProductCard
+            productCard.enhanceUI();  // Thêm hiệu ứng và cải tiến UI cho ProductCard
+            productContainer.add(productCard);
+        }
+
+        // Thêm container vào JScrollPane để đảm bảo cuộn dọc
+        scrollPane.setViewportView(productContainer);
+
+        this.add(scrollPane, java.awt.BorderLayout.CENTER);  // Thêm JScrollPane vào panel chính
+        this.revalidate();
+        this.repaint();
     }
 
     @SuppressWarnings("unchecked")

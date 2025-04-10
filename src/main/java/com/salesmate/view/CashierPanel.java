@@ -12,7 +12,7 @@ public class CashierPanel extends javax.swing.JFrame {
         initComponents();  // Đừng thay đổi mã này, vì IDE đã tự động khởi tạo các thành phần UI
         loadProductList();  // Gọi phương thức tải sản phẩm
         // Đảm bảo rằng ProductSelectionPanel tự động kích thước phù hợp.
-        productSelectionPanel.setPreferredSize(new java.awt.Dimension(650, 500));  // Bạn có thể điều chỉnh kích thước nếu cần
+        productSelectionPanel.setPreferredSize(new java.awt.Dimension(750, 500));  // Bạn có thể điều chỉnh kích thước nếu cần
 
     }
 
@@ -49,7 +49,7 @@ public class CashierPanel extends javax.swing.JFrame {
         checkoutCashier.setLayout(checkoutCashierLayout);
         checkoutCashierLayout.setHorizontalGroup(
             checkoutCashierLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 336, Short.MAX_VALUE)
+            .addGap(0, 304, Short.MAX_VALUE)
         );
         checkoutCashierLayout.setVerticalGroup(
             checkoutCashierLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -61,20 +61,20 @@ public class CashierPanel extends javax.swing.JFrame {
         PanelSaleLayout.setHorizontalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 601, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(17, 17, 17)
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(16, 16, 16))
         );
         PanelSaleLayout.setVerticalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelSaleLayout.createSequentialGroup()
-                .addContainerGap()
+            .addGroup(PanelSaleLayout.createSequentialGroup()
+                .addGap(16, 16, 16)
                 .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 473, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 453, Short.MAX_VALUE)
+                    .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(16, 16, 16))
         );
 
         panelSaleContainer.add(PanelSale, java.awt.BorderLayout.CENTER);
