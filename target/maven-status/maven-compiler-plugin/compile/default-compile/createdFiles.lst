@@ -1,3 +1,4 @@
+com\salesmate\component\CashierAccount.class
 com\salesmate\model\Salary.class
 com\salesmate\view\AdminView$7.class
 com\salesmate\model\Stock.class
@@ -31,6 +32,7 @@ com\salesmate\view\AdminView$2.class
 com\salesmate\component\CashierHeader$5.class
 com\salesmate\model\Promotion.class
 com\salesmate\view\LoginFaceID$2.class
+com\salesmate\component\CheckoutPanel$1.class
 com\salesmate\model\Product.class
 com\salesmate\view\ForgotPasswordForm$1$1.class
 com\salesmate\view\LoginForm$5.class
