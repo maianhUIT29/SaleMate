@@ -2,6 +2,7 @@ package com.salesmate.view;
 
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
+import com.salesmate.component.CashierAccount;
 import java.util.List;
 import javax.swing.JFrame;
 
@@ -30,17 +31,21 @@ public class CashierPanel extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        cashierAccount1 = new com.salesmate.component.CashierAccount();
+        cashierAccount2 = new com.salesmate.component.CashierAccount();
         jPanel2 = new javax.swing.JPanel();
         cashierHeader = new com.salesmate.component.CashierHeader();
         tpCashier = new javax.swing.JTabbedPane();
         panelSaleContainer = new javax.swing.JPanel();
         PanelSale = new javax.swing.JPanel();
-        checkoutCashier = new com.salesmate.component.CheckoutPanel();
         productSelectionPanel = new com.salesmate.component.ProductSelectionPanel();
+        checkoutPanel2 = new com.salesmate.component.CheckoutPanel();
         panelAccountContainer = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         panelSalaryContainer = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
+        cashierAccount3 = new com.salesmate.component.CashierAccount();
+        jPanel4 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(204, 255, 255));
@@ -50,19 +55,6 @@ public class CashierPanel extends javax.swing.JFrame {
 
         panelSaleContainer.setLayout(new java.awt.BorderLayout());
 
-        checkoutCashier.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        javax.swing.GroupLayout checkoutCashierLayout = new javax.swing.GroupLayout(checkoutCashier);
-        checkoutCashier.setLayout(checkoutCashierLayout);
-        checkoutCashierLayout.setHorizontalGroup(
-            checkoutCashierLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 260, Short.MAX_VALUE)
-        );
-        checkoutCashierLayout.setVerticalGroup(
-            checkoutCashierLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-
         productSelectionPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         javax.swing.GroupLayout PanelSaleLayout = new javax.swing.GroupLayout(PanelSale);
@@ -70,19 +62,19 @@ public class CashierPanel extends javax.swing.JFrame {
         PanelSaleLayout.setHorizontalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(16, 16, 16))
+                .addGap(16, 16, 16)
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 556, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+                .addGap(12, 12, 12))
         );
         PanelSaleLayout.setVerticalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
                 .addGap(16, 16, 16)
                 .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 453, Short.MAX_VALUE)
-                    .addComponent(checkoutCashier, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
+                    .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(16, 16, 16))
         );
 
@@ -96,11 +88,11 @@ public class CashierPanel extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 905, Short.MAX_VALUE)
+            .addGap(0, 996, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 485, Short.MAX_VALUE)
+            .addGap(0, 538, Short.MAX_VALUE)
         );
 
         panelAccountContainer.add(jPanel1, java.awt.BorderLayout.CENTER);
@@ -113,11 +105,11 @@ public class CashierPanel extends javax.swing.JFrame {
         panelSalaryContainer.setLayout(panelSalaryContainerLayout);
         panelSalaryContainerLayout.setHorizontalGroup(
             panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 903, Short.MAX_VALUE)
+            .addGap(0, 994, Short.MAX_VALUE)
         );
         panelSalaryContainerLayout.setVerticalGroup(
             panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 483, Short.MAX_VALUE)
+            .addGap(0, 536, Short.MAX_VALUE)
         );
 
         tpCashier.addTab("Lương", panelSalaryContainer);
@@ -126,14 +118,33 @@ public class CashierPanel extends javax.swing.JFrame {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 905, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(20, Short.MAX_VALUE)
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 956, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 485, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 512, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tpCashier.addTab("Tài Khoản", jPanel3);
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 996, Short.MAX_VALUE)
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 538, Short.MAX_VALUE)
+        );
+
+        tpCashier.addTab("tab5", jPanel4);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -142,12 +153,9 @@ public class CashierPanel extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(cashierHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(tpCashier)
-                        .addGap(58, 58, 58))))
+                    .addComponent(tpCashier)
+                    .addComponent(cashierHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -155,12 +163,12 @@ public class CashierPanel extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(cashierHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tpCashier))
+                .addComponent(tpCashier, javax.swing.GroupLayout.DEFAULT_SIZE, 575, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
 
-        setBounds(0, 0, 985, 598);
+        setBounds(0, 0, 985, 589);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
@@ -172,11 +180,15 @@ public class CashierPanel extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel PanelSale;
+    private com.salesmate.component.CashierAccount cashierAccount1;
+    private com.salesmate.component.CashierAccount cashierAccount2;
+    private com.salesmate.component.CashierAccount cashierAccount3;
     private com.salesmate.component.CashierHeader cashierHeader;
-    private com.salesmate.component.CheckoutPanel checkoutCashier;
+    private com.salesmate.component.CheckoutPanel checkoutPanel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel panelAccountContainer;
     private javax.swing.JPanel panelSalaryContainer;
     private javax.swing.JPanel panelSaleContainer;
