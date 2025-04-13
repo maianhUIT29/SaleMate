@@ -1,10 +1,11 @@
 package com.salesmate.view;
 
+import java.util.List;
+
+import javax.swing.JFrame;
+
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
-import com.salesmate.component.CashierAccount;
-import java.util.List;
-import javax.swing.JFrame;
 
 public class CashierPanel extends javax.swing.JFrame {
 
@@ -19,6 +20,8 @@ public class CashierPanel extends javax.swing.JFrame {
         // Mở cửa sổ ở chế độ toàn màn hình
         setExtendedState(JFrame.MAXIMIZED_BOTH);  // Mở cửa sổ ở chế độ tối đa (full screen)
         setUndecorated(false); // Giữ thanh tiêu đề của cửa sổ
+
+        productSelectionPanel.setCheckoutPanel(checkoutPanel2); // Link panels
     }
 
     private void loadProductList() {

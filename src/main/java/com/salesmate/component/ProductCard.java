@@ -1,19 +1,38 @@
 package com.salesmate.component;
 
+import java.awt.Image;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import com.salesmate.model.Product;
-import java.awt.Image;
 
 public class ProductCard extends javax.swing.JPanel {
 
     private Product product;
 
+    public interface ProductCardListener {
+        void onProductSelected(Product product);
+    }
+
+    private ProductCardListener listener;
+
+    public void setProductCardListener(ProductCardListener listener) {
+        this.listener = listener;
+    }
+
     public ProductCard() {
         initComponents();
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (listener != null && product != null) {
+                    System.out.println("Product clicked: " + product.getProductName()); // Debugging
+                    listener.onProductSelected(product);
+                }
+            }
+        });
     }
 
     public Product getProduct() {

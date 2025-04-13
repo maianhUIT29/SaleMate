@@ -1,20 +1,80 @@
-
 package com.salesmate.component;
 
 import com.salesmate.model.Product;
 
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CheckoutPanel extends javax.swing.JPanel {
     
-   private List<Product> products;
-   private double totalPrice;
-    
+    private List<Product> products;
+    private double totalPrice;
+    private Map<Integer, Product> checkoutProducts = new HashMap<>();
+    private DefaultTableModel tableModel;
+
     public CheckoutPanel() {
         initComponents();
+        tableModel = (DefaultTableModel) tblProduct.getModel();
+        tblProduct.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    int selectedRow = tblProduct.getSelectedRow();
+                    if (selectedRow != -1) {
+                        int productId = (int) tableModel.getValueAt(selectedRow, 0);
+                        checkoutProducts.remove(productId);
+                        tableModel.removeRow(selectedRow);
+                        updateTotal();
+                    }
+                }
+            }
+        });
     }
 
-    
+    public void addProductToCheckout(Product product) {
+        if (checkoutProducts.containsKey(product.getProductId())) {
+            Product existingProduct = checkoutProducts.get(product.getProductId());
+            existingProduct.setQuantity(existingProduct.getQuantity() + 1);
+        } else {
+            checkoutProducts.put(product.getProductId(), new Product(
+                product.getProductId(),
+                product.getProductName(),
+                product.getPrice(),
+                1, // Initial quantity
+                product.getBarcode(),
+                product.getImage()
+            ));
+        }
+        refreshCheckoutTable();
+        updateTotal();
+    }
+
+    private void refreshCheckoutTable() {
+        tableModel.setRowCount(0); // Clear existing rows
+        for (Product product : checkoutProducts.values()) {
+            tableModel.addRow(new Object[]{
+                product.getProductName(), // Correct column: Product Name
+                product.getPrice(),       // Correct column: Price
+                product.getQuantity(),    // Correct column: Quantity
+                product.getPrice().multiply(new java.math.BigDecimal(product.getQuantity())) // Correct column: Total
+            });
+        }
+        tblProduct.revalidate();
+        tblProduct.repaint();
+    }
+
+    private void updateTotal() {
+        totalPrice = checkoutProducts.values().stream()
+            .map(product -> product.getPrice().multiply(new java.math.BigDecimal(product.getQuantity())))
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
+            .doubleValue();
+        lblTotalValue.setText(String.format("%.2f VND", totalPrice));
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -53,14 +113,9 @@ public class CheckoutPanel extends javax.swing.JPanel {
         tblProduct.setAutoCreateRowSorter(true);
         tblProduct.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         tblProduct.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Tên sản phẩm", "Giá", "Số Lượng", "Thành tiền"
+            new Object[][]{},
+            new String[]{
+                "Tên sản phẩm", "Giá", "Số Lượng", "Thành tiền" // Correct column headers
             }
         ));
         tblProduct.setToolTipText("");

@@ -26,9 +26,11 @@ com\salesmate\view\LoginFaceID$1.class
 com\salesmate\component\ProductSelectionPanel.class
 com\salesmate\controller\ProductController.class
 com\salesmate\controller\InvoiceController.class
+com\salesmate\component\CheckoutPanel$2.class
 com\salesmate\view\AdminView$1.class
 com\salesmate\view\LoginForm$GradientPanel.class
 com\salesmate\view\LoginForm$1.class
+com\salesmate\component\ProductCard$ProductCardListener.class
 com\salesmate\view\ForgotPasswordForm$4.class
 com\salesmate\component\ProductCard.class
 com\salesmate\dao\DetailDAO.class
@@ -37,6 +39,7 @@ com\salesmate\component\CashierAccount$6.class
 com\salesmate\view\AdminView$7.class
 com\salesmate\component\CashierAccount$3.class
 com\salesmate\component\CashierHeader$2.class
+com\salesmate\component\ProductCard$2.class
 com\salesmate\view\LoginForm$3.class
 com\salesmate\dao\ProductDAO.class
 com\salesmate\utils\SessionManager.class
