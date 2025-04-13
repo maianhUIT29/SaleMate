@@ -22,6 +22,25 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Cursor;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GradientPaint;
+import java.awt.RenderingHints;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JPasswordField;
+import javax.swing.JPanel;
+import javax.swing.JDialog;
 
 /**
  *
@@ -34,12 +53,24 @@ public class CashierAccount extends javax.swing.JPanel {
     private String selectedAvatarPath = null;
     private int avatarSize = 250; // Default avatar size updated to 250x250
 
+    private static final Color PRIMARY_COLOR = new Color(52, 152, 219);  // Professional blue
+    private static final Color SECONDARY_COLOR = new Color(236, 240, 241);  // Light gray background
+    private static final Color SUCCESS_COLOR = new Color(46, 204, 113);  // Green
+    private static final Color DANGER_COLOR = new Color(231, 76, 60);    // Red
+    private static final Color TEXT_COLOR = new Color(44, 62, 80);       // Dark text
+    private static final Font HEADER_FONT = new Font("Segoe UI", Font.BOLD, 24);
+    private static final Font LABEL_FONT = new Font("Segoe UI", Font.BOLD, 14);
+    private static final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
+
     /**
      * Creates new form CashierAccount
      */
     public CashierAccount() {
         initComponents();
         userController = new UserController();
+
+        // Load user data after initialization
+        loadUserData(); // Load user data right after initialization
 
         // Add a ComponentListener to ensure the avatar is resized after rendering
         lblAvatar.addComponentListener(new ComponentAdapter() {
@@ -62,6 +93,9 @@ public class CashierAccount extends javax.swing.JPanel {
                 resizeAvatar(); // Ensure the avatar is resized dynamically
             }
         });
+
+        // Add action listener for password reset button
+        btnResetPW.addActionListener(e -> showPasswordChangeDialog());
     }
 
     /**
@@ -116,7 +150,7 @@ public class CashierAccount extends javax.swing.JPanel {
 
         AccountPanel.setBackground(new java.awt.Color(220, 240, 242));
 
-        UserInfoPanel.setBackground(new java.awt.Color(23, 162, 184));
+        UserInfoPanel.setBackground(new java.awt.Color(255, 255, 255));
         UserInfoPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         lblUsername.setBackground(new java.awt.Color(241, 241, 241));
@@ -149,7 +183,7 @@ public class CashierAccount extends javax.swing.JPanel {
         lblPW.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
         lblPW.setText("Mật khẩu");
 
-        btnUpdate.setBackground(new java.awt.Color(255, 193, 7));
+        btnUpdate.setBackground(new java.awt.Color(51, 153, 255));
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Cập nhật");
 
@@ -157,14 +191,10 @@ public class CashierAccount extends javax.swing.JPanel {
         btnSave.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnSave.setForeground(new java.awt.Color(255, 255, 255));
         btnSave.setText("Lưu");
-        btnSave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveActionPerformed(evt);
-            }
-        });
 
+        lblUserHeader.setBackground(new java.awt.Color(51, 204, 255));
         lblUserHeader.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblUserHeader.setForeground(new java.awt.Color(255, 255, 255));
+        lblUserHeader.setForeground(new java.awt.Color(51, 204, 255));
         lblUserHeader.setText("THÔNG TIN TÀI KHOẢN");
 
         lblDOB.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
@@ -183,15 +213,10 @@ public class CashierAccount extends javax.swing.JPanel {
 
         txtPW.setText("jPasswordField1");
 
-        btnResetPW.setBackground(new java.awt.Color(102, 0, 51));
+        btnResetPW.setBackground(new java.awt.Color(255, 0, 51));
         btnResetPW.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnResetPW.setForeground(new java.awt.Color(255, 255, 255));
         btnResetPW.setText("Đổi mật khẩu");
-        btnResetPW.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnResetPWActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout UserInfoPanelLayout = new javax.swing.GroupLayout(UserInfoPanel);
         UserInfoPanel.setLayout(UserInfoPanelLayout);
@@ -292,11 +317,6 @@ public class CashierAccount extends javax.swing.JPanel {
         btnUpdateAvatar.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         btnUpdateAvatar.setForeground(new java.awt.Color(255, 255, 255));
         btnUpdateAvatar.setText("Đổi ảnh đại diện");
-        btnUpdateAvatar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUpdateAvatarActionPerformed(evt);
-            }
-        });
 
         lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblAvatar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/avt/N (2).jpg"))); // NOI18N
@@ -383,124 +403,13 @@ public class CashierAccount extends javax.swing.JPanel {
     }
 
     private void btnResetPWActionPerformed(java.awt.event.ActionEvent evt) {
-        javax.swing.JDialog changePasswordDialog = new javax.swing.JDialog();
-        changePasswordDialog.setTitle("Change Password");
-        changePasswordDialog.setModal(true);
-        changePasswordDialog.setSize(500, 350); // Increased size for better spacing
-        changePasswordDialog.setLocationRelativeTo(this);
-
-        javax.swing.JPanel panel = new javax.swing.JPanel();
-        panel.setLayout(new java.awt.GridBagLayout());
-        panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add padding
-
-        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
-        gbc.insets = new java.awt.Insets(10, 10, 10, 10); // Add spacing between components
-        gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
-
-        javax.swing.JLabel lblOldPassword = new javax.swing.JLabel("Mật khẩu cũ:");
-        lblOldPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        javax.swing.JPasswordField txtOldPassword = new javax.swing.JPasswordField(40); // Longer input field
-        txtOldPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 16)); // Larger font
-
-        javax.swing.JLabel lblNewPassword = new javax.swing.JLabel("Mật khẩu mới:");
-        lblNewPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        javax.swing.JPasswordField txtNewPassword = new javax.swing.JPasswordField(40); // Longer input field
-        txtNewPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 16)); // Larger font
-
-        javax.swing.JLabel lblConfirmPassword = new javax.swing.JLabel("Xác nhận mật khẩu:");
-        lblConfirmPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        javax.swing.JPasswordField txtConfirmPassword = new javax.swing.JPasswordField(40); // Longer input field
-        txtConfirmPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 16)); // Larger font
-
-        javax.swing.JButton btnSubmit = new javax.swing.JButton("Đổi mật khẩu");
-        btnSubmit.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        btnSubmit.setBackground(new java.awt.Color(40, 167, 69)); // Green color
-        btnSubmit.setForeground(java.awt.Color.WHITE);
-
-        javax.swing.JButton btnCancel = new javax.swing.JButton("Huỷ");
-        btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        btnCancel.setBackground(new java.awt.Color(220, 53, 69)); // Red color
-        btnCancel.setForeground(java.awt.Color.WHITE);
-
-        // Add components to the panel
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(lblOldPassword, gbc);
-
-        gbc.gridx = 1;
-        panel.add(txtOldPassword, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(lblNewPassword, gbc);
-
-        gbc.gridx = 1;
-        panel.add(txtNewPassword, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(lblConfirmPassword, gbc);
-
-        gbc.gridx = 1;
-        panel.add(txtConfirmPassword, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.anchor = java.awt.GridBagConstraints.CENTER;
-
-        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
-        buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 20, 0)); // Increased spacing between buttons
-        buttonPanel.add(btnSubmit);
-        buttonPanel.add(btnCancel);
-
-        panel.add(buttonPanel, gbc);
-
-        changePasswordDialog.add(panel);
-
-        // Add action listeners
-        btnSubmit.addActionListener(e -> {
-            String oldPassword = new String(txtOldPassword.getPassword());
-            String newPassword = new String(txtNewPassword.getPassword());
-            String confirmPassword = new String(txtConfirmPassword.getPassword());
-
-            User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-            if (loggedInUser == null) {
-                JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            String currentPassword = loggedInUser.getPassword();
-            if (currentPassword == null || !currentPassword.equals(oldPassword)) {
-                JOptionPane.showMessageDialog(this, "Old password is incorrect.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (!newPassword.equals(confirmPassword)) {
-                JOptionPane.showMessageDialog(this, "New password and confirmation do not match.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            loggedInUser.setPassword(newPassword);
-            boolean isUpdated = userController.updateUser(loggedInUser);
-            if (isUpdated) {
-                JOptionPane.showMessageDialog(this, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                changePasswordDialog.dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update password.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        btnCancel.addActionListener(e -> changePasswordDialog.dispose());
-
-        changePasswordDialog.setVisible(true);
+        showPasswordChangeDialog();
     }
 
     private void resizeAvatar() {
         if (lblAvatar.getWidth() > 0 && lblAvatar.getHeight() > 0) {
             ImageIcon originalIcon = null;
 
-            // Check if a new avatar is selected
             if (selectedAvatarPath != null) {
                 originalIcon = new ImageIcon(selectedAvatarPath);
             } else {
@@ -511,7 +420,6 @@ public class CashierAccount extends javax.swing.JPanel {
             }
 
             if (originalIcon != null) {
-                // Resize the avatar to the current avatarSize
                 Image resizedImage = originalIcon.getImage().getScaledInstance(avatarSize, avatarSize, Image.SCALE_SMOOTH);
                 lblAvatar.setIcon(new ImageIcon(resizedImage));
             }
@@ -527,7 +435,18 @@ public class CashierAccount extends javax.swing.JPanel {
             txtCCCD.setText(loggedInUser.getStatus());
             lblStatusValue.setText(loggedInUser.getStatus());
             lblCreateAtValue.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
-            resizeAvatar(); // Ensure the avatar is resized when loading user data
+            
+            // Load avatar
+            if (loggedInUser.getAvatar() != null) {
+                try {
+                    ImageIcon originalIcon = new ImageIcon(getClass().getResource("/img/avt/" + loggedInUser.getAvatar()));
+                    Image resizedImage = originalIcon.getImage().getScaledInstance(avatarSize, avatarSize, Image.SCALE_SMOOTH);
+                    lblAvatar.setIcon(new ImageIcon(resizedImage));
+                } catch (Exception e) {
+                    System.err.println("Error loading avatar: " + e.getMessage());
+                    lblAvatar.setIcon(new ImageIcon(getClass().getResource("/img/avt/default.jpg")));
+                }
+            }
         } else {
             JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -540,7 +459,7 @@ public class CashierAccount extends javax.swing.JPanel {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             selectedAvatarPath = selectedFile.getAbsolutePath();
-            resizeAvatar(); // Resize the avatar after selecting a new image
+            resizeAvatar();
         }
     }
 
@@ -572,6 +491,172 @@ public class CashierAccount extends javax.swing.JPanel {
         } else {
             JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void styleButton(JButton button, Color baseColor) {
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(baseColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(baseColor);
+            }
+        });
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+    }
+
+    private JButton createStyledButton(String text, Color baseColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(baseColor);
+        button.setForeground(Color.WHITE);
+        styleButton(button, baseColor);
+        return button;
+    }
+
+    private JDialog createStyledDialog(String title, int width, int height) {
+        JDialog dialog = new JDialog();
+        dialog.setTitle(title);
+        dialog.setModal(true);
+        dialog.setSize(width, height);
+        dialog.setLocationRelativeTo(this);
+        dialog.getRootPane().setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        return dialog;
+    }
+
+    private void showPasswordChangeDialog() {
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Đổi mật khẩu");
+        dialog.setModal(true);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(
+                    0, 0, new Color(240, 248, 255),
+                    0, h, Color.WHITE
+                );
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        mainPanel.setLayout(new GridBagLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Create password fields
+        JLabel lblOldPass = new JLabel("Mật khẩu cũ:");
+        JPasswordField txtOldPass = new JPasswordField();
+        JLabel lblNewPass = new JLabel("Mật khẩu mới:");
+        JPasswordField txtNewPass = new JPasswordField();
+        JLabel lblConfirmPass = new JLabel("Xác nhận mật khẩu:");
+        JPasswordField txtConfirmPass = new JPasswordField();
+
+        // Style components
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 14);
+        Font fieldFont = new Font("Segoe UI", Font.PLAIN, 14);
+        Color textColor = new Color(51, 51, 51);
+
+        for (JLabel lbl : new JLabel[]{lblOldPass, lblNewPass, lblConfirmPass}) {
+            lbl.setFont(labelFont);
+            lbl.setForeground(textColor);
+        }
+
+        for (JPasswordField field : new JPasswordField[]{txtOldPass, txtNewPass, txtConfirmPass}) {
+            field.setFont(fieldFont);
+            field.setPreferredSize(new Dimension(200, 35));
+        }
+
+        // Add components to panel
+        gbc.gridx = 0; gbc.gridy = 0;
+        mainPanel.add(lblOldPass, gbc);
+        
+        gbc.gridx = 1;
+        mainPanel.add(txtOldPass, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 1;
+        mainPanel.add(lblNewPass, gbc);
+        
+        gbc.gridx = 1;
+        mainPanel.add(txtNewPass, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 2;
+        mainPanel.add(lblConfirmPass, gbc);
+        
+        gbc.gridx = 1;
+        mainPanel.add(txtConfirmPass, gbc);
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+
+        // Style buttons
+        JButton btnChange = new JButton("Đổi mật khẩu");
+        btnChange.setBackground(new Color(40, 167, 69));
+        btnChange.setForeground(Color.WHITE);
+        btnChange.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnChange.setFocusPainted(false);
+        btnChange.setBorderPainted(false);
+        btnChange.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JButton btnCancel = new JButton("Huỷ");
+        btnCancel.setBackground(new Color(220, 53, 69));
+        btnCancel.setForeground(Color.WHITE);
+        btnCancel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnCancel.setFocusPainted(false);
+        btnCancel.setBorderPainted(false);
+        btnCancel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        buttonPanel.add(btnChange);
+        buttonPanel.add(btnCancel);
+
+        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 10, 10, 10);
+        mainPanel.add(buttonPanel, gbc);
+
+        // Add button actions
+        btnChange.addActionListener(e -> {
+            String oldPass = new String(txtOldPass.getPassword());
+            String newPass = new String(txtNewPass.getPassword());
+            String confirmPass = new String(txtConfirmPass.getPassword());
+
+            if (!newPass.equals(confirmPass)) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Mật khẩu mới và xác nhận không khớp!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            User user = SessionManager.getInstance().getLoggedInUser();
+            if (userController.resetPassword(user.getEmail(), oldPass, newPass)) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Đổi mật khẩu thành công!",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "Mật khẩu cũ không đúng!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+
+        dialog.add(mainPanel);
+        dialog.setVisible(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

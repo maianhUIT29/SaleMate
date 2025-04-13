@@ -1,37 +1,52 @@
 package com.salesmate.component;
 
-import com.salesmate.model.Product;
-import com.salesmate.controller.InvoiceController;
-import com.salesmate.controller.DetailController;
-import com.salesmate.model.Invoice;
-import com.salesmate.model.Detail;
-
-import javax.swing.table.DefaultTableModel;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.view.JasperViewer;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
 
-import java.io.File;
-import java.util.ArrayList;
-
+import com.salesmate.controller.DetailController;
+import com.salesmate.controller.InvoiceController;
+import com.salesmate.model.Detail;
+import com.salesmate.model.Invoice;
+import com.salesmate.model.Product;
 import com.salesmate.utils.SessionManager;
 
-import javax.swing.*;
-
-import java.awt.*;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.Date;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 public class CheckoutPanel extends javax.swing.JPanel {
     
@@ -582,34 +597,49 @@ public class CheckoutPanel extends javax.swing.JPanel {
         columnModel.getColumn(3).setPreferredWidth((tableWidth * 1) / totalParts); // "Thành tiền"
 
         btnPayment.setBackground(new java.awt.Color(0, 123, 255));
-        btnPayment.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        btnPayment.setFont(new java.awt.Font("Segoe UI", 1, 12));
         btnPayment.setForeground(new java.awt.Color(255, 255, 255));
         btnPayment.setText("Thanh toán");
-
-        lblTotal.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblTotal.setText("Tổng tiền :");
-
-        paymentMethodComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Tiền mặt", "Chuyển khoản" }));
-        paymentMethodComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                paymentMethodComboBoxActionPerformed(evt);
-            }
-        });
-
-        lblTotalValue.setText("VND");
-
-        lblPaymentMethod.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblPaymentMethod.setText("Phương thức thanh toán");
+        btnPayment.addActionListener(evt -> processPayment());
 
         btnCancel.setBackground(new java.awt.Color(255, 0, 0));
-        btnCancel.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        btnCancel.setFont(new java.awt.Font("Segoe UI", 1, 12));
         btnCancel.setForeground(new java.awt.Color(255, 255, 255));
         btnCancel.setText("Huỷ");
+        btnCancel.addActionListener(evt -> clearTable());
 
         btnPrint.setBackground(new java.awt.Color(40, 167, 69));
-        btnPrint.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        btnPrint.setFont(new java.awt.Font("Segoe UI", 1, 12));
         btnPrint.setForeground(new java.awt.Color(255, 255, 255));
         btnPrint.setText("In hoá đơn");
+        btnPrint.addActionListener(evt -> exportToPDF());
+
+        // Add hover effect
+        for (JButton btn : new JButton[]{btnPayment, btnCancel, btnPrint}) {
+            Color originalColor = btn.getBackground();
+            btn.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    btn.setBackground(originalColor.darker());
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    btn.setBackground(originalColor);
+                }
+            });
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+        }
+
+        paymentMethodComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(
+            new String[] { "Tiền mặt", "Chuyển khoản" }
+        ));
+        paymentMethodComboBox.setFont(new java.awt.Font("Segoe UI", 0, 12));
+
+        lblTotal.setFont(new java.awt.Font("Segoe UI", 1, 12));
+        lblTotal.setText("Tổng tiền:");
+
+        lblPaymentMethod.setFont(new java.awt.Font("Segoe UI", 1, 12));
+        lblPaymentMethod.setText("Phương thức thanh toán");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

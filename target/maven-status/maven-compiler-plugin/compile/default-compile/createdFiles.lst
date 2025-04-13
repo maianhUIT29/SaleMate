@@ -62,7 +62,6 @@ com\salesmate\view\ForgotPasswordForm$1$1.class
 com\salesmate\view\LoginForm$5.class
 com\salesmate\view\AdminView$5.class
 com\salesmate\view\AdminView$9.class
-com\salesmate\component\CashierAccount$8.class
 com\salesmate\view\LoginFaceID.class
 com\salesmate\component\CashierHeader$4.class
 com\salesmate\component\CheckoutPanel$4.class
