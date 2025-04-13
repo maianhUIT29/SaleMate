@@ -133,4 +133,31 @@ public class UserDAO {
             return false;
         }
     }
+
+    // Get user by ID
+    public User getUserById(int userId) {
+        User user = null;
+        String query = "SELECT * FROM users WHERE users_id = ?";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                user = new User();
+                user.setUsersId(rs.getInt("users_id"));
+                user.setUsername(rs.getString("username"));
+                user.setRole(rs.getString("role"));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
+                user.setAvatar(rs.getString("avatar"));
+                user.setEmail(rs.getString("email"));
+                user.setStatus(rs.getString("status"));
+                user.setPassword(rs.getString("password")); // Ensure password is set
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return user;
+    }
 }

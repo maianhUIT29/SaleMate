@@ -8,47 +8,49 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 /*
 Invoice Schema in oracle
     invoice_id INT PRIMARY KEY,
     users_id INT NOT NULL,
-    total DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
     created_at DATE DEFAULT SYSDATE,
-    status VARCHAR2(50)
+    payment_status VARCHAR2(50)
  */
 
 @Entity
 @Table(name = "invoice")
 public class Invoice {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "invoice_seq")
+    @SequenceGenerator(name = "invoice_seq", sequenceName = "invoice_seq", allocationSize = 1)
     @Column(name = "invoice_id")
     private int invoiceId;
 
     @Column(name = "users_id", nullable = false)
     private int usersId;
 
-    @Column(name = "total", nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
 
     @Column(name = "created_at", columnDefinition = "DATE DEFAULT SYSDATE")
     private Date createdAt;
 
-    @Column(name = "status", length = 50)
-    private String status;
+    @Column(name = "payment_status", length = 50)
+    private String paymentStatus;
 
     // Constructors
     public Invoice() {
     }
 
-    public Invoice(int invoiceId, int usersId, BigDecimal total, Date createdAt, String status) {
+    public Invoice(int invoiceId, int usersId, BigDecimal total, Date createdAt, String paymentStatus) {
         this.invoiceId = invoiceId;
         this.usersId = usersId;
         this.total = total;
         this.createdAt = createdAt;
-        this.status = status;
+        this.paymentStatus = paymentStatus;
     }
 
     // Getters and Setters
@@ -65,6 +67,9 @@ public class Invoice {
     }
 
     public void setUsersId(int usersId) {
+        if (usersId <= 0) {
+            throw new IllegalArgumentException("Users ID must be a positive number");
+        }
         this.usersId = usersId;
     }
 
@@ -73,6 +78,9 @@ public class Invoice {
     }
 
     public void setTotal(BigDecimal total) {
+        if (total != null && total.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Total amount must be non-negative");
+        }
         this.total = total;
     }
 
@@ -84,11 +92,14 @@ public class Invoice {
         this.createdAt = createdAt;
     }
 
-    public String getStatus() {
-        return status;
+    public String getPaymentStatus() {
+        return paymentStatus;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setPaymentStatus(String paymentStatus) {
+        if (paymentStatus != null && !paymentStatus.equals("Paid") && !paymentStatus.equals("Unpaid")) {
+            throw new IllegalArgumentException("Payment status must be either 'Paid' or 'Unpaid'");
+        }
+        this.paymentStatus = paymentStatus;
     }
 }

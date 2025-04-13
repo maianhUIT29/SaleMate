@@ -13,7 +13,8 @@ public class DetailDAO {
 
     // Thêm một Detail mới vào database
     public boolean addDetail(Detail detail) {
-        String sql = "INSERT INTO detail (invoice_id, product_id, quantity, price, total) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO detail (invoice_id, product_id, quantity, price, total) " +
+                    "VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 

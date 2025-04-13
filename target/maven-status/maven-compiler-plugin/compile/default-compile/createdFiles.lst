@@ -8,6 +8,7 @@ com\salesmate\view\CashierPanel.class
 com\salesmate\controller\DetailController.class
 com\salesmate\component\CheckoutPanel.class
 com\salesmate\component\CashierHeader.class
+com\salesmate\component\CheckoutPanel$7.class
 com\salesmate\component\CashierAccount$4.class
 com\salesmate\component\CashierHeader$1.class
 com\salesmate\view\ForgotPasswordForm$GradientPanel.class
@@ -37,8 +38,10 @@ com\salesmate\dao\DetailDAO.class
 com\salesmate\controller\UserController.class
 com\salesmate\component\CashierAccount$6.class
 com\salesmate\view\AdminView$7.class
+com\salesmate\component\CheckoutPanel$6.class
 com\salesmate\component\CashierAccount$3.class
 com\salesmate\component\CashierHeader$2.class
+com\salesmate\component\CheckoutPanel$3.class
 com\salesmate\component\ProductCard$2.class
 com\salesmate\view\LoginForm$3.class
 com\salesmate\dao\ProductDAO.class
@@ -62,6 +65,7 @@ com\salesmate\view\AdminView$9.class
 com\salesmate\component\CashierAccount$8.class
 com\salesmate\view\LoginFaceID.class
 com\salesmate\component\CashierHeader$4.class
+com\salesmate\component\CheckoutPanel$4.class
 com\salesmate\component\CashierAccount$2.class
 com\salesmate\view\ForgotPasswordForm$2.class
 com\salesmate\model\Report.class
@@ -77,4 +81,5 @@ com\salesmate\view\AdminView$4.class
 com\salesmate\model\Detail.class
 com\salesmate\configs\WebcamConfig.class
 com\salesmate\view\LoginForm$4.class
+com\salesmate\component\CheckoutPanel$5.class
 com\salesmate\model\Supplier.class
