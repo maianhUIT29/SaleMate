@@ -4,17 +4,27 @@
  */
 package com.salesmate.component;
 
+import com.salesmate.controller.UserController;
+import com.salesmate.model.User;
+import com.salesmate.utils.SessionManager;
+
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author Nhan
  */
 public class CashierAccount extends javax.swing.JPanel {
 
+    private final UserController userController;
+
     /**
      * Creates new form CashierAccount
      */
     public CashierAccount() {
         initComponents();
+        userController = new UserController();
+        loadUserData(); // Load user data when the panel is initialized
     }
 
     /**
@@ -110,6 +120,11 @@ public class CashierAccount extends javax.swing.JPanel {
         btnSave.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnSave.setForeground(new java.awt.Color(255, 255, 255));
         btnSave.setText("Lưu");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         lblUserHeader.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         lblUserHeader.setForeground(new java.awt.Color(255, 255, 255));
@@ -135,6 +150,11 @@ public class CashierAccount extends javax.swing.JPanel {
         btnResetPW.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnResetPW.setForeground(new java.awt.Color(255, 255, 255));
         btnResetPW.setText("Đổi mật khẩu");
+        btnResetPW.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResetPWActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout UserInfoPanelLayout = new javax.swing.GroupLayout(UserInfoPanel);
         UserInfoPanel.setLayout(UserInfoPanelLayout);
@@ -316,6 +336,155 @@ public class CashierAccount extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtUsernameActionPerformed
 
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {
+        updateUserData(); // Save updated user data when the Save button is clicked
+    }
+
+    private void btnResetPWActionPerformed(java.awt.event.ActionEvent evt) {
+        javax.swing.JDialog changePasswordDialog = new javax.swing.JDialog();
+        changePasswordDialog.setTitle("Change Password");
+        changePasswordDialog.setModal(true);
+        changePasswordDialog.setSize(450, 300);
+        changePasswordDialog.setLocationRelativeTo(this);
+
+        javax.swing.JPanel panel = new javax.swing.JPanel();
+        panel.setLayout(new java.awt.GridBagLayout());
+        panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add padding
+
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        gbc.insets = new java.awt.Insets(10, 10, 10, 10); // Add spacing between components
+        gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+
+        javax.swing.JLabel lblOldPassword = new javax.swing.JLabel("Mật khẩu cũ:");
+        lblOldPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Larger font
+        javax.swing.JPasswordField txtOldPassword = new javax.swing.JPasswordField(30);
+        txtOldPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14)); // Larger font
+
+        javax.swing.JLabel lblNewPassword = new javax.swing.JLabel("Mật khẩu mới");
+        lblNewPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Larger font
+        javax.swing.JPasswordField txtNewPassword = new javax.swing.JPasswordField(30);
+        txtNewPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14)); // Larger font
+
+        javax.swing.JLabel lblConfirmPassword = new javax.swing.JLabel("Xác nhận mật khẩu");
+        lblConfirmPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Larger font
+        javax.swing.JPasswordField txtConfirmPassword = new javax.swing.JPasswordField(30);
+        txtConfirmPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14)); // Larger font
+
+        javax.swing.JButton btnSubmit = new javax.swing.JButton("Đổi mật khẩu");
+        btnSubmit.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Larger font
+        btnSubmit.setBackground(new java.awt.Color(40, 167, 69)); // Green color
+        btnSubmit.setForeground(java.awt.Color.WHITE);
+
+        javax.swing.JButton btnCancel = new javax.swing.JButton("Huỷ");
+        btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Larger font
+        btnCancel.setBackground(new java.awt.Color(220, 53, 69)); // Red color
+        btnCancel.setForeground(java.awt.Color.WHITE);
+
+        // Add components to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(lblOldPassword, gbc);
+
+        gbc.gridx = 1;
+        panel.add(txtOldPassword, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(lblNewPassword, gbc);
+
+        gbc.gridx = 1;
+        panel.add(txtNewPassword, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(lblConfirmPassword, gbc);
+
+        gbc.gridx = 1;
+        panel.add(txtConfirmPassword, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = java.awt.GridBagConstraints.CENTER;
+
+        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
+        buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 0));
+        buttonPanel.add(btnSubmit);
+        buttonPanel.add(btnCancel);
+
+        panel.add(buttonPanel, gbc);
+
+        changePasswordDialog.add(panel);
+
+        // Add action listeners
+        btnSubmit.addActionListener(e -> {
+            String oldPassword = new String(txtOldPassword.getPassword());
+            String newPassword = new String(txtNewPassword.getPassword());
+            String confirmPassword = new String(txtConfirmPassword.getPassword());
+
+            User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+            if (loggedInUser == null) {
+                JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String currentPassword = loggedInUser.getPassword();
+            if (currentPassword == null || !currentPassword.equals(oldPassword)) {
+                JOptionPane.showMessageDialog(this, "Old password is incorrect.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "New password and confirmation do not match.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            loggedInUser.setPassword(newPassword);
+            boolean isUpdated = userController.updateUser(loggedInUser);
+            if (isUpdated) {
+                JOptionPane.showMessageDialog(this, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                changePasswordDialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update password.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        btnCancel.addActionListener(e -> changePasswordDialog.dispose());
+
+        changePasswordDialog.setVisible(true);
+    }
+
+    private void loadUserData() {
+        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+        if (loggedInUser != null) {
+            txtUsername.setText(loggedInUser.getUsername());
+            txtEmail.setText(loggedInUser.getEmail());
+            txtDOB.setText(loggedInUser.getCreatedAt() != null ? loggedInUser.getCreatedAt().toString() : "");
+            txtCCCD.setText(loggedInUser.getStatus());
+            lblStatusValue.setText(loggedInUser.getStatus());
+            lblCreateAtValue.setText(loggedInUser.getCreatedAt() != null ? loggedInUser.getCreatedAt().toString() : "");
+        } else {
+            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void updateUserData() {
+        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+        if (loggedInUser != null) {
+            loggedInUser.setUsername(txtUsername.getText());
+            loggedInUser.setEmail(txtEmail.getText());
+            loggedInUser.setStatus(txtCCCD.getText());
+
+            boolean isUpdated = userController.updateUser(loggedInUser);
+            if (isUpdated) {
+                JOptionPane.showMessageDialog(this, "User information updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update user information.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel AccountPanel;

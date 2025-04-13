@@ -14,6 +14,7 @@ com\salesmate\controller\DetailController.class
 com\salesmate\component\CheckoutPanel.class
 com\salesmate\component\CashierHeader.class
 com\salesmate\view\AdminView.class
+com\salesmate\component\CashierAccount$4.class
 com\salesmate\component\CashierHeader$1.class
 com\salesmate\model\Invoice.class
 com\salesmate\model\ProductPromotion.class
@@ -37,6 +38,7 @@ com\salesmate\view\LoginFaceID$2.class
 com\salesmate\component\CheckoutPanel$1.class
 com\salesmate\model\Product.class
 com\salesmate\view\ForgotPasswordForm$1$1.class
+com\salesmate\component\CashierAccount$5.class
 com\salesmate\view\LoginForm$5.class
 com\salesmate\view\AdminView$5.class
 com\salesmate\view\LoginForm$2.class

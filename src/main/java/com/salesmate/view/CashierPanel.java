@@ -112,23 +112,23 @@ public class CashierPanel extends javax.swing.JFrame {
             .addGap(0, 536, Short.MAX_VALUE)
         );
 
-        tpCashier.addTab("Lương", panelSalaryContainer);
+        tpCashier.addTab("Lịch sử bán hàng", panelSalaryContainer);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(20, Short.MAX_VALUE)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 956, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20)
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 956, Short.MAX_VALUE)
                 .addGap(20, 20, 20))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 512, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         tpCashier.addTab("Tài Khoản", jPanel3);
@@ -144,7 +144,7 @@ public class CashierPanel extends javax.swing.JFrame {
             .addGap(0, 538, Short.MAX_VALUE)
         );
 
-        tpCashier.addTab("tab5", jPanel4);
+        tpCashier.addTab("Lương", jPanel4);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -163,7 +163,7 @@ public class CashierPanel extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(cashierHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tpCashier, javax.swing.GroupLayout.DEFAULT_SIZE, 575, Short.MAX_VALUE))
+                .addComponent(tpCashier))
         );
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
