@@ -2,6 +2,7 @@ package com.salesmate.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -418,6 +419,21 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         if (products != null) {
             displayFilteredProducts(products);
         }
+    }
+
+    // Thêm phương thức để cập nhật sản phẩm
+    public void updateProductQuantities(Map<Integer, Integer> soldQuantities) {
+        if (products == null) return;
+        
+        for (Product product : products) {
+            if (soldQuantities.containsKey(product.getProductId())) {
+                int soldQty = soldQuantities.get(product.getProductId());
+                product.setQuantity(product.getQuantity() - soldQty);
+            }
+        }
+        
+        // Làm mới hiển thị
+        displayFilteredProducts(filteredProducts != null ? filteredProducts : products);
     }
 
     @SuppressWarnings("unchecked")

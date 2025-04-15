@@ -157,6 +157,7 @@ public class ProductCard extends javax.swing.JPanel {
 
     public void setProductDetails(Product product) {
         this.product = product;
+        this.product.setMaxQuantity(product.getQuantity()); // Lưu số lượng tối đa khi set product
 
         // Hiển thị tên sản phẩm
         lblProductNameValue.setText(product.getProductName());

@@ -41,6 +41,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
     private DefaultTableModel tableModel;
     private InvoiceController invoiceController;
     private DetailController detailController;
+    private ProductSelectionPanel productSelectionPanel; // Thêm biến reference
 
     public CheckoutPanel() {
         initComponents();
@@ -80,48 +81,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
 
-        // Add a listener to handle changes in the "Số Lượng" column
-        tableModel.addTableModelListener(e -> {
-            int row = e.getFirstRow();
-            int column = e.getColumn();
-
-            if (column == 2) { // If the "Số Lượng" column is edited
-                int productId = getProductIdFromRow(row);
-                if (productId != -1) {
-                    Product product = checkoutProducts.get(productId);
-                    int newQuantity = (int) tableModel.getValueAt(row, 2);
-                    product.setQuantity(newQuantity);
-
-                    // Update the "Thành tiền" column
-                    tableModel.setValueAt(
-                        product.getPrice().multiply(new java.math.BigDecimal(newQuantity)),
-                        row,
-                        3
-                    );
-
-                    // Update the total price
-                    updateTotal();
-                }
-            }
-        });
-
-        // Add a key listener to handle row deletion with the Delete key
-        tblProduct.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    int selectedRow = tblProduct.getSelectedRow();
-                    if (selectedRow != -1) {
-                        int productId = getProductIdFromRow(selectedRow);
-                        if (productId != -1) {
-                            checkoutProducts.remove(productId);
-                            tableModel.removeRow(selectedRow);
-                            updateTotal();
-                        }
-                    }
-                }
-            }
-        });
+        setupTable();
 
         // Add action listener for "Huỷ" button
         btnCancel.addActionListener(e -> clearTable());
@@ -144,18 +104,35 @@ public class CheckoutPanel extends javax.swing.JPanel {
     }
 
     public void addProductToCheckout(Product product) {
+        if (product.getQuantity() <= 0) {
+            JOptionPane.showMessageDialog(this,
+                "Sản phẩm đã hết hàng!",
+                "Thông báo",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         if (checkoutProducts.containsKey(product.getProductId())) {
             Product existingProduct = checkoutProducts.get(product.getProductId());
+            if (existingProduct.getQuantity() >= product.getMaxQuantity()) {
+                JOptionPane.showMessageDialog(this,
+                    "Số lượng đã đạt giới hạn tồn kho!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             existingProduct.setQuantity(existingProduct.getQuantity() + 1);
         } else {
-            checkoutProducts.put(product.getProductId(), new Product(
+            Product checkoutProduct = new Product(
                 product.getProductId(),
                 product.getProductName(),
                 product.getPrice(),
-                1, // Initial quantity
+                1,
                 product.getBarcode(),
                 product.getImage()
-            ));
+            );
+            checkoutProduct.setMaxQuantity(product.getQuantity()); // Lưu số lượng tối đa
+            checkoutProducts.put(product.getProductId(), checkoutProduct);
         }
         refreshCheckoutTable();
         updateTotal();
@@ -185,11 +162,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
     private void adjustColumnWidths() {
         javax.swing.table.TableColumnModel columnModel = tblProduct.getColumnModel();
-        int totalParts = 10; // 7 parts for "Tên sản phẩm", 1 part each for the others
+        int totalParts = 10; // 5 parts for "Tên sản phẩm", 1 part each for the others
         int tableWidth = tblProduct.getWidth();
 
-        columnModel.getColumn(0).setPreferredWidth((tableWidth * 6) / totalParts); // "Tên sản phẩm"
-        columnModel.getColumn(1).setPreferredWidth((tableWidth * 1) / totalParts); // "Giá"
+        columnModel.getColumn(0).setPreferredWidth((tableWidth * 5) / totalParts); // "Tên sản phẩm"
+        columnModel.getColumn(1).setPreferredWidth((tableWidth * 2) / totalParts); // "Giá"
         columnModel.getColumn(2).setPreferredWidth((tableWidth * 1) / totalParts); // "Số Lượng"
         columnModel.getColumn(3).setPreferredWidth((tableWidth * 2) / totalParts); // "Thành tiền"
     }
@@ -308,6 +285,10 @@ public class CheckoutPanel extends javax.swing.JPanel {
         }
     }
 
+    public void setProductSelectionPanel(ProductSelectionPanel panel) {
+        this.productSelectionPanel = panel;
+    }
+
     private void processPayment() {
         if (checkoutProducts.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
@@ -330,6 +311,9 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 int invoiceId = invoice.getInvoiceId(); // Assuming the ID is set in the invoice object after saving
                 boolean detailsSuccess = true;
                 
+                // Tạo map để lưu số lượng đã bán của mỗi sản phẩm
+                Map<Integer, Integer> soldQuantities = new HashMap<>();
+                
                 // Create invoice details
                 for (Product product : checkoutProducts.values()) {
                     Detail detail = new Detail();
@@ -343,9 +327,17 @@ public class CheckoutPanel extends javax.swing.JPanel {
                         detailsSuccess = false;
                         break;
                     }
+                    
+                    // Lưu số lượng đã bán
+                    soldQuantities.put(product.getProductId(), product.getQuantity());
                 }
                 
                 if (detailsSuccess) {
+                    // Cập nhật số lượng trong ProductSelectionPanel
+                    if (productSelectionPanel != null) {
+                        productSelectionPanel.updateProductQuantities(soldQuantities);
+                    }
+                    
                     showSuccessDialog(invoiceId);
                     clearTable();
                 } else {
@@ -523,6 +515,113 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
         return button;
+    }
+
+    private void setupTable() {
+        // Add a listener to handle changes in the "Số Lượng" column
+        tableModel.addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+
+            if (column == 2) { // Số lượng column
+                int productId = getProductIdFromRow(row);
+                if (productId != -1) {
+                    Product product = checkoutProducts.get(productId);
+                    try {
+                        int newQuantity = (int) tableModel.getValueAt(row, 2);
+                        if (newQuantity <= 0) {
+                            throw new IllegalArgumentException("Số lượng phải lớn hơn 0");
+                        }
+                        if (newQuantity > product.getMaxQuantity()) {
+                            throw new IllegalArgumentException("Số lượng vượt quá tồn kho (" + product.getMaxQuantity() + ")");
+                        }
+
+                        product.setQuantity(newQuantity);
+                        tableModel.setValueAt(
+                            product.getPrice().multiply(new java.math.BigDecimal(newQuantity)),
+                            row,
+                            3
+                        );
+                        updateTotal();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this,
+                            "Số lượng không hợp lệ: " + ex.getMessage(),
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                        // Khôi phục giá trị cũ
+                        tableModel.setValueAt(product.getQuantity(), row, 2);
+                    }
+                }
+            }
+        });
+
+        // Add a key listener to handle row deletion with the Delete key
+        tblProduct.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    int selectedRow = tblProduct.getSelectedRow();
+                    if (selectedRow != -1) {
+                        int productId = getProductIdFromRow(selectedRow);
+                        if (productId != -1) {
+                            checkoutProducts.remove(productId);
+                            tableModel.removeRow(selectedRow);
+                            updateTotal();
+                        }
+                    }
+                }
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    int row = tblProduct.getSelectedRow();
+                    int col = tblProduct.getSelectedColumn();
+                    
+                    if (col == 2) { // Cột số lượng
+                        try {
+                            String input = tblProduct.getValueAt(row, col).toString();
+                            int newQuantity = Integer.parseInt(input);
+                            
+                            int productId = getProductIdFromRow(row);
+                            if (productId != -1) {
+                                Product product = checkoutProducts.get(productId);
+                                
+                                if (newQuantity <= 0) {
+                                    throw new IllegalArgumentException("Số lượng phải lớn hơn 0");
+                                }
+                                
+                                if (newQuantity > product.getMaxQuantity()) {
+                                    throw new IllegalArgumentException("Số lượng vượt quá tồn kho (" + product.getMaxQuantity() + ")");
+                                }
+                                
+                                // Cập nhật số lượng mới
+                                product.setQuantity(newQuantity);
+                                // Cập nhật thành tiền
+                                tableModel.setValueAt(
+                                    product.getPrice().multiply(new java.math.BigDecimal(newQuantity)),
+                                    row,
+                                    3
+                                );
+                                updateTotal();
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(CheckoutPanel.this,
+                                "Vui lòng nhập số nguyên hợp lệ!",
+                                "Lỗi",
+                                JOptionPane.ERROR_MESSAGE);
+                            // Khôi phục giá trị cũ
+                            Product product = checkoutProducts.get(getProductIdFromRow(row));
+                            tableModel.setValueAt(product.getQuantity(), row, 2);
+                        } catch (IllegalArgumentException ex) {
+                            JOptionPane.showMessageDialog(CheckoutPanel.this,
+                                ex.getMessage(),
+                                "Lỗi",
+                                JOptionPane.ERROR_MESSAGE);
+                            // Khôi phục giá trị cũ
+                            Product product = checkoutProducts.get(getProductIdFromRow(row));
+                            tableModel.setValueAt(product.getQuantity(), row, 2);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")

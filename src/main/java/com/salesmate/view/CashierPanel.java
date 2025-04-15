@@ -13,15 +13,14 @@ public class CashierPanel extends javax.swing.JFrame {
 
     public CashierPanel() {
         initComponents();
-        
-        // Đặt các cài đặt giao diện trước
+        loadProductList();
+        productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setUndecorated(false);
-        productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
+        
+        // Link các panel với nhau
         productSelectionPanel.setCheckoutPanel(checkoutPanel2);
-
-        // Cuối cùng mới load dữ liệu sản phẩm
-        loadProductList();
+        checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
     }
 
     private void loadProductList() {

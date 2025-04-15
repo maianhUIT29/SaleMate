@@ -43,6 +43,7 @@ public class Product {
     @Column(name = "image", length = 255)
     private String image;
 
+    private int maxQuantity; // Thêm biến để lưu số lượng tối đa
 
     // Constructors
     public Product() {
@@ -104,6 +105,14 @@ public class Product {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public void setMaxQuantity(int maxQuantity) {
+        this.maxQuantity = maxQuantity; 
+    }
+
+    public int getMaxQuantity() {
+        return this.maxQuantity;
     }
 }
 
