@@ -52,17 +52,7 @@ public class CashierHeader extends javax.swing.JPanel {
                     lblAvatar.setIcon(new ImageIcon(getRoundedAvatar(new ImageIcon(getClass().getResource("/img/icons/ic_default_avt.png")))));
                 }
             }
-
-            // Hiển thị icon search
-            try {
-                ImageIcon searchIcon = new ImageIcon(getClass().getResource("/img/icons/ic_search.png"));
-                Image searchImage = searchIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-                lblSearch.setIcon(new ImageIcon(searchImage));  // Gán icon vào lblSearch
-                lblSearch.setText(""); // Không hiển thị text
-            } catch (Exception e) {
-                System.out.println("Lỗi load icon search: " + e.getMessage());
-            }
-
+            
             // Cải thiện giao diện
             enhanceUI();
         }
@@ -93,41 +83,7 @@ public class CashierHeader extends javax.swing.JPanel {
                 // Hiển thị dropdown khi click vào avatar
                 createDropdown();
             }
-        });
-
-        // 3. Cải thiện textbox tìm kiếm giống Bootstrap
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Đảm bảo font của textbox là rõ ràng
-        txtSearch.setPreferredSize(new Dimension(250, 30)); // Tăng kích thước của ô tìm kiếm một chút
-        txtSearch.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)), // Màu biên tương tự Bootstrap
-                BorderFactory.createEmptyBorder(5, 10, 5, 10) // Thêm padding cho ô tìm kiếm
-        ));
-        txtSearch.setBackground(Color.WHITE); // Màu nền trắng cho textbox tìm kiếm
-        txtSearch.setForeground(new Color(33, 37, 41)); // Màu chữ đen
-
-        // Xóa nội dung ô tìm kiếm khi người dùng nhấp vào nó
-        txtSearch.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                if (txtSearch.getText().equals("Tìm sản phẩm")) {
-                    txtSearch.setText("");  // Xóa nội dung khi người dùng nhấp vào ô
-                }
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                if (txtSearch.getText().isEmpty()) {
-                    txtSearch.setText("Tìm sản phẩm");  // Đặt lại văn bản mặc định khi người dùng không nhập gì
-                }
-            }
-        });
-
-        // 4. Cải thiện tiêu đề "SALEMATE"
-        lblHeaderTitle.setFont(new Font("Segoe UI", Font.BOLD, 24)); // Chữ in đậm, cỡ 24
-        lblHeaderTitle.setForeground(Color.WHITE);  // Màu chữ trắng cho tiêu đề trên nền gradient
-
-        // 5. Cải thiện giao diện của icon tìm kiếm
-        lblSearch.setPreferredSize(new Dimension(20, 20)); // Đảm bảo icon tìm kiếm có kích thước đúng
+        });    
     }
 
     private void createDropdown() {
@@ -235,8 +191,6 @@ public class CashierHeader extends javax.swing.JPanel {
         logout_btn = new javax.swing.JMenuItem();
         lblHeaderTitle = new javax.swing.JLabel();
         lblAvatar = new javax.swing.JLabel();
-        txtSearch = new javax.swing.JTextField();
-        lblSearch = new javax.swing.JLabel();
 
         home_btn.setText("Trang chủ");
         home_btn.addActionListener(new java.awt.event.ActionListener() {
@@ -256,59 +210,39 @@ public class CashierHeader extends javax.swing.JPanel {
         jPopupMenu1.add(logout_btn);
 
         lblHeaderTitle.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
+        lblHeaderTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblHeaderTitle.setText("SALEMATE");
 
         lblAvatar.setText("Avatar");
         lblAvatar.setPreferredSize(new java.awt.Dimension(34, 34));
-
-        txtSearch.setText("Tìm sản phẩm");
-        txtSearch.setMinimumSize(new java.awt.Dimension(40, 22));
-        txtSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtSearchActionPerformed(evt);
-            }
-        });
-
-        lblSearch.setLabelFor(txtSearch);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(34, 34, 34)
-                .addComponent(lblSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
-                .addGap(213, 213, 213)
-                .addComponent(lblHeaderTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
-                .addGap(242, 242, 242)
-                .addComponent(lblAvatar, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(65, 65, 65))
+                .addGap(418, 418, 418)
+                .addComponent(lblHeaderTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 260, Short.MAX_VALUE)
+                .addComponent(lblAvatar, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(58, 58, 58))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(lblSearch)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lblAvatar, javax.swing.GroupLayout.DEFAULT_SIZE, 45, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblAvatar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblHeaderTitle)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addComponent(lblHeaderTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void home_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_home_btnActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_home_btnActionPerformed
-
-    private void txtSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtSearchActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -317,9 +251,7 @@ public class CashierHeader extends javax.swing.JPanel {
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JLabel lblAvatar;
     private javax.swing.JLabel lblHeaderTitle;
-    private javax.swing.JLabel lblSearch;
     private javax.swing.JMenuItem logout_btn;
     private javax.swing.JMenuItem salary_btn;
-    private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }

@@ -28,29 +28,50 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
 
     public void displayProducts() {
         if (products == null || products.isEmpty()) {
-            System.out.println("Danh sach san pham rong, khong co san pham de hien thi.");
             return;
         }
 
         JPanel productContainer = new JPanel();
-        productContainer.setLayout(new java.awt.GridLayout(0, 3, 10, 10));
-        productContainer.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        productContainer.setLayout(new java.awt.GridBagLayout());
+        productContainer.setBackground(java.awt.Color.WHITE);
 
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        gbc.insets = new java.awt.Insets(10, 10, 10, 10);
+        gbc.fill = java.awt.GridBagConstraints.NONE;
+        gbc.anchor = java.awt.GridBagConstraints.CENTER;
+
+        int row = 0;
+        int col = 0;
         for (Product product : products) {
             ProductCard productCard = new ProductCard();
-            // Đặt kích thước cố định cho mỗi card
-            productCard.setPreferredSize(new java.awt.Dimension(180, 250));
-            
+            productCard.setPreferredSize(new java.awt.Dimension(220, 300));
             productCard.setProductDetails(product);
             productCard.setProductCardListener(selectedProduct -> {
                 if (checkoutPanel != null) {
                     checkoutPanel.addProductToCheckout(selectedProduct);
                 }
             });
-            productContainer.add(productCard);
+
+            gbc.gridx = col;
+            gbc.gridy = row;
+            productContainer.add(productCard, gbc);
+
+            col++;
+            if (col == 3) {
+                col = 0;
+                row++;
+            }
         }
 
+        // Thêm panel trống để đẩy các card lên trên
+        gbc.gridx = 0;
+        gbc.gridy = row + 1;
+        gbc.weighty = 1.0;
+        gbc.gridwidth = 3;
+        productContainer.add(new JPanel(), gbc);
+
         JScrollPane scrollPane = new JScrollPane(productContainer);
+        scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);

@@ -66,7 +66,7 @@ public class ProductCard extends javax.swing.JPanel {
         panelImageContainer.setLayout(panelImageContainerLayout);
         panelImageContainerLayout.setHorizontalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblProductImage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblProductImage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         panelImageContainerLayout.setVerticalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -93,30 +93,31 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(panelProductDetailLayout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lblProductPriceKey)
-                    .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(lblProductPriceValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panelProductDetailLayout.createSequentialGroup()
-                        .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblProductPriceKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
+                            .addComponent(lblProductPriceValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addGap(7, 7, 7))
         );
         panelProductDetailLayout.setVerticalGroup(
             panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelProductDetailLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(0, 0, 0)
+                .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, 22, Short.MAX_VALUE)
                     .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblProductPriceKey)
-                    .addComponent(lblProductPriceValue, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                    .addComponent(lblProductPriceKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblProductPriceValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 
         javax.swing.GroupLayout ProductCardContainerLayout = new javax.swing.GroupLayout(ProductCardContainer);
@@ -135,8 +136,8 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(ProductCardContainerLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addComponent(panelImageContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(10, 10, 10)
-                .addComponent(panelProductDetail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
+                .addComponent(panelProductDetail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -156,57 +157,67 @@ public class ProductCard extends javax.swing.JPanel {
         // Tải hình ảnh sản phẩm nếu có
         if (product.getImage() != null && !product.getImage().isEmpty()) {
             try {
-                System.out.println("Tải ảnh từ: /img/product/" + product.getImage());
-
-                String imagePath = "/img/product/" + product.getImage(); // Đảm bảo đây là đường dẫn đúng tới ảnh
-                URL imageUrl = getClass().getResource(imagePath); // Tải URL ảnh
+                String imagePath = "/img/product/" + product.getImage();
+                URL imageUrl = getClass().getResource(imagePath);
 
                 if (imageUrl != null) {
-                    ImageIcon originalImage = new ImageIcon(imageUrl); // Chuyển đổi URL thành ImageIcon
-
-                    // Lấy kích thước của panelImageContainer để resize ảnh phù hợp
-                    int targetWidth = panelImageContainer.getWidth();  // Lấy chiều rộng của panel
-                    int targetHeight = panelImageContainer.getHeight();  // Lấy chiều cao của panel
-
-                    // Nếu chiều cao và chiều rộng của panel chưa được xác định, mặc định chiều cao là 200px
-                    if (targetWidth == 0 || targetHeight == 0) {
-                        targetWidth = 150;  // Giảm từ 260 xuống 150
-                        targetHeight = 100;  // Giảm từ 150 xuống 100
-                    }
-
-                    // Resize ảnh theo kích thước của panel
-                    Image resizedImage = originalImage.getImage().getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
-
-                    // Tạo lại ImageIcon từ ảnh đã resize
-                    ImageIcon resizedImageIcon = new ImageIcon(resizedImage);
-
-                    // Đặt layout và kích thước cho panel chứa ảnh
-                    panelImageContainer.setLayout(new java.awt.BorderLayout()); // Sử dụng BorderLayout
-
-                    // Thêm JLabel chứa ảnh đã resize vào panel
-                    JLabel imageLabel = new JLabel(resizedImageIcon); // Tạo JLabel cho ảnh đã resize
-                    panelImageContainer.removeAll();  // Xóa các thành phần cũ trong panel
-                    panelImageContainer.add(imageLabel, java.awt.BorderLayout.CENTER);  // Thêm ảnh vào panel
-
-                    // Đảm bảo ảnh không bị tràn và các thành phần khác vẫn hiển thị đúng
-                    imageLabel.setPreferredSize(new java.awt.Dimension(targetWidth, targetHeight));  // Đảm bảo ảnh có kích thước phù hợp
-
-                    System.out.println("Ảnh tải thành công và đã resize.");
+                    ImageIcon originalIcon = new ImageIcon(imageUrl);
+                    Image originalImage = originalIcon.getImage();
+                    
+                    // Tạo ImageIcon mới với kích thước tự động điều chỉnh
+                    ImageIcon scaledIcon = new ImageIcon(originalImage) {
+                        @Override
+                        public int getIconWidth() {
+                            return panelImageContainer.getWidth() - 10;
+                        }
+                        
+                        @Override
+                        public int getIconHeight() {
+                            return panelImageContainer.getHeight() - 10;
+                        }
+                        
+                        @Override
+                        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+                            java.awt.Graphics2D g2d = (java.awt.Graphics2D) g.create();
+                            g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, 
+                                               java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                            
+                            int width = getIconWidth();
+                            int height = getIconHeight();
+                            
+                            // Tính toán tỷ lệ khung hình
+                            double imageRatio = (double) originalImage.getWidth(c) / originalImage.getHeight(c);
+                            double containerRatio = (double) width / height;
+                            
+                            int finalWidth, finalHeight;
+                            if (imageRatio > containerRatio) {
+                                finalWidth = width;
+                                finalHeight = (int) (width / imageRatio);
+                            } else {
+                                finalHeight = height;
+                                finalWidth = (int) (height * imageRatio);
+                            }
+                            
+                            // Vẽ ảnh với kích thước đã tính toán và căn giữa
+                            int dx = (width - finalWidth) / 2;
+                            int dy = (height - finalHeight) / 2;
+                            g2d.drawImage(originalImage, dx, dy, finalWidth, finalHeight, c);
+                            g2d.dispose();
+                        }
+                    };
+                    
+                    lblProductImage.setIcon(scaledIcon);
                 } else {
-                    // Nếu không tìm thấy ảnh, hiển thị thông báo mặc định
-                    panelImageContainer.removeAll();
-                    panelImageContainer.add(new JLabel("No Image Available"));
-                    System.out.println("Ảnh không tìm thấy tại đường dẫn: " + imagePath);
+                    lblProductImage.setIcon(null);
+                    lblProductImage.setText("No Image Available");
                 }
             } catch (Exception e) {
-                System.out.println("Error loading image: " + e.getMessage());
-                panelImageContainer.removeAll();
-                panelImageContainer.add(new JLabel("No Image"));
+                lblProductImage.setIcon(null);
+                lblProductImage.setText("Error Loading Image");
             }
         } else {
-            panelImageContainer.removeAll();
-            panelImageContainer.add(new JLabel("No Image")); // Nếu không có ảnh, hiển thị thông báo
-            System.out.println("Không có ảnh cho sản phẩm.");
+            lblProductImage.setIcon(null);
+            lblProductImage.setText("No Image");
         }
 
         panelImageContainer.revalidate();  // Cập nhật lại UI của panel

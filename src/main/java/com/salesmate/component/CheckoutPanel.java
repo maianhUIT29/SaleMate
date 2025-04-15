@@ -180,7 +180,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
             .map(product -> product.getPrice().multiply(new java.math.BigDecimal(product.getQuantity())))
             .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
             .doubleValue();
-        lblTotalValue.setText(String.format("%.2f VND", totalPrice));
+        lblTotalValue.setText(String.format("%,.0f VND", totalPrice)); // Format as integer with commas
     }
 
     private void adjustColumnWidths() {
@@ -561,25 +561,30 @@ public class CheckoutPanel extends javax.swing.JPanel {
         lblHeader.setRequestFocusEnabled(false);
 
         tblProduct.setAutoCreateRowSorter(true);
-        tblProduct.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         tblProduct.setModel(new javax.swing.table.DefaultTableModel(
-            new Object[][]{},
-            new String[]{
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
                 "Tên sản phẩm", "Giá", "Số Lượng", "Thành tiền"
             }
         ));
-
+        tblProduct.setToolTipText("");
+        tblProduct.setName(""); // NOI18N
         ProductListContainer.setViewportView(tblProduct);
-
-        // Set column widths proportionally
-        javax.swing.table.TableColumnModel columnModel = tblProduct.getColumnModel();
-        int totalParts = 10; // 7 parts for "Tên sản phẩm", 1 part each for the others
-        int tableWidth = tblProduct.getPreferredSize().width;
-
-        columnModel.getColumn(0).setPreferredWidth((tableWidth * 7) / totalParts); // "Tên sản phẩm"
-        columnModel.getColumn(1).setPreferredWidth((tableWidth * 1) / totalParts); // "Giá"
-        columnModel.getColumn(2).setPreferredWidth((tableWidth * 1) / totalParts); // "Số Lượng"
-        columnModel.getColumn(3).setPreferredWidth((tableWidth * 1) / totalParts); // "Thành tiền"
+        if (tblProduct.getColumnModel().getColumnCount() > 0) {
+            tblProduct.getColumnModel().getColumn(0).setMinWidth(80);
+            tblProduct.getColumnModel().getColumn(0).setPreferredWidth(120);
+            tblProduct.getColumnModel().getColumn(1).setMinWidth(10);
+            tblProduct.getColumnModel().getColumn(1).setPreferredWidth(10);
+            tblProduct.getColumnModel().getColumn(2).setMinWidth(10);
+            tblProduct.getColumnModel().getColumn(2).setPreferredWidth(10);
+            tblProduct.getColumnModel().getColumn(3).setMinWidth(10);
+            tblProduct.getColumnModel().getColumn(3).setPreferredWidth(10);
+        }
 
         btnPayment.setBackground(new java.awt.Color(0, 123, 255));
         btnPayment.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
