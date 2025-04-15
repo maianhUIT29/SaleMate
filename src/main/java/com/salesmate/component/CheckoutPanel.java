@@ -7,8 +7,7 @@ import com.salesmate.model.Invoice;
 import com.salesmate.model.Detail;
 
 import javax.swing.table.DefaultTableModel;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -18,7 +17,6 @@ import java.util.Map;
 
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.view.JasperViewer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,7 +85,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         btnCancel.addActionListener(e -> clearTable());
 
         // Add action listener for "In" button
-        btnPrint.addActionListener(e -> exportToPDF());
 
         // Add action listener for payment button
         btnPayment.addActionListener(e -> processPayment());
@@ -546,6 +543,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
 
+        // Thêm grid lines cho bảng
+        tblProduct.setShowGrid(true);
+        tblProduct.setGridColor(new java.awt.Color(211, 211, 211)); // Màu xám nhạt cho grid
+        tblProduct.setIntercellSpacing(new java.awt.Dimension(1, 1)); // Khoảng cách giữa các cell
+
         // Style cho header
         javax.swing.table.JTableHeader header = tblProduct.getTableHeader();
         header.setDefaultRenderer(new javax.swing.table.DefaultTableCellRenderer() {
@@ -559,7 +561,10 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 label.setBackground(new java.awt.Color(51, 153, 255)); // Background xanh dương
                 label.setForeground(java.awt.Color.WHITE); // Chữ màu trắng
                 label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
-                label.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 4, 8, 4));
+                label.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 1, new java.awt.Color(211, 211, 211)),
+                    javax.swing.BorderFactory.createEmptyBorder(8, 4, 8, 4)
+                ));
                 label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER); // Căn giữa text
                 setOpaque(true); // Để hiện background
                 
@@ -694,7 +699,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         lblTotalValue = new javax.swing.JLabel();
         lblPaymentMethod = new javax.swing.JLabel();
         btnCancel = new javax.swing.JButton();
-        btnPrint = new javax.swing.JButton();
 
         javax.swing.GroupLayout paymentDialogLayout = new javax.swing.GroupLayout(paymentDialog.getContentPane());
         paymentDialog.getContentPane().setLayout(paymentDialogLayout);
@@ -766,11 +770,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         btnCancel.setForeground(new java.awt.Color(255, 255, 255));
         btnCancel.setText("Huỷ");
 
-        btnPrint.setBackground(new java.awt.Color(40, 167, 69));
-        btnPrint.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
-        btnPrint.setForeground(new java.awt.Color(255, 255, 255));
-        btnPrint.setText("In hoá đơn");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -782,10 +781,8 @@ public class CheckoutPanel extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(46, 46, 46)
+                        .addGap(162, 162, 162)
                         .addComponent(btnCancel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnPrint, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnPayment, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
@@ -820,7 +817,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 .addGap(9, 9, 9)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnPayment, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
-                    .addComponent(btnPrint, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
                     .addComponent(btnCancel, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -835,7 +831,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
     private javax.swing.JScrollPane ProductListContainer;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnPayment;
-    private javax.swing.JButton btnPrint;
     private javax.swing.JLabel lblHeader;
     private javax.swing.JLabel lblPaymentMethod;
     private javax.swing.JLabel lblTotal;
