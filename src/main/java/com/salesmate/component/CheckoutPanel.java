@@ -518,6 +518,62 @@ public class CheckoutPanel extends javax.swing.JPanel {
     }
 
     private void setupTable() {
+        // Tạo custom renderer cho bảng
+        tblProduct.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                
+                java.awt.Component c = super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+                
+                if (isSelected) {
+                    c.setBackground(new java.awt.Color(51, 153, 255)); // Màu nền xanh dương khi chọn
+                    c.setForeground(java.awt.Color.WHITE); // Chữ màu trắng khi chọn
+                } else {
+                    c.setBackground(row % 2 == 0 ? 
+                        new java.awt.Color(255, 255, 255) : // Dòng chẵn màu trắng
+                        new java.awt.Color(240, 240, 240)); // Dòng lẻ màu xám nhạt
+                    c.setForeground(java.awt.Color.BLACK); // Chữ màu đen khi không chọn
+                }
+
+                // Căn giữa cho cột số lượng
+                if (column == 2) {
+                    ((JLabel) c).setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                }
+                
+                return c;
+            }
+        });
+
+        // Style cho header
+        javax.swing.table.JTableHeader header = tblProduct.getTableHeader();
+        header.setDefaultRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+                
+                label.setBackground(new java.awt.Color(51, 153, 255)); // Background xanh dương
+                label.setForeground(java.awt.Color.WHITE); // Chữ màu trắng
+                label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+                label.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 4, 8, 4));
+                label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER); // Căn giữa text
+                setOpaque(true); // Để hiện background
+                
+                return label;
+            }
+        });
+        
+        header.setOpaque(false);
+        header.setBackground(new java.awt.Color(51, 153, 255));
+        header.setForeground(java.awt.Color.WHITE);
+
+        // Không cho phép di chuyển các cột
+        header.setReorderingAllowed(false);
+
         // Add a listener to handle changes in the "Số Lượng" column
         tableModel.addTableModelListener(e -> {
             int row = e.getFirstRow();

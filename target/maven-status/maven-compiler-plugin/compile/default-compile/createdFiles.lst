@@ -15,12 +15,14 @@ com\salesmate\view\AdminView$6.class
 com\salesmate\configs\DBConnection.class
 com\salesmate\configs\OpenCVConfig.class
 com\salesmate\view\AdminView$8.class
+com\salesmate\component\CashierInvoicesPanel.class
 com\salesmate\view\ForgotPasswordForm.class
 com\salesmate\component\CashierAccount$1.class
 com\salesmate\view\LoginFaceID$2.class
 com\salesmate\component\CheckoutPanel$1.class
 com\salesmate\model\Product.class
 com\salesmate\component\CashierAccount$5.class
+com\salesmate\component\CheckoutPanel$8.class
 com\salesmate\view\LoginForm$2.class
 com\salesmate\component\ProductCard$3.class
 com\salesmate\view\LoginFaceID$1.class
@@ -47,6 +49,7 @@ com\salesmate\component\ProductCard$2.class
 com\salesmate\view\LoginForm$3.class
 com\salesmate\dao\ProductDAO.class
 com\salesmate\utils\SessionManager.class
+com\salesmate\component\CheckoutPanel$9.class
 com\salesmate\view\AdminView.class
 com\salesmate\model\Invoice.class
 com\salesmate\model\ProductPromotion.class
