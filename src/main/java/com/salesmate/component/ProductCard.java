@@ -5,6 +5,7 @@ import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import com.salesmate.model.Product;
 
@@ -158,6 +159,15 @@ public class ProductCard extends javax.swing.JPanel {
     public void setProductDetails(Product product) {
         this.product = product;
         this.product.setMaxQuantity(product.getQuantity()); // Lưu số lượng tối đa khi set product
+
+        // Kiểm tra số lượng sản phẩm
+        if (product.getQuantity() <= 0) {
+            this.setEnabled(false);
+            this.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+            // Có thể thêm style để hiển thị sản phẩm hết hàng
+            lblProductQuantityValue.setForeground(new java.awt.Color(255, 0, 0));
+            lblProductQuantityValue.setText("Hết hàng");
+        }
 
         // Hiển thị tên sản phẩm
         lblProductNameValue.setText(product.getProductName());
@@ -353,16 +363,34 @@ public class ProductCard extends javax.swing.JPanel {
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                setBackground(HOVER_BACKGROUND);
-                setBorder(new javax.swing.border.LineBorder(HOVER_BORDER, 1, true));
-                setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                if (isEnabled()) { // Chỉ thay đổi style khi sản phẩm còn hàng
+                    setBackground(HOVER_BACKGROUND);
+                    setBorder(new javax.swing.border.LineBorder(HOVER_BORDER, 1, true));
+                    setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                }
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (isEnabled() && listener != null && product != null) {
+                    if (product.getQuantity() <= 0) {
+                        JOptionPane.showMessageDialog(ProductCard.this,
+                            "Sản phẩm đã hết hàng!",
+                            "Thông báo",
+                            JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    listener.onProductSelected(product);
+                }
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                setBackground(CARD_BACKGROUND);
-                setBorder(new javax.swing.border.LineBorder(CARD_BORDER, 1, true));
-                setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+                if (isEnabled()) {
+                    setBackground(CARD_BACKGROUND);
+                    setBorder(new javax.swing.border.LineBorder(CARD_BORDER, 1, true));
+                    setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+                }
             }
         });
     }

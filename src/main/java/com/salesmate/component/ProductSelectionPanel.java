@@ -106,7 +106,7 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         categoryFilter.setPreferredSize(new java.awt.Dimension(120, 30));
         
         // Tạo nút reset
-        resetButton = new javax.swing.JButton("Đặt lại");
+        resetButton = new javax.swing.JButton("Refresh");
         resetButton.setPreferredSize(new java.awt.Dimension(80, 30));
         resetButton.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
         resetButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
