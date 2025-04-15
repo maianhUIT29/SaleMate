@@ -1,20 +1,27 @@
 package com.salesmate.view;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.opencv.core.Mat;
@@ -40,7 +47,7 @@ public class LoginFaceID extends JFrame {
     public LoginFaceID() {
         userController = new UserController();
         setTitle("🔑 Đăng nhập bằng FaceID - SalesMate");
-        setSize(450, 600);
+        setSize(800, 600); // Tăng kích thước cửa sổ
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -48,64 +55,150 @@ public class LoginFaceID extends JFrame {
         webcam = WebcamConfig.configureWebcam();
         webcam.open();
 
+        // Panel chính với gradient background
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 20)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                int width = getWidth();
+                int height = getHeight();
+
+                Color color1 = new Color(224, 255, 255);
+                Color color2 = new Color(173, 216, 230);
+                GradientPaint gradient = new GradientPaint(0, 0, color1, 0, height, color2);
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, width, height);
+            }
+        };
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+
+        // Header panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+
+        // Title với icon
+        JLabel titleLabel = new JLabel("ĐĂNG NHẬP BẰNG FACE ID");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Vui lòng nhìn thẳng vào camera");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setForeground(new Color(108, 117, 125));
+        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        headerPanel.add(titleLabel, BorderLayout.NORTH);
+        headerPanel.add(subtitleLabel, BorderLayout.CENTER);
+
+        // Camera panel với viền và padding
+        JPanel cameraContainer = new JPanel(new BorderLayout());
+        cameraContainer.setOpaque(false);
+        cameraContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 2),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
         WebcamPanel webcamPanel = new WebcamPanel(webcam);
-        webcamPanel.setPreferredSize(new Dimension(400, 300));
+        webcamPanel.setPreferredSize(new Dimension(640, 480));
+        webcamPanel.setFPSDisplayed(true);
+        webcamPanel.setMirrored(true);
+        cameraContainer.add(webcamPanel, BorderLayout.CENTER);
 
-        JDialog cameraDialog = new JDialog(this, "Chụp ảnh", true);
-        cameraDialog.setLayout(new BorderLayout());
-        cameraDialog.add(webcamPanel, BorderLayout.CENTER);
-        cameraDialog.setSize(400, 350);
-        cameraDialog.setLocationRelativeTo(this);
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
 
-        JButton captureButton = new JButton("Chụp ảnh");
-        captureButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        // Styled buttons
+        JButton captureButton = createStyledButton("Chụp ảnh", new Color(0, 123, 255));
+        JButton backButton = createStyledButton("Quay lại", new Color(108, 117, 125));
+
+        // Add action listeners
+        captureButton.addActionListener(e -> {
+            try {
                 BufferedImage capturedImage = webcam.getImage();
-                try {
-                    // Tạo thư mục img/login nếu chưa tồn tại
-                    File outputDir = new File("/src/main/resources/img/login");
-                    if (!outputDir.exists()) {
-                        outputDir.mkdirs();
-                    }
-                    // Lưu ảnh chụp vào thư mục img/login
-                    File outputfile = new File(outputDir, "captured.jpg");
-
-                    // Ghi ảnh chụp vào file captured.jpg
-                    ImageIO.write(capturedImage, "jpg", outputfile);
-                    if (compareFace(outputfile)) {
-                        JOptionPane.showMessageDialog(cameraDialog, "Đăng nhập thành công!");
-                        dispose();
-                        new CashierPanel(); // Mở trang quản lý nếu đăng nhập thành công
-                    } else {
-                        JOptionPane.showMessageDialog(cameraDialog, "Đăng nhập thất bại!");
-                        new LoginForm(); // Reopen LoginForm when login fails
-                        dispose();
-                    }
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                File outputDir = new File("src/main/resources/img/login");
+                outputDir.mkdirs();
+                File outputfile = new File(outputDir, "captured.jpg");
+                ImageIO.write(capturedImage, "jpg", outputfile);
+                
+                if (compareFace(outputfile)) {
+                    showSuccessDialog();
+                } else {
+                    showErrorDialog();
                 }
-                cameraDialog.dispose();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                showErrorDialog();
             }
         });
 
-        JButton closeButton = new JButton("Tắt Webcam");
-        closeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                webcam.close();
-                cameraDialog.dispose();
-                new LoginForm(); // Reopen LoginForm when webcam is closed
-                dispose();
-            }
+        backButton.addActionListener(e -> {
+            webcam.close();
+            dispose();
+            new LoginForm().setVisible(true);
         });
 
-        JPanel panel = new JPanel();
-        panel.add(captureButton);
-        panel.add(closeButton);
-        cameraDialog.add(panel, BorderLayout.SOUTH);
+        buttonPanel.add(captureButton);
+        buttonPanel.add(backButton);
 
-        cameraDialog.setVisible(true);
+        // Add all components to main panel
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(cameraContainer, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        setContentPane(mainPanel);
+        setVisible(true);
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setPreferredSize(new Dimension(150, 45));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
+        return button;
+    }
+
+    private void showSuccessDialog() {
+        JOptionPane.showOptionDialog(this,
+            "Đăng nhập thành công!",
+            "Thành công",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            new Object[]{"OK"},
+            "OK");
+        dispose();
+        new CashierPanel().setVisible(true);
+    }
+
+    private void showErrorDialog() {
+        JOptionPane.showOptionDialog(this,
+            "Không thể xác thực khuôn mặt. Vui lòng thử lại!",
+            "Lỗi",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.ERROR_MESSAGE,
+            null,
+            new Object[]{"OK"},
+            "OK");
+        dispose();
+        new LoginForm().setVisible(true);
     }
 
     // So sánh ảnh chụp với ảnh trong thư mục faceid

@@ -10,7 +10,6 @@ com\salesmate\component\CashierHeader.class
 com\salesmate\component\CheckoutPanel$7.class
 com\salesmate\component\CashierAccount$4.class
 com\salesmate\component\CashierHeader$1.class
-com\salesmate\view\ForgotPasswordForm$GradientPanel.class
 com\salesmate\view\AdminView$6.class
 com\salesmate\configs\DBConnection.class
 com\salesmate\configs\OpenCVConfig.class
@@ -49,8 +48,10 @@ com\salesmate\component\ProductCard$2.class
 com\salesmate\view\LoginForm$3.class
 com\salesmate\dao\ProductDAO.class
 com\salesmate\utils\SessionManager.class
+com\salesmate\view\GradientPanel.class
 com\salesmate\component\CheckoutPanel$9.class
 com\salesmate\view\AdminView.class
+com\salesmate\view\LoginForm$6.class
 com\salesmate\model\Invoice.class
 com\salesmate\model\ProductPromotion.class
 com\salesmate\utils\ColorPalette.class

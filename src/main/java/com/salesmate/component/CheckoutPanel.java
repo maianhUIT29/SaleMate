@@ -84,8 +84,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         // Add action listener for "Huỷ" button
         btnCancel.addActionListener(e -> clearTable());
 
-        // Add action listener for "In" button
-
         // Add action listener for payment button
         btnPayment.addActionListener(e -> processPayment());
     }

@@ -4,13 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GradientPaint;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -30,6 +29,23 @@ import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.salesmate.controller.UserController;
 
+class GradientPanel extends JPanel {
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        int width = getWidth();
+        int height = getHeight();
+
+        Color color1 = new Color(224, 255, 255);
+        Color color2 = new Color(173, 216, 230);
+
+        GradientPaint gradient = new GradientPaint(0, 0, color1, 0, height, color2);
+        g2d.setPaint(gradient);
+        g2d.fillRect(0, 0, width, height);
+    }
+}
+
 public class ForgotPasswordForm extends JFrame {
 
     private JTextField emailField;
@@ -46,9 +62,8 @@ public class ForgotPasswordForm extends JFrame {
             e.printStackTrace();
         }
 
-        // Tăng kích thước của form
         setTitle("🔑 Quên Mật khẩu - SalesMate");
-        setSize(450, 300);
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -56,62 +71,66 @@ public class ForgotPasswordForm extends JFrame {
         JPanel mainPanel = new GradientPanel();
         mainPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(10, 30, 10, 30);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Căn chỉnh nhãn tiêu đề
-        JLabel titleLabel = new JLabel("QUÊN MẬT KHẨU", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 25));
-        titleLabel.setForeground(new Color(30, 30, 30));
+        // Title
+        JLabel titleLabel = new JLabel("QUÊN MẬT KHẨU");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         mainPanel.add(titleLabel, gbc);
 
-        // Căn chỉnh nhãn email
-        JLabel emailLabel = new JLabel("Nhập email:");
-        emailLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        emailLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        // Description text
+        JLabel descLabel = new JLabel("<html>Vui lòng nhập email của bạn để nhận mật khẩu mới</html>");
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        descLabel.setForeground(new Color(108, 117, 125));
+        descLabel.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0; // Không cần mở rộng nhãn
-        mainPanel.add(emailLabel, gbc);
+        mainPanel.add(descLabel, gbc);
 
-        // Căn chỉnh trường nhập liệu email
+        // Email field
         emailField = new JTextField();
-        emailField.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        emailField.setPreferredSize(new Dimension(250, 40)); // Điều chỉnh chiều rộng ô input
+        emailField.setPreferredSize(new Dimension(300, 40));
+        emailField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         emailField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(173, 216, 230), 2),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)));
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.weightx = 1.0; // Ô input có thể mở rộng chiều ngang
+            BorderFactory.createLineBorder(new Color(206, 212, 218)),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        emailField.putClientProperty("JTextField.placeholderText", "Nhập email của bạn");
+        gbc.gridy = 2;
         mainPanel.add(emailField, gbc);
 
-        // Thêm FlowLayout để căn giữa nút gửi
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        submitButton = new JButton("Gửi");
-        submitButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        submitButton.setBackground(new Color(33, 150, 243));
+        // Submit button
+        submitButton = new JButton("Gửi yêu cầu");
+        submitButton.setPreferredSize(new Dimension(300, 45));
+        submitButton.setBackground(new Color(0, 123, 255));
         submitButton.setForeground(Color.WHITE);
+        submitButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        submitButton.setBorder(null);
         submitButton.setFocusPainted(false);
-        submitButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        submitButton.setPreferredSize(new Dimension(100, 40)); // Giới hạn chiều rộng nút
-        buttonPanel.add(submitButton); // Thêm nút vào JPanel
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        mainPanel.add(buttonPanel, gbc); // Thêm JPanel chứa nút gửi vào GridBagLayout
-
-        // Căn chỉnh nhãn trạng thái
-        statusLabel = new JLabel("", SwingConstants.CENTER);
-        statusLabel.setForeground(Color.RED);
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         gbc.gridy = 3;
-        mainPanel.add(statusLabel, gbc);
+        mainPanel.add(submitButton, gbc);
+
+        // Back to login link
+        JButton backButton = new JButton("Quay lại đăng nhập");
+        backButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        backButton.setForeground(new Color(0, 123, 255));
+        backButton.setBorderPainted(false);
+        backButton.setContentAreaFilled(false);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(e -> {
+            new LoginForm();
+            dispose();
+        });
+        gbc.gridy = 4;
+        mainPanel.add(backButton, gbc);
+
+        add(mainPanel);
 
         submitButton.addActionListener(new ActionListener() {
             @Override
@@ -150,8 +169,6 @@ public class ForgotPasswordForm extends JFrame {
                 }
             }
         });
-
-        add(mainPanel, BorderLayout.CENTER);
 
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -223,24 +240,6 @@ public class ForgotPasswordForm extends JFrame {
         timer.start();
 
         dialog.setVisible(true);
-    }
-
-    class GradientPanel extends JPanel {
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g;
-            int width = getWidth();
-            int height = getHeight();
-
-            Color color1 = new Color(224, 255, 255);
-            Color color2 = new Color(173, 216, 230);
-
-            GradientPaint gradient = new GradientPaint(0, 0, color1, 0, height, color2);
-            g2d.setPaint(gradient);
-            g2d.fillRect(0, 0, width, height);
-        }
     }
 
     public static void main(String[] args) {
