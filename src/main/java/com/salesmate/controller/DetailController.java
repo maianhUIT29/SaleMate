@@ -31,4 +31,9 @@ public class DetailController {
     public boolean deleteDetail(int detailId) {
         return detailDAO.deleteDetail(detailId);
     }
+
+    // Lấy tất cả chi tiết hóa đơn theo invoice_id
+    public List<Detail> getDetailsByInvoiceId(int invoiceId) {
+        return detailDAO.getDetailsByInvoiceId(invoiceId);
+    }
 }

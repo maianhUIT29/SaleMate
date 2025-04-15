@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import com.salesmate.dao.InvoiceDAO;
 import com.salesmate.dao.UserDAO;
 import com.salesmate.model.Invoice;
+import java.util.List;
 
 public class InvoiceController {
     private final InvoiceDAO invoiceDAO;
@@ -40,6 +41,11 @@ public class InvoiceController {
     // Tạo hoá đơn mới
     public void createInvoice(Invoice invoice) {
         invoiceDAO.saveInvoice(invoice);
+    }
+
+    // Lấy tất cả hoá đơn của một người dùng
+    public List<Invoice> getInvoicesByUserId(int userId) {
+        return invoiceDAO.getInvoicesByUserId(userId);
     }
     
 }

@@ -230,7 +230,7 @@ public class LoginForm extends JFrame {
             SessionManager.getInstance().setLoggedInUser(user);
             dispose();
             if ("Sales Staff".equals(user.getRole())) {
-                new CashierPanel().setVisible(true); // Ensure the view is visible
+                new CashierView().setVisible(true); // Ensure the view is visible
             } else if ("Store Manager".equals(user.getRole())) {
                 new AdminView().setVisible(true); // Ensure the view is visible
             }

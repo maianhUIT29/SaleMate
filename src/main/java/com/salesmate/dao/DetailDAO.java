@@ -114,4 +114,31 @@ public class DetailDAO {
             return false;
         }
     }
+
+    // lấy tất cả sản phẩm của một hóa đơn
+    public List<Detail> getDetailsByInvoiceId(int invoiceId) {
+        List<Detail> details = new ArrayList<>();
+        String sql = "SELECT * FROM detail WHERE invoice_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, invoiceId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Detail detail = new Detail(
+                        rs.getInt("detail_id"),
+                        rs.getInt("invoice_id"),
+                        rs.getInt("product_id"),
+                        rs.getInt("quantity"),
+                        rs.getBigDecimal("price"),
+                        rs.getBigDecimal("total")
+                    );
+                    details.add(detail);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return details;
+    }
 }

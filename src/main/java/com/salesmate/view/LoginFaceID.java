@@ -185,7 +185,7 @@ public class LoginFaceID extends JFrame {
             new Object[]{"OK"},
             "OK");
         dispose();
-        new CashierPanel().setVisible(true);
+        new CashierView().setVisible(true);
     }
 
     private void showErrorDialog() {
