@@ -116,7 +116,7 @@ public class CashierAccount extends javax.swing.JPanel {
 
         AccountPanel.setBackground(new java.awt.Color(220, 240, 242));
 
-        UserInfoPanel.setBackground(new java.awt.Color(23, 162, 184));
+        UserInfoPanel.setBackground(new java.awt.Color(255, 255, 255));
         UserInfoPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         lblUsername.setBackground(new java.awt.Color(241, 241, 241));
@@ -124,6 +124,7 @@ public class CashierAccount extends javax.swing.JPanel {
         lblUsername.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         lblUsername.setText("Tên người dùng");
 
+        txtCCCD.setBackground(new java.awt.Color(204, 204, 204));
         txtCCCD.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txtCCCD.setText("0123456789");
         txtCCCD.addActionListener(new java.awt.event.ActionListener() {
@@ -135,6 +136,7 @@ public class CashierAccount extends javax.swing.JPanel {
         lblEmail.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
         lblEmail.setText("Email");
 
+        txtUsername.setBackground(new java.awt.Color(204, 204, 204));
         txtUsername.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txtUsername.setText("Unknown");
         txtUsername.addActionListener(new java.awt.event.ActionListener() {
@@ -143,28 +145,24 @@ public class CashierAccount extends javax.swing.JPanel {
             }
         });
 
+        txtEmail.setBackground(new java.awt.Color(204, 204, 204));
         txtEmail.setFont(new java.awt.Font("Times New Roman", 0, 18)); // NOI18N
         txtEmail.setText("Forexample@gmail.com");
 
         lblPW.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
         lblPW.setText("Mật khẩu");
 
-        btnUpdate.setBackground(new java.awt.Color(255, 193, 7));
+        btnUpdate.setBackground(new java.awt.Color(255, 255, 51));
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Cập nhật");
 
-        btnSave.setBackground(new java.awt.Color(40, 167, 69));
+        btnSave.setBackground(new java.awt.Color(0, 204, 0));
         btnSave.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnSave.setForeground(new java.awt.Color(255, 255, 255));
         btnSave.setText("Lưu");
-        btnSave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveActionPerformed(evt);
-            }
-        });
 
         lblUserHeader.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblUserHeader.setForeground(new java.awt.Color(255, 255, 255));
+        lblUserHeader.setForeground(new java.awt.Color(0, 0, 255));
         lblUserHeader.setText("THÔNG TIN TÀI KHOẢN");
 
         lblDOB.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
@@ -173,6 +171,7 @@ public class CashierAccount extends javax.swing.JPanel {
         lblCCCD.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
         lblCCCD.setText("CCCD");
 
+        txtDOB.setBackground(new java.awt.Color(204, 204, 204));
         txtDOB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txtDOB.setText("01/01/2003");
         txtDOB.addActionListener(new java.awt.event.ActionListener() {
@@ -181,17 +180,13 @@ public class CashierAccount extends javax.swing.JPanel {
             }
         });
 
+        txtPW.setBackground(new java.awt.Color(204, 204, 204));
         txtPW.setText("jPasswordField1");
 
-        btnResetPW.setBackground(new java.awt.Color(102, 0, 51));
+        btnResetPW.setBackground(new java.awt.Color(255, 51, 51));
         btnResetPW.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnResetPW.setForeground(new java.awt.Color(255, 255, 255));
         btnResetPW.setText("Đổi mật khẩu");
-        btnResetPW.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnResetPWActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout UserInfoPanelLayout = new javax.swing.GroupLayout(UserInfoPanel);
         UserInfoPanel.setLayout(UserInfoPanelLayout);
@@ -292,11 +287,6 @@ public class CashierAccount extends javax.swing.JPanel {
         btnUpdateAvatar.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         btnUpdateAvatar.setForeground(new java.awt.Color(255, 255, 255));
         btnUpdateAvatar.setText("Đổi ảnh đại diện");
-        btnUpdateAvatar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUpdateAvatarActionPerformed(evt);
-            }
-        });
 
         lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblAvatar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/avt/N (2).jpg"))); // NOI18N

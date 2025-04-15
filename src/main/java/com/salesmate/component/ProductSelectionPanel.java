@@ -1,6 +1,5 @@
 package com.salesmate.component;
 
-import java.awt.GridLayout;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -33,17 +32,18 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             return;
         }
 
-        System.out.println("Bat dau hien thi danh sach san pham...");
-
         JPanel productContainer = new JPanel();
-        productContainer.setLayout(new GridLayout(0, 3, 10, 10)); // 3 columns, 10px spacing
+        productContainer.setLayout(new java.awt.GridLayout(0, 3, 10, 10));
+        productContainer.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         for (Product product : products) {
             ProductCard productCard = new ProductCard();
+            // Đặt kích thước cố định cho mỗi card
+            productCard.setPreferredSize(new java.awt.Dimension(180, 250));
+            
             productCard.setProductDetails(product);
             productCard.setProductCardListener(selectedProduct -> {
                 if (checkoutPanel != null) {
-                    System.out.println("Adding product to checkout: " + selectedProduct.getProductName()); // Debugging
                     checkoutPanel.addProductToCheckout(selectedProduct);
                 }
             });
@@ -54,12 +54,12 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        this.setLayout(new java.awt.BorderLayout());
-        this.removeAll(); // Clear previous components
-        this.add(scrollPane, java.awt.BorderLayout.CENTER);
-        this.revalidate();
-        this.repaint();
+        
+        removeAll();
+        setLayout(new java.awt.BorderLayout());
+        add(scrollPane, java.awt.BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 
     @SuppressWarnings("unchecked")
