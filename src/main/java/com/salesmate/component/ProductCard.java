@@ -24,7 +24,7 @@ public class ProductCard extends javax.swing.JPanel {
 
     public ProductCard() {
         initComponents();
-        setPreferredSize(new java.awt.Dimension(180, 250));
+        setPreferredSize(new java.awt.Dimension(160, 220)); // Kích thước mặc định
         setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200)));
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -59,31 +59,41 @@ public class ProductCard extends javax.swing.JPanel {
         lblProductPriceKey = new javax.swing.JLabel();
         lblProductPriceValue = new javax.swing.JLabel();
 
-        setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        setPreferredSize(new java.awt.Dimension(160, 220));
         setLayout(new java.awt.BorderLayout());
+
+        ProductCardContainer.setPreferredSize(new java.awt.Dimension(160, 220));
 
         javax.swing.GroupLayout panelImageContainerLayout = new javax.swing.GroupLayout(panelImageContainer);
         panelImageContainer.setLayout(panelImageContainerLayout);
         panelImageContainerLayout.setHorizontalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblProductImage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(panelImageContainerLayout.createSequentialGroup()
+                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
         panelImageContainerLayout.setVerticalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblProductImage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
+            .addGroup(panelImageContainerLayout.createSequentialGroup()
+                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         panelProductDetail.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        lblProductNameValue.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        lblProductNameValue.setFont(new java.awt.Font("Times New Roman", 1, 10)); // NOI18N
         lblProductNameValue.setText("Chưa rõ");
 
+        lblProductQuantityKey.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         lblProductQuantityKey.setText("Còn lại");
 
+        lblProductQuantityValue.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         lblProductQuantityValue.setText("0");
 
+        lblProductPriceKey.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         lblProductPriceKey.setText("Giá tiền");
 
+        lblProductPriceValue.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         lblProductPriceValue.setText("0");
 
         javax.swing.GroupLayout panelProductDetailLayout = new javax.swing.GroupLayout(panelProductDetail);
@@ -93,7 +103,9 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(panelProductDetailLayout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(panelProductDetailLayout.createSequentialGroup()
+                        .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
                     .addGroup(panelProductDetailLayout.createSequentialGroup()
                         .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblProductPriceKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -102,17 +114,16 @@ public class ProductCard extends javax.swing.JPanel {
                         .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
                             .addComponent(lblProductPriceValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(7, 7, 7))
+                        .addGap(4, 4, 4))))
         );
         panelProductDetailLayout.setVerticalGroup(
             panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelProductDetailLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, 22, Short.MAX_VALUE)
+                    .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -127,18 +138,18 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(ProductCardContainerLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addGroup(ProductCardContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelProductDetail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panelImageContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(panelImageContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelProductDetail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(5, 5, 5))
         );
         ProductCardContainerLayout.setVerticalGroup(
             ProductCardContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(ProductCardContainerLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addComponent(panelImageContainer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
-                .addComponent(panelProductDetail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelProductDetail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(10, 10, 10))
         );
 
         add(ProductCardContainer, java.awt.BorderLayout.CENTER);
@@ -269,12 +280,8 @@ public class ProductCard extends javax.swing.JPanel {
     private static final int BORDER_RADIUS = 10;
 
     public void applyModernStyle() {
-        // Thiết lập style cho card
         setBackground(CARD_BACKGROUND);
-        setBorder(new javax.swing.border.CompoundBorder(
-            new javax.swing.border.LineBorder(CARD_BORDER, 1, true),
-            javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5) // Giảm padding từ 8 xuống 5
-        ));
+        setBorder(new javax.swing.border.LineBorder(CARD_BORDER, 1, true)); // Chỉ giữ lại border, bỏ padding
 
         // Style cho container
         ProductCardContainer.setBackground(CARD_BACKGROUND);
@@ -288,33 +295,51 @@ public class ProductCard extends javax.swing.JPanel {
         panelProductDetail.setBackground(CARD_BACKGROUND);
         panelProductDetail.setBorder(null);
 
-        // Style cho tên sản phẩm
-        lblProductNameValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12)); // Giảm font size từ 14 xuống 12
-        lblProductNameValue.setForeground(NAME_COLOR);
-
-        // Style cho giá và số lượng
-        styleLabel(lblProductQuantityKey, "Segoe UI", java.awt.Font.PLAIN, 11); // Giảm font size từ 12 xuống 11
-        styleLabel(lblProductQuantityValue, "Segoe UI", java.awt.Font.BOLD, 11);
-        styleLabel(lblProductPriceKey, "Segoe UI", java.awt.Font.PLAIN, 11);
-        lblProductPriceValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12)); // Giảm font size từ 14 xuống 12
-        lblProductPriceValue.setForeground(PRICE_COLOR);
-
-        // Thêm padding nhỏ hơn và cố định kích thước card
-        setMaximumSize(getPreferredSize());
-        ProductCardContainer.setMaximumSize(getPreferredSize());
-        
-        // Đặt một tỷ lệ cố định cho panel hình ảnh
+        // Đặt tỷ lệ cho panel ảnh và chi tiết
         java.awt.Dimension parentSize = getPreferredSize();
-        int imageHeight = (int)(parentSize.height * 0.6); // Chiếm 60% chiều cao card
-        panelImageContainer.setPreferredSize(new java.awt.Dimension(parentSize.width - 10, imageHeight));
+        int imageHeight = (int)(parentSize.height * 0.6);
+        panelImageContainer.setPreferredSize(new java.awt.Dimension(
+            parentSize.width,  // Bỏ trừ padding
+            imageHeight
+        ));
         
-        // Cập nhật lại layout
+        // Panel chi tiết
         panelProductDetail.setPreferredSize(new java.awt.Dimension(
-            parentSize.width - 10,
-            parentSize.height - imageHeight - 20
+            parentSize.width, // Bỏ trừ padding
+            parentSize.height - imageHeight
         ));
 
-        // Thêm hiệu ứng hover
+        // Style cho tên sản phẩm
+        lblProductNameValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 11));
+        lblProductNameValue.setForeground(NAME_COLOR);
+        lblProductNameValue.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        
+        // Giới hạn và xử lý tên sản phẩm
+        String name = lblProductNameValue.getText();
+        if (name.length() > 25) {
+            lblProductNameValue.setText("<html>" + name + "</html>"); // Cho phép wrap text
+            lblProductNameValue.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        }
+
+        // Style cho các label khác
+        styleLabel(lblProductQuantityKey, "Segoe UI", java.awt.Font.PLAIN, 11);
+        styleLabel(lblProductQuantityValue, "Segoe UI", java.awt.Font.BOLD, 11);
+        styleLabel(lblProductPriceKey, "Segoe UI", java.awt.Font.PLAIN, 11);
+        lblProductPriceValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        lblProductPriceValue.setForeground(PRICE_COLOR);
+        
+        // Format giá tiền với đơn vị VNĐ
+        try {
+            double price = Double.parseDouble(lblProductPriceValue.getText());
+            lblProductPriceValue.setText(String.format("%,dđ", (int)price));
+        } catch (NumberFormatException e) {
+            // Giữ nguyên text nếu không parse được
+        }
+
+        // Cập nhật các giá trị maximum size
+        setMaximumSize(getPreferredSize());
+        ProductCardContainer.setMaximumSize(getPreferredSize());
+
         addHoverEffect();
     }
 
@@ -328,20 +353,14 @@ public class ProductCard extends javax.swing.JPanel {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 setBackground(HOVER_BACKGROUND);
-                setBorder(new javax.swing.border.CompoundBorder(
-                    new javax.swing.border.LineBorder(HOVER_BORDER, 1, true),
-                    javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5) // Giảm padding từ 8 xuống 5
-                ));
+                setBorder(new javax.swing.border.LineBorder(HOVER_BORDER, 1, true));
                 setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 setBackground(CARD_BACKGROUND);
-                setBorder(new javax.swing.border.CompoundBorder(
-                    new javax.swing.border.LineBorder(CARD_BORDER, 1, true),
-                    javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5) // Giảm padding từ 8 xuống 5
-                ));
+                setBorder(new javax.swing.border.LineBorder(CARD_BORDER, 1, true));
                 setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
             }
         });

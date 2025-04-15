@@ -28,6 +28,7 @@ com\salesmate\component\ProductSelectionPanel.class
 com\salesmate\controller\ProductController.class
 com\salesmate\controller\InvoiceController.class
 com\salesmate\component\CheckoutPanel$2.class
+com\salesmate\component\ProductSelectionPanel$1.class
 com\salesmate\view\AdminView$1.class
 com\salesmate\view\LoginForm$GradientPanel.class
 com\salesmate\view\LoginForm$1.class

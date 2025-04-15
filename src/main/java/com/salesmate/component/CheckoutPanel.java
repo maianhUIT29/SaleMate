@@ -188,10 +188,10 @@ public class CheckoutPanel extends javax.swing.JPanel {
         int totalParts = 10; // 7 parts for "Tên sản phẩm", 1 part each for the others
         int tableWidth = tblProduct.getWidth();
 
-        columnModel.getColumn(0).setPreferredWidth((tableWidth * 7) / totalParts); // "Tên sản phẩm"
+        columnModel.getColumn(0).setPreferredWidth((tableWidth * 6) / totalParts); // "Tên sản phẩm"
         columnModel.getColumn(1).setPreferredWidth((tableWidth * 1) / totalParts); // "Giá"
         columnModel.getColumn(2).setPreferredWidth((tableWidth * 1) / totalParts); // "Số Lượng"
-        columnModel.getColumn(3).setPreferredWidth((tableWidth * 1) / totalParts); // "Thành tiền"
+        columnModel.getColumn(3).setPreferredWidth((tableWidth * 2) / totalParts); // "Thành tiền"
     }
 
     private void clearTable() {

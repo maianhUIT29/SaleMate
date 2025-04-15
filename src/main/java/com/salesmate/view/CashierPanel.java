@@ -12,22 +12,24 @@ public class CashierPanel extends javax.swing.JFrame {
     private ProductController productController;
 
     public CashierPanel() {
-        initComponents();  // Đừng thay đổi mã này, vì IDE đã tự động khởi tạo các thành phần UI
-        loadProductList();  // Gọi phương thức tải sản phẩm
-        // Đảm bảo rằng ProductSelectionPanel tự động kích thước phù hợp.
-        productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));  // Bạn có thể điều chỉnh kích thước nếu cần
+        initComponents();
+        
+        // Đặt các cài đặt giao diện trước
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(false);
+        productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
+        productSelectionPanel.setCheckoutPanel(checkoutPanel2);
 
-        // Mở cửa sổ ở chế độ toàn màn hình
-        setExtendedState(JFrame.MAXIMIZED_BOTH);  // Mở cửa sổ ở chế độ tối đa (full screen)
-        setUndecorated(false); // Giữ thanh tiêu đề của cửa sổ
-
-        productSelectionPanel.setCheckoutPanel(checkoutPanel2); // Link panels
+        // Cuối cùng mới load dữ liệu sản phẩm
+        loadProductList();
     }
 
     private void loadProductList() {
         productController = new ProductController();
-        List<Product> products = productController.getAllProducts();  // Lấy sản phẩm từ controller
-        productSelectionPanel.setProducts(products);  // Truyền danh sách sản phẩm vào ProductSelectionPanel
+        List<Product> products = productController.getAllProducts();
+        if (products != null && !products.isEmpty()) {
+            productSelectionPanel.setProducts(products);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -66,9 +68,9 @@ public class CashierPanel extends javax.swing.JFrame {
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
                 .addGap(16, 16, 16)
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 548, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE)
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                .addGap(8, 8, 8)
+                .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(12, 12, 12))
         );
         PanelSaleLayout.setVerticalGroup(
