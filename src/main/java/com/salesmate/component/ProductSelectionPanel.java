@@ -1,11 +1,22 @@
 package com.salesmate.component;
 
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import com.salesmate.model.Product;
 
@@ -17,11 +28,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     private javax.swing.JTextField searchField;
     private javax.swing.JComboBox<String> priceFilter;
     private javax.swing.JComboBox<String> quantityFilter;
-    private javax.swing.JComboBox<String> categoryFilter; // Thêm biến thành viên mới
-    private javax.swing.JButton resetButton; // Thêm biến thành viên mới
+    private javax.swing.JComboBox<String> categoryFilter;
+    private javax.swing.JButton resetButton;
     private javax.swing.JPanel filterPanel;
-
-    // Thêm các biến thành viên mới
     private int currentPage = 1;
     private int productsPerPage = 30; // 6 cột x 5 dòng
     private javax.swing.JPanel paginationPanel;
@@ -31,17 +40,148 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         initComponents();
         setLayout(new java.awt.BorderLayout());
         setupFilterPanel();
-        // Bỏ gọi displayProducts() ở đây vì chưa có data
+        
+        // Hiển thị toast loading ngay tại panel
+        JPanel mainPanel = new JPanel(new java.awt.BorderLayout());
+        JPanel loadingPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Vẽ nền mờ
+                g2d.setColor(new Color(0, 0, 0, 100));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                
+                // Vẽ background cho toast
+                int width = 200;
+                int height = 60;
+                int x = (getWidth() - width) / 2;
+                int y = (getHeight() - height) / 2;
+                
+                g2d.setColor(new Color(60, 60, 60, 220));
+                g2d.fillRoundRect(x, y, width, height, 20, 20);
+                
+                // Vẽ spinner
+                drawSpinner(g2d, x + 30, y + height/2);
+                
+                // Vẽ text
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                g2d.drawString("Đang tải dữ liệu...", x + 60, y + height/2 + 5);
+                
+                g2d.dispose();
+            }
+            
+            private void drawSpinner(Graphics2D g2d, int x, int y) {
+                int size = 20;
+                g2d.setColor(Color.WHITE);
+                g2d.setStroke(new BasicStroke(2));
+                
+                for (int i = 0; i < 12; i++) {
+                    float scale = (float) ((12 - i) % 12) / 12.0f;
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, scale));
+                    
+                    double angle = Math.toRadians(spinnerAngle + i * 30);
+                    int x1 = x + size/2 + (int)(size/3 * Math.cos(angle));
+                    int y1 = y + (int)(size/3 * Math.sin(angle));
+                    int x2 = x + size/2 + (int)(size/2 * Math.cos(angle));
+                    int y2 = y + (int)(size/2 * Math.sin(angle));
+                    
+                    g2d.drawLine(x1, y1, x2, y2);
+                }
+            }
+        };
+        loadingPanel.setOpaque(false);
+        
+        mainPanel.add(loadingPanel, BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
+        
+        // Animate spinner
+        Timer spinnerTimer = new Timer(50, e -> {
+            spinnerAngle = (spinnerAngle + 30) % 360;
+            loadingPanel.repaint();
+        });
+        spinnerTimer.start();
+        
+        // Remove loading panel after delay
+        Timer removeTimer = new Timer(2000, e -> {
+            remove(mainPanel);
+            spinnerTimer.stop();
+            revalidate();
+            repaint();
+            
+            // Show success toast
+            showSuccessToast();
+        });
+        removeTimer.setRepeats(false);
+        removeTimer.start();
+    }
+    
+    private int spinnerAngle = 0;
+    
+    private void showSuccessToast() {
+        JPanel successPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Vẽ background cho toast
+                int width = 200;
+                int height = 60;
+                int x = (getWidth() - width) / 2;
+                int y = (getHeight() - height) / 2;
+                
+                g2d.setColor(new Color(46, 125, 50, 220));
+                g2d.fillRoundRect(x, y, width, height, 20, 20);
+                
+                // Vẽ text
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                g2d.drawString("Tải dữ liệu thành công!", x + 30, y + height/2 + 5);
+                
+                g2d.dispose();
+            }
+        };
+        successPanel.setOpaque(false);
+        
+        JPanel overlayPanel = new JPanel(new BorderLayout());
+        overlayPanel.setOpaque(false);
+        overlayPanel.add(successPanel, BorderLayout.CENTER);
+        
+        add(overlayPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+        
+        // Remove success toast after delay
+        Timer removeTimer = new Timer(1500, e -> {
+            remove(overlayPanel);
+            revalidate();
+            repaint();
+        });
+        removeTimer.setRepeats(false);
+        removeTimer.start();
     }
 
     public void setProducts(List<Product> products) {
         if (products == null || products.isEmpty()) {
             return;
         }
-        this.products = products;
-        this.filteredProducts = new ArrayList<>(products);
-        currentPage = 1;
-        displayFilteredProducts(this.products);
+        
+        // Simulate loading delay
+        Timer timer = new Timer(1500, e -> {
+            this.products = products;
+            this.filteredProducts = new ArrayList<>(products);
+            currentPage = 1;
+            displayFilteredProducts(this.products);
+            
+            ((Timer)e.getSource()).stop();
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
     public void setCheckoutPanel(CheckoutPanel checkoutPanel) {
@@ -371,14 +511,29 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     }
 
     private void resetFilters() {
+        java.awt.Window window = SwingUtilities.getWindowAncestor(this);
+        if (!(window instanceof JFrame)) {
+            // If not in a JFrame, show simple message instead
+            System.out.println("Cannot show toast - parent window is not a JFrame");
+            return;
+        }
+        JFrame parentFrame = (JFrame) window;
+
+        // Reset filters
         searchField.setText("");
         categoryFilter.setSelectedIndex(0);
         priceFilter.setSelectedIndex(0);
         quantityFilter.setSelectedIndex(0);
-        currentPage = 1; // Reset về trang đầu tiên khi reset filter
-        if (products != null) {
-            displayFilteredProducts(products);
-        }
+        currentPage = 1;
+        
+        // Simulate loading delay
+        Timer timer = new Timer(3000, e -> {
+            if (products != null) {
+                displayFilteredProducts(products);
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
     // Thêm phương thức để cập nhật sản phẩm

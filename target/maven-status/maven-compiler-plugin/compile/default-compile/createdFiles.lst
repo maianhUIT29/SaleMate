@@ -53,7 +53,9 @@ com\salesmate\view\LoginForm$3.class
 com\salesmate\dao\ProductDAO.class
 com\salesmate\utils\SessionManager.class
 com\salesmate\view\GradientPanel.class
+com\salesmate\component\Toast.class
 com\salesmate\component\CheckoutPanel$9.class
+com\salesmate\component\Toast$1.class
 com\salesmate\view\AdminView.class
 com\salesmate\view\LoginForm$6.class
 com\salesmate\component\CashierInvoicesPanel$ButtonEditor.class
