@@ -5,7 +5,6 @@ import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 
 import com.salesmate.model.Product;
 
@@ -18,24 +17,29 @@ public class ProductCard extends javax.swing.JPanel {
     }
 
     private ProductCardListener listener;
-
-    public void setProductCardListener(ProductCardListener listener) {
-        this.listener = listener;
-    }
+    private boolean isMouseListenerAdded = false; // Track if the listener is already added
 
     public ProductCard() {
         initComponents();
-        setPreferredSize(new java.awt.Dimension(160, 220)); // Kích thước mặc định
+        setPreferredSize(new java.awt.Dimension(160, 220)); // Default size
         setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200)));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (listener != null && product != null) {
-                    System.out.println("Product clicked: " + product.getProductName()); // Debugging
-                    listener.onProductSelected(product);
-                }
+    }
+
+    public void setProductCardListener(ProductCardListener listener) {
+        if (this.listener == null) { // Prevent setting the listener multiple times
+            this.listener = listener;
+            if (!isMouseListenerAdded) { // Add the mouse listener only once
+                addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent evt) {
+                        if (ProductCard.this.listener != null && product != null) {
+                            ProductCard.this.listener.onProductSelected(product);
+                        }
+                    }
+                });
+                isMouseListenerAdded = true;
             }
-        });
+        }
     }
 
     public Product getProduct() {
@@ -367,20 +371,6 @@ public class ProductCard extends javax.swing.JPanel {
                     setBackground(HOVER_BACKGROUND);
                     setBorder(new javax.swing.border.LineBorder(HOVER_BORDER, 1, true));
                     setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                }
-            }
-
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (isEnabled() && listener != null && product != null) {
-                    if (product.getQuantity() <= 0) {
-                        JOptionPane.showMessageDialog(ProductCard.this,
-                            "Sản phẩm đã hết hàng!",
-                            "Thông báo",
-                            JOptionPane.WARNING_MESSAGE);
-                        return;
-                    }
-                    listener.onProductSelected(product);
                 }
             }
 

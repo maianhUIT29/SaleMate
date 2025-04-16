@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -39,18 +38,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         if (products == null || products.isEmpty()) {
             return;
         }
-
         this.products = products;
         this.filteredProducts = new ArrayList<>(products);
-        currentPage = 1; // Reset về trang đầu tiên
-
-        // Reset các filter về trạng thái mặc định
-        searchField.setText("");
-        categoryFilter.setSelectedIndex(0);
-        priceFilter.setSelectedIndex(0);
-        quantityFilter.setSelectedIndex(0);
-
-        // Hiển thị toàn bộ sản phẩm
+        currentPage = 1;
         displayFilteredProducts(this.products);
     }
 
@@ -259,41 +249,37 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
 
     private void displayFilteredProducts(List<Product> filteredProducts) {
         if (filteredProducts == null || filteredProducts.isEmpty()) {
-            System.out.println("Không có sản phẩm để hiển thị");
             return;
         }
 
-        System.out.println("Đang hiển thị " + filteredProducts.size() + " sản phẩm");
+        this.filteredProducts = filteredProducts;
 
         // Tạo main container với BorderLayout
         JPanel mainContainer = new JPanel(new java.awt.BorderLayout());
         mainContainer.setBackground(new java.awt.Color(245, 245, 245));
 
-        // Tạo product container với GridBagLayout như cũ
+        // Tạo product container với GridBagLayout
         JPanel productContainer = new JPanel();
         productContainer.setLayout(new java.awt.GridBagLayout());
         productContainer.setBackground(new java.awt.Color(245, 245, 245));
-        productContainer.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2)); // Giảm padding container
+        productContainer.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
-        gbc.insets = new java.awt.Insets(8, 8, 8, 8); // Tăng spacing giữa các card
+        gbc.insets = new java.awt.Insets(8, 8, 8, 8);
         gbc.fill = java.awt.GridBagConstraints.NONE;
         gbc.anchor = java.awt.GridBagConstraints.CENTER;
 
-        // Tính toán số cột và kích thước card với spacing mới
         int numColumns = 6;
-        int spacing = 16; // Khoảng cách giữa các card
-        int availableWidth = getWidth() - (spacing * (numColumns + 1)); // Trừ đi tổng spacing
+        int spacing = 16;
+        int availableWidth = getWidth() - (spacing * (numColumns + 1));
         int cardWidth = availableWidth / numColumns;
-        int cardHeight = (int)(cardWidth * 1.4);
+        int cardHeight = (int) (cardWidth * 1.4);
 
-        // Tính toán phân trang
         int totalProducts = filteredProducts.size();
         int totalPages = (int) Math.ceil((double) totalProducts / productsPerPage);
         int startIndex = (currentPage - 1) * productsPerPage;
         int endIndex = Math.min(startIndex + productsPerPage, totalProducts);
 
-        // Lấy sản phẩm cho trang hiện tại
         List<Product> currentPageProducts = filteredProducts.subList(startIndex, endIndex);
 
         int row = 0;
@@ -303,6 +289,8 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             ProductCard productCard = new ProductCard();
             productCard.setPreferredSize(new java.awt.Dimension(cardWidth, cardHeight));
             productCard.setProductDetails(product);
+
+            // Set the listener only once
             productCard.setProductCardListener(selectedProduct -> {
                 if (checkoutPanel != null) {
                     checkoutPanel.addProductToCheckout(selectedProduct);
@@ -320,7 +308,6 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             }
         }
 
-        // Đưa product container vào scroll pane
         JScrollPane scrollPane = new JScrollPane(productContainer);
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -328,14 +315,12 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBackground(java.awt.Color.WHITE);
 
-        // Tạo panel phân trang với border phía trên
         paginationPanel = new javax.swing.JPanel();
         paginationPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 5));
         paginationPanel.setBackground(java.awt.Color.WHITE);
         paginationPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(230, 230, 230)));
         paginationPanel.setPreferredSize(new java.awt.Dimension(getWidth(), 50));
 
-        // Thêm nút Previous
         javax.swing.JButton prevButton = new javax.swing.JButton("<<");
         prevButton.setEnabled(currentPage > 1);
         prevButton.addActionListener(e -> {
@@ -344,37 +329,14 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
         paginationPanel.add(prevButton);
 
-        // Tính toán range của các nút trang
         int startPage = Math.max(1, currentPage - 2);
         int endPage = Math.min(totalPages, startPage + MAX_PAGE_BUTTONS - 1);
         startPage = Math.max(1, endPage - MAX_PAGE_BUTTONS + 1);
 
-        // Thêm nút trang đầu tiên nếu cần
-        if (startPage > 1) {
-            addPageButton(1, filteredProducts);
-            if (startPage > 2) {
-                JLabel dots = new JLabel("...");
-                dots.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
-                paginationPanel.add(dots);
-            }
-        }
-
-        // Thêm các nút trang chính
         for (int i = startPage; i <= endPage; i++) {
             addPageButton(i, filteredProducts);
         }
 
-        // Thêm nút trang cuối cùng nếu cần
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                JLabel dots = new JLabel("...");
-                dots.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
-                paginationPanel.add(dots);
-            }
-            addPageButton(totalPages, filteredProducts);
-        }
-
-        // Thêm nút Next
         javax.swing.JButton nextButton = new javax.swing.JButton(">>");
         nextButton.setEnabled(currentPage < totalPages);
         nextButton.addActionListener(e -> {
@@ -383,11 +345,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
         paginationPanel.add(nextButton);
 
-        // Thêm các components vào main container
         mainContainer.add(scrollPane, java.awt.BorderLayout.CENTER);
         mainContainer.add(paginationPanel, java.awt.BorderLayout.SOUTH);
 
-        // Cập nhật UI
         if (getComponentCount() > 1) {
             remove(1);
         }
@@ -395,7 +355,7 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         revalidate();
         repaint();
     }
-    
+
     // Thêm phương thức để thêm nút trang
     private void addPageButton(int pageNum, List<Product> filteredProducts) {
         javax.swing.JButton pageButton = new javax.swing.JButton(String.valueOf(pageNum));

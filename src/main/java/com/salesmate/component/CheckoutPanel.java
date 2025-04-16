@@ -107,6 +107,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
             return;
         }
 
+        // Ensure the product is added only once
         if (checkoutProducts.containsKey(product.getProductId())) {
             Product existingProduct = checkoutProducts.get(product.getProductId());
             if (existingProduct.getQuantity() >= product.getMaxQuantity()) {
@@ -126,7 +127,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 product.getBarcode(),
                 product.getImage()
             );
-            checkoutProduct.setMaxQuantity(product.getQuantity()); // Lưu số lượng tối đa
+            checkoutProduct.setMaxQuantity(product.getQuantity());
             checkoutProducts.put(product.getProductId(), checkoutProduct);
         }
         refreshCheckoutTable();
@@ -285,10 +286,12 @@ public class CheckoutPanel extends javax.swing.JPanel {
     }
 
     private void processPayment() {
+        System.out.println("Bat dau xu ly thanh toan...");
         if (checkoutProducts.isEmpty()) {
+            System.out.println("Khong co san pham nao trong gio de thanh toan.");
             JOptionPane.showMessageDialog(this, 
-                "Không có sản phẩm nào để thanh toán!", 
-                "Lỗi", 
+                "Khong co san pham nao de thanh toan!", 
+                "Loi", 
                 JOptionPane.ERROR_MESSAGE);
             return;
         }

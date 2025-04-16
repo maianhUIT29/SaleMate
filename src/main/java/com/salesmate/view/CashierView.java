@@ -17,8 +17,8 @@ public class CashierView extends javax.swing.JFrame {
         productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setUndecorated(false);
-        
-        // Link các panel với nhau
+
+        // Link panels
         productSelectionPanel.setCheckoutPanel(checkoutPanel2);
         checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
     }
