@@ -7,12 +7,10 @@ package com.salesmate.component;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -86,7 +84,38 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         tblInvoices.setRowHeight(30);
         tblInvoices.setSelectionBackground(new Color(232, 241, 249));
         tblInvoices.setSelectionForeground(Color.BLACK);
-        
+
+        // Giảm kích thước cột hành động
+        tblInvoices.getColumnModel().getColumn(4).setMinWidth(70);
+        tblInvoices.getColumnModel().getColumn(4).setMaxWidth(70);
+        tblInvoices.getColumnModel().getColumn(4).setPreferredWidth(70);
+
+        // Style cho các dòng xen kẽ
+        tblInvoices.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                
+                if (isSelected) {
+                    c.setBackground(new Color(179, 229, 252)); // Light blue khi select
+                    c.setForeground(Color.BLACK);
+                } else {
+                    c.setBackground(row % 2 == 0 ? new Color(255, 255, 255) : new Color(240, 240, 240));
+                    c.setForeground(Color.BLACK);
+                }
+                
+                // Căn chỉnh các cột
+                if (column == 1 || column == 2 || column == 3) { // Ngày tạo, Tổng tiền, Trạng thái
+                    ((JLabel) c).setHorizontalAlignment(JLabel.CENTER);
+                } else if (column == 2) { // Tổng tiền
+                    ((JLabel) c).setHorizontalAlignment(JLabel.RIGHT);
+                }
+                
+                return c;
+            }
+        });
+
         // Add button column for actions
         TableColumn actionColumn = tblInvoices.getColumnModel().getColumn(4);
         actionColumn.setCellRenderer(new ButtonRenderer());
@@ -168,27 +197,15 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
     }
 
     private void showInvoiceDetails(int invoiceId) {
-        // Tạo dialog
+        // Tăng kích thước dialog
         JDialog detailDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Chi tiết hóa đơn #" + invoiceId);
         detailDialog.setModal(true);
-        detailDialog.setSize(600, 400);
+        detailDialog.setSize(1000, 600); // Tăng kích thước dialog
         detailDialog.setLocationRelativeTo(null);
 
-        // Panel chính với gradient background
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                int w = getWidth(), h = getHeight();
-                GradientPaint gp = new GradientPaint(
-                    0, 0, new Color(240, 248, 255),
-                    0, h, new Color(255, 255, 255)
-                );
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, w, h);
-            }
-        };
+        // Panel chính
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Lấy thông tin chi tiết hóa đơn
@@ -225,37 +242,65 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         // Tạo và style table
         JTable detailTable = new JTable(model);
         detailTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        detailTable.setRowHeight(30);
-        detailTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        detailTable.getTableHeader().setBackground(new Color(240, 240, 240));
-        detailTable.setShowGrid(true);
-        detailTable.setGridColor(new Color(230, 230, 230));
+        detailTable.setRowHeight(35);
         
-        // Căn chỉnh cột
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        detailTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // STT
-        detailTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Số lượng
+        // Cấu hình độ rộng các cột
+        detailTable.getColumnModel().getColumn(0).setPreferredWidth(50); // STT
+        detailTable.getColumnModel().getColumn(1).setPreferredWidth(400); // Tên sản phẩm
+        detailTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Số lượng
+        detailTable.getColumnModel().getColumn(3).setPreferredWidth(120); // Đơn giá
+        detailTable.getColumnModel().getColumn(4).setPreferredWidth(120); // Thành tiền
+
+        // Style cho các dòng xen kẽ trong bảng chi tiết
+        detailTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                
+                if (isSelected) {
+                    c.setBackground(new Color(179, 229, 252));
+                    c.setForeground(Color.BLACK);
+                } else {
+                    c.setBackground(row % 2 == 0 ? new Color(255, 255, 255) : new Color(240, 240, 240));
+                    c.setForeground(Color.BLACK);
+                }
+                
+                return c;
+            }
+        });
+
+        // Panel chứa nút ở dưới cùng
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
-        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
-        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
-        detailTable.getColumnModel().getColumn(3).setCellRenderer(rightRenderer); // Đơn giá
-        detailTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer); // Thành tiền
+        // Nút in
+        JButton printButton = new JButton("In hoá đơn");
+        printButton.setBackground(new Color(0, 123, 255));
+        printButton.setForeground(Color.WHITE);
+        printButton.setFocusPainted(false);
+        printButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        printButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        printButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(detailDialog, "Chức năng in sẽ được cập nhật sau!");
+        });
+        
+        // Nút đóng
+        JButton closeButton = new JButton("Đóng");
+        closeButton.setBackground(new Color(108, 117, 125));
+        closeButton.setForeground(Color.WHITE);
+        closeButton.setFocusPainted(false);
+        closeButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        closeButton.addActionListener(e -> detailDialog.dispose());
 
-        // Thêm table vào scroll pane
-        JScrollPane scrollPane = new JScrollPane(detailTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        buttonPanel.add(printButton);
+        buttonPanel.add(closeButton);
 
-        // Panel hiển thị tổng tiền
-        JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        totalPanel.setOpaque(false);
-        JLabel totalLabel = new JLabel("Tổng tiền: " + String.format("%,d VNĐ", (int)total));
-        totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        totalPanel.add(totalLabel);
-
-        // Thêm components vào panel chính
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-        mainPanel.add(totalPanel, BorderLayout.SOUTH);
+        // Layout
+        mainPanel.add(new JScrollPane(detailTable), BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         detailDialog.add(mainPanel);
         detailDialog.setVisible(true);
