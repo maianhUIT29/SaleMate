@@ -26,19 +26,24 @@ public class UserController {
     }
 
     // Hàm thay đổi mật khẩu
+    public boolean resetPassword(String email, String oldPassword, String newPassword) {
+        // Call the correct updatePassword method with three arguments
+        return userDAO.updatePassword(email, oldPassword, newPassword);
+    }
+
     public boolean resetPassword(String email) {
-        // Tạo mật khẩu mới
+        // Generate a new password
         String newPassword = generateNewPassword();
 
-        // Cập nhật mật khẩu trong cơ sở dữ liệu
+        // Update the password in the database
         boolean isUpdated = userDAO.updatePassword(email, newPassword);
 
-        // Gửi email nếu mật khẩu được cập nhật thành công
+        // Send an email with the new password if the update was successful
         if (isUpdated) {
             MailSender mailSender = new MailSender();
-            String subject = "Salmate - Mật khẩu mới";
-            String content = "Mật khẩu mới của bạn là: " + newPassword + "\n"
-                    + "Đăng nhập vào hệ thống và đổi mật khẩu ngay sau khi đăng nhập thành công!";
+            String subject = "SalesMate - New Password";
+            String content = "Your new password is: " + newPassword + "\n"
+                    + "Please log in and change your password immediately.";
             mailSender.sendEmail(email, subject, content);
         }
 
@@ -50,6 +55,10 @@ public class UserController {
         String basePassword = "123456";
         int randomNumber = (int) (Math.random() * 900) + 100; // Tạo số ngẫu nhiên 3 chữ số
         return basePassword + randomNumber;
+    }
+
+    public boolean updateUser(User user) {
+        return userDAO.updateUser(user);
     }
 
 }

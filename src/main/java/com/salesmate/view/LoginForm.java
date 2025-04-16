@@ -27,6 +27,8 @@ public class LoginForm extends JFrame {
     private JTextField emailField;
     private JPasswordField passwordField;
     private JButton loginButton, cameraLoginButton, forgotPasswordButton;
+    private JLabel togglePasswordLabel;
+    private boolean isPasswordVisible = false;
     private UserController userController;
 
     public LoginForm() {
@@ -37,119 +39,68 @@ public class LoginForm extends JFrame {
         }
 
         userController = new UserController();
-        setTitle("🔑 Đăng nhập - SalesMate");
-        setSize(450, 600);  // Mở rộng form đăng nhập
+        setTitle("SalesMate");
+        setSize(400, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
         JPanel mainPanel = new GradientPanel();
-        mainPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.setLayout(null); // Sử dụng absolute positioning
+        mainPanel.setBorder(BorderFactory.createEmptyBorder());
 
-        // Avatar icon
+        // Logo section - căn giữa trên cùng
         JLabel avatarLabel = new JLabel();
         URL imageURL = getClass().getClassLoader().getResource("img/avatar.png");
         if (imageURL != null) {
             ImageIcon icon = new ImageIcon(imageURL);
-            Image scaledImage = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+            Image scaledImage = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
             avatarLabel.setIcon(new ImageIcon(scaledImage));
-        } else {
-            System.err.println("⚠️ Không tìm thấy ảnh avatar.png");
         }
-        avatarLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        mainPanel.add(avatarLabel, gbc);
+        avatarLabel.setBounds(150, 30, 100, 100);
+        mainPanel.add(avatarLabel);
 
-        // Title label
-        JLabel titleLabel = new JLabel("ĐĂNG NHẬP", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        titleLabel.setForeground(new Color(30, 30, 30));
-        gbc.gridy = 1;
-        mainPanel.add(titleLabel, gbc);
+        // Title 
+        JLabel titleLabel = new JLabel("ĐĂNG NHẬP");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setBounds(0, 150, 400, 30);
+        mainPanel.add(titleLabel);
 
-        // Email field
-        JLabel emailLabel = new JLabel("Email:");
+        // Email section
+        JLabel emailLabel = new JLabel("Email");
         emailLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        gbc.gridy = 2;
-        gbc.gridwidth = 1;
-        mainPanel.add(emailLabel, gbc);
+        emailLabel.setBounds(50, 220, 300, 20);
+        mainPanel.add(emailLabel);
 
         emailField = new JTextField();
-        emailField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        emailField.setPreferredSize(new Dimension(300, 30));
-        emailField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(173, 216, 230), 1, true),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)));
-        gbc.gridx = 1;
-        mainPanel.add(emailField, gbc);
+        emailField.setBounds(50, 245, 300, 40);
+        styleTextField(emailField, "Nhập email của bạn");
+        mainPanel.add(emailField);
 
-        // Password field
-        JLabel passwordLabel = new JLabel("Mật khẩu:");
+        // Password section
+        JLabel passwordLabel = new JLabel("Mật khẩu"); 
         passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        mainPanel.add(passwordLabel, gbc);
+        passwordLabel.setBounds(50, 300, 300, 20);
+        mainPanel.add(passwordLabel);
 
-        passwordField = new JPasswordField();
-        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        passwordField.setPreferredSize(new Dimension(300, 30));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(173, 216, 230), 1, true),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)));
-        gbc.gridx = 1;
-        mainPanel.add(passwordField, gbc);
+        mainPanel.add(createPasswordPanel());
 
-        // Login button
-        Dimension buttonSize = new Dimension(200, 40); // Button size
-        loginButton = new JButton("Đăng nhập");
-        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        loginButton.setBackground(new Color(33, 150, 243));
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setPreferredSize(buttonSize);
-        loginButton.setFocusPainted(false);
-        loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.fill = GridBagConstraints.NONE;
-        mainPanel.add(loginButton, gbc);
+        // Buttons với vị trí mới
+        loginButton = createStyledButton("Đăng nhập", new Color(0, 123, 255));
+        loginButton.setBounds(50, 385, 300, 45); // Di chuyển lên 15px
+        mainPanel.add(loginButton);
 
-        // Camera login button
-        cameraLoginButton = new JButton("FaceID");
-        cameraLoginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        cameraLoginButton.setBackground(new Color(33, 150, 243));
-        cameraLoginButton.setForeground(Color.WHITE);
-        cameraLoginButton.setPreferredSize(buttonSize);
-        cameraLoginButton.setFocusPainted(false);
-        cameraLoginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        gbc.gridy = 5;
-        mainPanel.add(cameraLoginButton, gbc);
+        cameraLoginButton = createStyledButton("FaceID", new Color(40, 167, 69));
+        cameraLoginButton.setBounds(50, 440, 300, 45); // Di chuyển lên 20px
+        mainPanel.add(cameraLoginButton);
 
-        // "Hoặc" label
-        JLabel orLabel = new JLabel("Hoặc", SwingConstants.CENTER);
-        orLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        gbc.gridy = 6;
-        mainPanel.add(orLabel, gbc);
+        forgotPasswordButton = createLinkButton("Quên mật khẩu?");
+        forgotPasswordButton.setBounds(50, 495, 300, 30); // Di chuyển lên 25px
+        mainPanel.add(forgotPasswordButton);
 
-        // Forgot password button
-        forgotPasswordButton = new JButton("Quên mật khẩu?");
-        forgotPasswordButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        forgotPasswordButton.setBackground(ColorPalette.INFO);
-        forgotPasswordButton.setForeground(ColorPalette.WHITE);
-        forgotPasswordButton.setPreferredSize(buttonSize);
-        forgotPasswordButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        forgotPasswordButton.setFocusPainted(false);
-        forgotPasswordButton.setBorder(BorderFactory.createLineBorder(ColorPalette.INFO, 1));
-        gbc.gridy = 7;
-        mainPanel.add(forgotPasswordButton, gbc);
-
-        add(mainPanel, BorderLayout.CENTER);
+        add(mainPanel);
 
         // Action listeners
         forgotPasswordButton.addActionListener(new ActionListener() {
@@ -167,15 +118,93 @@ public class LoginForm extends JFrame {
             }
         });
 
-        cameraLoginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new LoginFaceID();
-                dispose();
-            }
+        cameraLoginButton.addActionListener(e -> {
+            dispose(); // Đóng form login hiện tại
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    new LoginFaceID(); // Mở form FaceID login mới
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, 
+                        "Không thể khởi động camera: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                    new LoginForm(); // Nếu có lỗi thì quay lại form login
+                }
+            });
         });
 
         setVisible(true);
+    }
+
+    private void styleTextField(JComponent field, String placeholder) {
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(206, 212, 218), 1, true),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        if (field instanceof JTextField) {
+            ((JTextField) field).putClientProperty("JTextField.placeholderText", placeholder);
+        }
+        field.setBackground(Color.WHITE);
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
+        return button;
+    }
+
+    private JButton createLinkButton(String text) {
+        JButton button = new JButton(text);
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setForeground(new Color(0, 123, 255));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setForeground(new Color(0, 86, 179));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setForeground(new Color(0, 123, 255));
+            }
+        });
+        
+        return button;
+    }
+
+    private JPanel createPasswordPanel() {
+        JPanel passwordPanel = new JPanel(null);
+        passwordPanel.setBackground(Color.WHITE);
+        passwordPanel.setBounds(50, 325, 300, 40);
+
+        // Password field
+        passwordField = new JPasswordField();
+        passwordField.setBounds(0, 0, 300, 40);
+        passwordField.putClientProperty("JTextField.placeholderText", "Nhập mật khẩu của bạn");
+        styleTextField(passwordField, "Nhập mật khẩu của bạn"); // Thêm placeholder vào đây
+
+        passwordPanel.add(passwordField);
+        return passwordPanel;
     }
 
     // Hàm xử lý đăng nhập thông thường
@@ -183,13 +212,25 @@ public class LoginForm extends JFrame {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
 
+        // Validate email format
+        if (!isValidEmail(email)) {
+            showToast("Email không hợp lệ!");
+            return;
+        }
+
+        // Validate password không được trống
+        if (password.trim().isEmpty()) {
+            showToast("Vui lòng nhập mật khẩu!");
+            return;
+        }
+
         User user = userController.login(email, password);
         if (user != null) {
             // Lưu thông tin đăng nhập vào SessionManager
             SessionManager.getInstance().setLoggedInUser(user);
             dispose();
             if ("Sales Staff".equals(user.getRole())) {
-                new CashierPanel().setVisible(true); // Ensure the view is visible
+                new CashierView().setVisible(true); // Ensure the view is visible
             } else if ("Store Manager".equals(user.getRole())) {
                 new AdminView().setVisible(true); // Ensure the view is visible
             }
@@ -197,6 +238,15 @@ public class LoginForm extends JFrame {
             // Hiển thị toast thông báo lỗi trong 3 giây
             showToast("Email hoặc mật khẩu không chính xác!");
         }
+    }
+
+    // Thêm hàm kiểm tra định dạng email
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        return email.matches(emailRegex);
     }
 
     // Hàm hiển thị toast thông báo lỗi

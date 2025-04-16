@@ -1,17 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.salesmate.controller;
 
-/**
- *
- * @author meiln
- */
+import java.util.List;
 
 import com.salesmate.dao.ProductDAO;
 import com.salesmate.model.Product;
-import java.util.List;
 
 public class ProductController {
     private ProductDAO productDAO;
@@ -20,6 +12,7 @@ public class ProductController {
         productDAO = new ProductDAO();
     }
 
+    // CREATE
     public boolean addProduct(Product product) {
         try {
             return productDAO.createProduct(product);
@@ -29,24 +22,17 @@ public class ProductController {
         }
     }
 
-    public boolean updateProduct(Product product) {
+    // READ ALL
+    public List<Product> getAllProducts() {
         try {
-            return productDAO.updateProduct(product);
+            return productDAO.getAllProducts();
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
-    public boolean deleteProduct(int productId) {
-        try {
-            return productDAO.deleteProduct(productId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
+    // READ by ID
     public Product getProductById(int productId) {
         try {
             return productDAO.getProductById(productId);
@@ -56,12 +42,23 @@ public class ProductController {
         }
     }
 
-    public List<Product> getAllProducts() {
+    // UPDATE
+    public boolean updateProduct(Product product) {
         try {
-            return productDAO.getAllProducts();
+            return productDAO.updateProduct(product);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return false;
+        }
+    }
+
+    // DELETE
+    public boolean deleteProduct(int productId) {
+        try {
+            return productDAO.deleteProduct(productId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

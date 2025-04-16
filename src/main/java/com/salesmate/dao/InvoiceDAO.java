@@ -2,21 +2,19 @@ package com.salesmate.dao;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Invoice;
+
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class InvoiceDAO {
-    private Connection connection;
-
-    public InvoiceDAO() {
-        this.connection = DBConnection.getConnection();
-    }
 
     // Create
     public boolean createInvoice(Invoice invoice) {
         String sql = "INSERT INTO invoice (users_id, total, status) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, invoice.getUsersId());
             pstmt.setBigDecimal(2, invoice.getTotal());
             pstmt.setString(3, invoice.getStatus());
@@ -27,11 +25,12 @@ public class InvoiceDAO {
         }
     }
 
-    // Read
+    // Read all invoices
     public List<Invoice> getAllInvoices() {
         List<Invoice> invoices = new ArrayList<>();
         String sql = "SELECT * FROM invoice";
-        try (Statement stmt = connection.createStatement();
+        try (Connection connection = DBConnection.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Invoice invoice = new Invoice();
@@ -48,9 +47,11 @@ public class InvoiceDAO {
         return invoices;
     }
 
+    // Read invoice by ID
     public Invoice getInvoiceById(int id) {
         String sql = "SELECT * FROM invoice WHERE invoice_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -71,7 +72,8 @@ public class InvoiceDAO {
     // Update
     public boolean updateInvoice(Invoice invoice) {
         String sql = "UPDATE invoice SET users_id = ?, total = ?, status = ? WHERE invoice_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, invoice.getUsersId());
             pstmt.setBigDecimal(2, invoice.getTotal());
             pstmt.setString(3, invoice.getStatus());
@@ -86,7 +88,8 @@ public class InvoiceDAO {
     // Delete
     public boolean deleteInvoice(int id) {
         String sql = "DELETE FROM invoice WHERE invoice_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -94,4 +97,49 @@ public class InvoiceDAO {
             return false;
         }
     }
-} 
+
+    // Get invoices by user ID
+    public List<Invoice> getInvoicesByUserId(int userId) {
+        List<Invoice> invoices = new ArrayList<>();
+        String sql = "SELECT * FROM invoice WHERE users_id = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Invoice invoice = new Invoice();
+                invoice.setInvoiceId(rs.getInt("invoice_id"));
+                invoice.setUsersId(rs.getInt("users_id"));
+                invoice.setTotal(rs.getBigDecimal("total"));
+                invoice.setCreatedAt(rs.getDate("created_at"));
+                invoice.setStatus(rs.getString("status"));
+                invoices.add(invoice);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return invoices;
+    }
+
+    // Get invoices from the last 7 days
+    public List<Invoice> getInvoicesLast7Days() {
+        List<Invoice> invoices = new ArrayList<>();
+        String sql = "SELECT * FROM invoice WHERE created_at >= SYSDATE - 7";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                Invoice invoice = new Invoice();
+                invoice.setInvoiceId(rs.getInt("invoice_id"));
+                invoice.setUsersId(rs.getInt("users_id"));
+                invoice.setTotal(rs.getBigDecimal("total"));
+                invoice.setCreatedAt(rs.getDate("created_at"));
+                invoice.setStatus(rs.getString("status"));
+                invoices.add(invoice);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return invoices;
+    }
+}

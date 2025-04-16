@@ -1,16 +1,16 @@
 package com.salesmate.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /*
-Detail Schema in oracle
+Detail Schema in Oracle:
     detail_id INT PRIMARY KEY,
     invoice_id INT NOT NULL,
     product_id INT NOT NULL,
@@ -19,8 +19,7 @@ Detail Schema in oracle
     total DECIMAL(10,2),
     FOREIGN KEY (invoice_id) REFERENCES INVOICE(invoice_id),
     FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id)
-);
-*/
+ */
 
 @Entity
 @Table(name = "detail")
@@ -30,31 +29,29 @@ public class Detail {
     @Column(name = "detail_id")
     private int detailId;
 
-    @ManyToOne
-    @JoinColumn(name = "invoice_id", nullable = false)
-    private Invoice invoice;
+    @Column(name = "invoice_id", nullable = false)
+    private int invoiceId;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private int productId;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
     @Column(name = "price", precision = 10, scale = 2)
-    private double price;
+    private BigDecimal price;
 
     @Column(name = "total", precision = 10, scale = 2)
-    private double total;
+    private BigDecimal total;
 
     // Constructors
     public Detail() {
     }
 
-    public Detail(int detailId, Invoice invoice, Product product, int quantity, double price , double total) {
+    public Detail(int detailId, int invoiceId, int productId, int quantity, BigDecimal price, BigDecimal total) {
         this.detailId = detailId;
-        this.invoice = invoice;
-        this.product = product;
+        this.invoiceId = invoiceId;
+        this.productId = productId;
         this.quantity = quantity;
         this.price = price;
         this.total = total;
@@ -69,20 +66,20 @@ public class Detail {
         this.detailId = detailId;
     }
 
-    public Invoice getInvoice() {
-        return invoice;
+    public int getInvoiceId() {
+        return invoiceId;
     }
 
-    public void setInvoice(Invoice invoice) {
-        this.invoice = invoice;
+    public void setInvoiceId(int invoiceId) {
+        this.invoiceId = invoiceId;
     }
 
-    public Product getProduct() {
-        return product;
+    public int getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(int productId) {
+        this.productId = productId;
     }
 
     public int getQuantity() {
@@ -93,19 +90,19 @@ public class Detail {
         this.quantity = quantity;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
-    public double getTotal() {
+    public BigDecimal getTotal() {
         return total;
     }
 
-    public void setTotal(double total) {
+    public void setTotal(BigDecimal total) {
         this.total = total;
     }
 }
