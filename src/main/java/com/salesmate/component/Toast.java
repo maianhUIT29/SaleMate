@@ -1,11 +1,14 @@
 package com.salesmate.component;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
@@ -38,20 +41,45 @@ public class Toast extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
                 g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+
+                // Vẽ shadow
+                float[] dist = {0.0f, 0.4f};
+                Color[] colors = {new Color(0,0,0,50), new Color(0,0,0,0)};
+                RadialGradientPaint gp = new RadialGradientPaint(
+                    getWidth()/2.0f, getHeight()/2.0f, 
+                    getWidth()/2.0f,
+                    dist, colors
+                );
+                g2d.setPaint(gp);
+                g2d.fillRoundRect(-5, -5, getWidth()+10, getHeight()+10, 25, 25);
                 
-                // Draw rounded rectangle background
-                g2d.setColor(new Color(60, 60, 60, 220));
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                
-                // Draw spinner if loading
+                // Vẽ background chính với gradient
+                GradientPaint gradient;
                 if (isLoading) {
-                    int size = 20;
-                    int x = 25; // Margin from left
-                    int y = getHeight() / 2 - size / 2;
+                    gradient = new GradientPaint(
+                        0, 0, new Color(44, 62, 80),
+                        0, getHeight(), new Color(52, 73, 94)
+                    );
+                } else {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(46, 125, 50, 245),
+                        0, getHeight(), new Color(27, 94, 32, 245)
+                    );
+                }
+                
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+
+                // Vẽ spinner nếu đang loading
+                if (isLoading) {
+                    int size = 24;
+                    int x = 30;
+                    int y = getHeight()/2 - size/2;
                     
                     g2d.setColor(Color.WHITE);
-                    g2d.setStroke(new java.awt.BasicStroke(2));
+                    g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                     
                     for (int i = 0; i < 12; i++) {
                         float scale = (float) ((12 - i) % 12) / 12.0f;
@@ -65,8 +93,21 @@ public class Toast extends JDialog {
                         
                         g2d.drawLine(x1, y1, x2, y2);
                     }
+                } else {
+                    // Vẽ icon check mark khi thành công
+                    int size = 24;
+                    int x = 30;
+                    int y = getHeight()/2 - size/2;
+                    
+                    g2d.setColor(Color.WHITE); 
+                    g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g2d.drawPolyline(
+                        new int[]{x, x + size/2, x + size},
+                        new int[]{y + size/2, y + size, y},
+                        3
+                    );
                 }
-                
+
                 g2d.dispose();
                 super.paintComponent(g);
             }
@@ -74,11 +115,11 @@ public class Toast extends JDialog {
         
         contentPane.setLayout(new BorderLayout());
         contentPane.setOpaque(false);
-        contentPane.setBorder(BorderFactory.createEmptyBorder(15, 60, 15, 25));
+        contentPane.setBorder(BorderFactory.createEmptyBorder(20, 70, 20, 30));
         
         messageLabel = new JLabel();
         messageLabel.setForeground(Color.WHITE);
-        messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        messageLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         messageLabel.setHorizontalAlignment(SwingConstants.LEFT);
         
         contentPane.add(messageLabel, BorderLayout.CENTER);
@@ -111,32 +152,18 @@ public class Toast extends JDialog {
         instance.messageLabel.setText(message);
         instance.isLoading = type.equalsIgnoreCase("loading");
         
-        // Set colors based on type
-        Color bgColor;
-        switch (type.toLowerCase()) {
-            case "success":
-                bgColor = new Color(46, 125, 50, 220);
-                break;
-            case "error":
-                bgColor = new Color(198, 40, 40, 220);
-                break;
-            case "loading":
-                bgColor = new Color(60, 60, 60, 220);
-                break;
-            default:
-                bgColor = new Color(60, 60, 60, 220);
-        }
-        
-        instance.contentPane.setBackground(bgColor);
-        
         instance.pack();
-        instance.setLocationRelativeTo(parent);
+        
+        // Căn giữa toast theo frame cha
+        int x = parent.getX() + (parent.getWidth() - instance.getWidth()) / 2;
+        int y = parent.getY() + (parent.getHeight() - instance.getHeight()) / 2;
+        instance.setLocation(x, y);
+        
         instance.setVisible(true);
         
         if (instance.isLoading) {
             instance.spinnerTimer.start();
         } else {
-            // Start fade out timer after display time for non-loading toasts
             Timer displayTimer = new Timer(DISPLAY_TIME, e -> {
                 instance.fadeTimer.start();
                 ((Timer)e.getSource()).stop();

@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -40,87 +41,100 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         initComponents();
         setLayout(new java.awt.BorderLayout());
         setupFilterPanel();
-        
-        // Hiển thị toast loading ngay tại panel
-        JPanel mainPanel = new JPanel(new java.awt.BorderLayout());
+        showLoadingAnimation();
+    }
+
+    private int spinnerAngle = 0;
+
+    private void showLoadingAnimation() {
+        JPanel mainPanel = new JPanel(new BorderLayout());
         JPanel loadingPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Vẽ nền mờ
-                g2d.setColor(new Color(0, 0, 0, 100));
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+
+                // Vẽ nền mờ đen
+                g2d.setColor(new Color(0, 0, 0, 160));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
-                
-                // Vẽ background cho toast
-                int width = 200;
-                int height = 60;
+
+                // Toast background với shadow 
+                int width = 350;  // Tăng width
+                int height = 150; // Tăng height
                 int x = (getWidth() - width) / 2;
                 int y = (getHeight() - height) / 2;
-                
-                g2d.setColor(new Color(60, 60, 60, 220));
+
+                // Vẽ shadow cho khung loading
+                g2d.setColor(new Color(0, 0, 0, 50));
+                g2d.fillRoundRect(x + 5, y + 5, width, height, 20, 20);
+
+                // Vẽ background khung loading
+                g2d.setColor(Color.WHITE);
                 g2d.fillRoundRect(x, y, width, height, 20, 20);
-                
-                // Vẽ spinner
-                drawSpinner(g2d, x + 30, y + height/2);
-                
-                // Vẽ text
-                g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                g2d.drawString("Đang tải dữ liệu...", x + 60, y + height/2 + 5);
-                
-                g2d.dispose();
-            }
-            
-            private void drawSpinner(Graphics2D g2d, int x, int y) {
-                int size = 20;
-                g2d.setColor(Color.WHITE);
-                g2d.setStroke(new BasicStroke(2));
-                
+
+                // Vẽ spinner với animation
+                int spinnerSize = 40;
+                int spinnerX = x + (width - spinnerSize) / 2;
+                int spinnerY = y + height / 2 - 30;
+
+                g2d.setColor(new Color(0, 123, 255));
+                g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
                 for (int i = 0; i < 12; i++) {
                     float scale = (float) ((12 - i) % 12) / 12.0f;
                     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, scale));
-                    
+
                     double angle = Math.toRadians(spinnerAngle + i * 30);
-                    int x1 = x + size/2 + (int)(size/3 * Math.cos(angle));
-                    int y1 = y + (int)(size/3 * Math.sin(angle));
-                    int x2 = x + size/2 + (int)(size/2 * Math.cos(angle));
-                    int y2 = y + (int)(size/2 * Math.sin(angle));
-                    
+                    int x1 = spinnerX + spinnerSize / 2 + (int) (spinnerSize / 3 * Math.cos(angle));
+                    int y1 = spinnerY + spinnerSize / 2 + (int) (spinnerSize / 3 * Math.sin(angle));
+                    int x2 = spinnerX + spinnerSize / 2 + (int) (spinnerSize / 2 * Math.cos(angle));
+                    int y2 = spinnerY + spinnerSize / 2 + (int) (spinnerSize / 2 * Math.sin(angle));
+
                     g2d.drawLine(x1, y1, x2, y2);
                 }
+
+                // Text với font lớn và căn giữa
+                String text = "Đang tải dữ liệu...";
+                g2d.setColor(new Color(33, 33, 33));
+                g2d.setFont(new Font("Segoe UI", Font.BOLD, 20));
+
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = x + (width - fm.stringWidth(text)) / 2;
+                int textY = y + height / 2 + 35;
+
+                // Vẽ text với đường viền mỏng tạo hiệu ứng nổi
+                g2d.setColor(new Color(33, 33, 33, 240));
+                g2d.drawString(text, textX, textY);
+
+                g2d.dispose();
             }
         };
         loadingPanel.setOpaque(false);
-        
+
         mainPanel.add(loadingPanel, BorderLayout.CENTER);
         add(mainPanel, BorderLayout.CENTER);
-        
-        // Animate spinner
+
+        // Animation spinner
         Timer spinnerTimer = new Timer(50, e -> {
             spinnerAngle = (spinnerAngle + 30) % 360;
             loadingPanel.repaint();
         });
         spinnerTimer.start();
-        
-        // Remove loading panel after delay
+
+        // Tự động ẩn loading sau 2 giây
         Timer removeTimer = new Timer(2000, e -> {
             remove(mainPanel);
             spinnerTimer.stop();
             revalidate();
             repaint();
-            
-            // Show success toast
             showSuccessToast();
         });
         removeTimer.setRepeats(false);
         removeTimer.start();
     }
-    
-    private int spinnerAngle = 0;
-    
+
     private void showSuccessToast() {
         JPanel successPanel = new JPanel() {
             @Override
@@ -128,34 +142,34 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 // Vẽ background cho toast
                 int width = 200;
                 int height = 60;
                 int x = (getWidth() - width) / 2;
                 int y = (getHeight() - height) / 2;
-                
+
                 g2d.setColor(new Color(46, 125, 50, 220));
                 g2d.fillRoundRect(x, y, width, height, 20, 20);
-                
+
                 // Vẽ text
                 g2d.setColor(Color.WHITE);
                 g2d.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                g2d.drawString("Tải dữ liệu thành công!", x + 30, y + height/2 + 5);
-                
+                g2d.drawString("Tải dữ liệu thành công!", x + 30, y + height / 2 + 5);
+
                 g2d.dispose();
             }
         };
         successPanel.setOpaque(false);
-        
+
         JPanel overlayPanel = new JPanel(new BorderLayout());
         overlayPanel.setOpaque(false);
         overlayPanel.add(successPanel, BorderLayout.CENTER);
-        
+
         add(overlayPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
-        
+
         // Remove success toast after delay
         Timer removeTimer = new Timer(1500, e -> {
             remove(overlayPanel);
@@ -170,15 +184,48 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         if (products == null || products.isEmpty()) {
             return;
         }
-        
+
+        // Tạo loading panel với text đậm và padding
+        JPanel loadingPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Background mờ
+                g2d.setColor(new Color(0, 0, 0, 100));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+
+                // Toast background
+                int width = 300;  // Tăng width để text không bị dính
+                int height = 120; // Tăng height để có padding
+                int x = (getWidth() - width) / 2;
+                int y = (getHeight() - height) / 2;
+
+                g2d.setColor(new Color(0, 0, 0, 220));
+                g2d.fillRoundRect(x, y, width, height, 20, 20);
+
+                // Vẽ spinner
+                drawSpinner(g2d, x + 30, y + height / 2 - 15); // Điều chỉnh vị trí spinner
+
+                // Text với font lớn hơn, màu trắng đậm và padding
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Segoe UI", Font.BOLD, 20));
+                g2d.drawString("Đang tải dữ liệu...", x + 90, y + height / 2 + 7);
+
+                g2d.dispose();
+            }
+        };
+
         // Simulate loading delay
         Timer timer = new Timer(1500, e -> {
             this.products = products;
             this.filteredProducts = new ArrayList<>(products);
             currentPage = 1;
             displayFilteredProducts(this.products);
-            
-            ((Timer)e.getSource()).stop();
+
+            ((Timer) e.getSource()).stop();
         });
         timer.setRepeats(false);
         timer.start();
@@ -234,7 +281,7 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             "Máy tính"
         });
         categoryFilter.setPreferredSize(new java.awt.Dimension(120, 30));
-        
+
         // Tạo nút reset
         resetButton = new javax.swing.JButton("Refresh");
         resetButton.setPreferredSize(new java.awt.Dimension(80, 30));
@@ -525,7 +572,7 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         priceFilter.setSelectedIndex(0);
         quantityFilter.setSelectedIndex(0);
         currentPage = 1;
-        
+
         // Simulate loading delay
         Timer timer = new Timer(3000, e -> {
             if (products != null) {
@@ -539,14 +586,14 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     // Thêm phương thức để cập nhật sản phẩm
     public void updateProductQuantities(Map<Integer, Integer> soldQuantities) {
         if (products == null) return;
-        
+
         for (Product product : products) {
             if (soldQuantities.containsKey(product.getProductId())) {
                 int soldQty = soldQuantities.get(product.getProductId());
                 product.setQuantity(product.getQuantity() - soldQty);
             }
         }
-        
+
         // Làm mới hiển thị
         displayFilteredProducts(filteredProducts != null ? filteredProducts : products);
     }
@@ -569,6 +616,25 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
                         .addGap(0, 500, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void drawSpinner(Graphics2D g2d, int x, int y) {
+        int size = 20;
+        g2d.setColor(Color.WHITE);
+        g2d.setStroke(new BasicStroke(2));
+
+        for (int i = 0; i < 12; i++) {
+            float scale = (float) ((12 - i) % 12) / 12.0f;
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, scale));
+
+            double angle = Math.toRadians(spinnerAngle + i * 30);
+            int x1 = x + size / 2 + (int) (size / 3 * Math.cos(angle));
+            int y1 = y + (int) (size / 3 * Math.sin(angle));
+            int x2 = x + size / 2 + (int) (size / 2 * Math.cos(angle));
+            int y2 = y + (int) (size / 2 * Math.sin(angle));
+
+            g2d.drawLine(x1, y1, x2, y2);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables

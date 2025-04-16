@@ -368,15 +368,19 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
     private void showSuccessDialog(int invoiceId) {
         JDialog successDialog = new JDialog();
+        // Lấy frame cha
+        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        
         successDialog.setTitle("Thanh toán thành công");
         successDialog.setModal(true);
         successDialog.setSize(480, 400);
-        successDialog.setLocationRelativeTo(this);
+        // Set vị trí dialog ra giữa frame cha
+        successDialog.setLocationRelativeTo(parentFrame);
         successDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-        // Main panel with gradient background
+        // Panel chính với gradient background
         JPanel mainPanel = new JPanel() {
-            @Override
+            @Override 
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
@@ -393,10 +397,10 @@ public class CheckoutPanel extends javax.swing.JPanel {
         mainPanel.setLayout(new BorderLayout(0, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        // Top panel with icon and message
+        // Panel chứa icon và title
         JPanel topPanel = new JPanel(new BorderLayout(15, 10));
         topPanel.setOpaque(false);
-
+        
         // Custom checkmark icon
         JLabel iconLabel = new JLabel() {
             @Override
@@ -405,7 +409,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setStroke(new BasicStroke(3));
-                g2d.setColor(new Color(46, 125, 50));
+                g2d.setColor(new Color(46, 125, 50)); // Màu xanh lá đậm hơn
                 g2d.drawArc(5, 5, 40, 40, 0, 360);
                 g2d.drawPolyline(
                     new int[]{15, 25, 35},
@@ -413,17 +417,20 @@ public class CheckoutPanel extends javax.swing.JPanel {
                     3
                 );
             }
+            
             @Override
             public Dimension getPreferredSize() {
                 return new Dimension(50, 50);
             }
         };
 
-        // Success message
+        // Title với font size lớn hơn và màu đậm hơn  
         JLabel titleLabel = new JLabel("Thanh toán thành công!");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titleLabel.setForeground(new Color(33, 33, 33));
 
+        // Thêm padding cho topPanel
+        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         topPanel.add(iconLabel, BorderLayout.WEST);
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
@@ -746,10 +753,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
             tblProduct.getColumnModel().getColumn(3).setPreferredWidth(10);
         }
 
-        btnPayment.setBackground(new java.awt.Color(0, 123, 255));
-        btnPayment.setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
+        btnPayment.setBackground(new java.awt.Color(40, 167, 69)); // Màu xanh lá cây
+        btnPayment.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
         btnPayment.setForeground(new java.awt.Color(255, 255, 255));
         btnPayment.setText("Thanh toán");
+        btnPayment.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 15, 8, 15));
 
         lblTotal.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         lblTotal.setText("Tổng tiền :");
