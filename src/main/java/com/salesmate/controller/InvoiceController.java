@@ -1,29 +1,35 @@
 package com.salesmate.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.salesmate.dao.InvoiceDAO;
+import com.salesmate.dao.UserDAO;
 import com.salesmate.model.Invoice;
 
 public class InvoiceController {
+
     private InvoiceDAO invoiceDAO;
+    private final UserDAO userDAO;
 
     public InvoiceController() {
-        // Khởi tạo InvoiceDAO
         this.invoiceDAO = new InvoiceDAO();
+        this.userDAO = new UserDAO();
     }
 
     // Tạo hóa đơn, trả về ID của hóa đơn vừa tạo
-    public int saveInvoice(Invoice invoice) {
-        try {
-            // Changed saveInvoice to createInvoice
-            if (invoiceDAO.createInvoice(invoice)) {
-                return invoice.getInvoiceId();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void saveInvoice(Invoice invoice) {
+        // Validate that the user exists before saving
+        if (userDAO.getUserById(invoice.getUsersId()) == null) {
+            throw new IllegalArgumentException("Invalid users_id: User does not exist");
         }
-        return -1; 
+
+        // Validate other required fields
+        if (invoice.getTotal() == null || invoice.getTotal().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Total amount must be non-negative");
+        }
+
+        invoiceDAO.saveInvoice(invoice);
     }
 
     public boolean addInvoice(Invoice invoice) {
@@ -95,4 +101,5 @@ public class InvoiceController {
             return null;
         }
     }
+
 }
