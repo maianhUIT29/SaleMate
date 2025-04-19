@@ -51,14 +51,4 @@ public class ProductController {
             return false;
         }
     }
-
-    // DELETE
-    public boolean deleteProduct(int productId) {
-        try {
-            return productDAO.deleteProduct(productId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 }
