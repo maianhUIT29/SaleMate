@@ -1,12 +1,23 @@
 package com.salesmate.view;
 
-import com.salesmate.controller.InvoiceController;
-import com.salesmate.model.Invoice;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.math.BigDecimal;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+
+import com.salesmate.controller.InvoiceController;
+import com.salesmate.model.Invoice;
 
 public class InvoicePanel extends JPanel {
     private InvoiceController invoiceController;
@@ -134,7 +145,7 @@ public class InvoicePanel extends JPanel {
             Invoice invoice = new Invoice();
             invoice.setUsersId(Integer.parseInt(userIdField.getText()));
             invoice.setTotal(new BigDecimal(totalField.getText()));
-            invoice.setStatus(statusField.getText());
+            invoice.setPaymentStatus(statusField.getText());
             
             if (invoiceController.addInvoice(invoice)) {
                 JOptionPane.showMessageDialog(this, "Thêm hóa đơn thành công!");
@@ -162,7 +173,7 @@ public class InvoicePanel extends JPanel {
             invoice.setInvoiceId(Integer.parseInt(idField.getText()));
             invoice.setUsersId(Integer.parseInt(userIdField.getText()));
             invoice.setTotal(new BigDecimal(totalField.getText()));
-            invoice.setStatus(statusField.getText());
+            invoice.setPaymentStatus(statusField.getText());
             
             if (invoiceController.updateInvoice(invoice)) {
                 JOptionPane.showMessageDialog(this, "Cập nhật hóa đơn thành công!");
@@ -216,7 +227,7 @@ public class InvoicePanel extends JPanel {
                     invoice.getUsersId(),
                     invoice.getTotal(),
                     invoice.getCreatedAt(),
-                    invoice.getStatus()
+                    invoice.getPaymentStatus()
                 };
                 tableModel.addRow(row);
             }

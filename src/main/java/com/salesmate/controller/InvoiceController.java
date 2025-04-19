@@ -16,18 +16,20 @@ public class InvoiceController {
     // Tạo hóa đơn, trả về ID của hóa đơn vừa tạo
     public int saveInvoice(Invoice invoice) {
         try {
-            return invoiceDAO.saveInvoice(invoice);
+            // Changed saveInvoice to createInvoice
+            if (invoiceDAO.createInvoice(invoice)) {
+                return invoice.getInvoiceId();
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            // Có thể log hoặc throw lại ngoại lệ tùy mục đích
-            // throw new RuntimeException("Failed to save invoice", e);
-            return -1; 
         }
+        return -1; 
     }
 
     public boolean addInvoice(Invoice invoice) {
         try {
-            return invoiceDAO.saveInvoice(invoice) > 0;
+            // Changed saveInvoice to createInvoice
+            return invoiceDAO.createInvoice(invoice);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
