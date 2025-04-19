@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package com.salesmate.component;
 
 import com.salesmate.controller.UserController;
@@ -9,59 +5,568 @@ import com.salesmate.model.User;
 import com.salesmate.utils.SessionManager;
 
 import javax.swing.JOptionPane;
+
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-/**
- *
- * @author Nhan
- */
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 public class CashierAccount extends javax.swing.JPanel {
 
-    private final UserController userController;
+    private final UserController userController = new UserController();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private String selectedAvatarPath = null;
     private int avatarSize = 250; // Default avatar size updated to 250x250
 
-    /**
-     * Creates new form CashierAccount
-     */
+    // Thêm các biến để lưu giá trị ban đầu
+    private String originalUsername;
+    private String originalEmail; 
+    private String originalCCCD;
+    private String originalAvatarPath = null;
+
     public CashierAccount() {
         initComponents();
-        userController = new UserController();
+        setupComponents();
+        loadUserData(); // Load dữ liệu user khi khởi tạo
+    }
 
-        // Add a ComponentListener to ensure the avatar is resized after rendering
+    private void setupComponents() {
+        // Style cho buttons với kích thước cụ thể và màu mới
+        styleButton(btnUpdate, new Color(255, 193, 7));  // Warning yellow
+        styleButton(btnSave, new Color(40, 167, 69));    // Success green 
+        styleButton(btnResetPW, new Color(0, 150, 136)); // Teal color
+        styleButton(btnUpdateAvatar, new Color(0, 123, 255)); // Primary blue
+
+        // Ban đầu disable các field và nút Save
+        setFieldsEditable(false);
+        btnSave.setEnabled(false);
+
+        // Fix hiển thị avatar
         lblAvatar.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                resizeAvatar();
+                loadAvatar();
             }
         });
 
-        // Add a MouseWheelListener to handle zoom functionality
-        lblAvatar.addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                int notches = e.getWheelRotation();
-                if (notches < 0) {
-                    avatarSize += 10; // Zoom in
-                } else if (notches > 0 && avatarSize > 50) {
-                    avatarSize -= 10; // Zoom out (minimum size 50x50)
-                }
-                resizeAvatar(); // Ensure the avatar is resized dynamically
+        // Thêm action listeners với chức năng cancel
+        btnUpdate.addActionListener(e -> {
+            if (btnUpdate.getText().equals("Cập nhật")) {
+                handleUpdate();
+                btnUpdate.setText("Huỷ");
+                btnUpdate.setBackground(new Color(220, 53, 69)); // Màu đỏ cho nút huỷ
+            } else {
+                handleCancel();
+                btnUpdate.setText("Cập nhật"); 
+                btnUpdate.setBackground(new Color(255, 193, 7)); // Màu vàng cho nút cập nhật
             }
         });
+
+        btnSave.addActionListener(e -> handleSave());
+        btnResetPW.addActionListener(e -> showChangePasswordDialog());
+
+        // Tạo panel chứa các nút điều khiển avatar
+        JPanel avatarButtonPanel = new JPanel();
+        avatarButtonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        avatarButtonPanel.setBackground(Color.WHITE);
+
+        // Tạo các nút và style với kích thước cụ thể
+        JButton btnSaveAvatar = new JButton("Lưu");
+        JButton btnCancelAvatar = new JButton("Huỷ");
+        btnSaveAvatar.setPreferredSize(new Dimension(100, 35));
+        btnCancelAvatar.setPreferredSize(new Dimension(100, 35));
+        
+        styleButton(btnSaveAvatar, new Color(40, 167, 69));    // Success green
+        styleButton(btnCancelAvatar, new Color(220, 53, 69));  // Danger red
+        
+        // Thêm các nút vào panel
+        avatarButtonPanel.add(btnUpdateAvatar);
+        avatarButtonPanel.add(btnSaveAvatar);
+        avatarButtonPanel.add(btnCancelAvatar);
+
+        // Ẩn các nút lưu/huỷ ban đầu
+        btnSaveAvatar.setVisible(false);
+        btnCancelAvatar.setVisible(false);
+
+        // Thay thế nút cũ trong UserAvatarPanel bằng panel mới
+        for (Component comp : UserAvatarPanel.getComponents()) {
+            if (comp == btnUpdateAvatar) {
+                UserAvatarPanel.remove(comp);
+                break;
+            }
+        }
+        UserAvatarPanel.add(avatarButtonPanel);
+
+        // Xử lý sự kiện chọn ảnh
+        btnUpdateAvatar.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter(
+                "Image files", "jpg", "jpeg", "png"));
+
+            if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                if (originalAvatarPath == null) {
+                    User user = SessionManager.getInstance().getLoggedInUser();
+                    originalAvatarPath = user.getAvatar();
+                }
+                
+                try {
+                    ImageIcon imageIcon = new ImageIcon(file.getPath());
+                    Image image = imageIcon.getImage().getScaledInstance(
+                        250, 250, Image.SCALE_SMOOTH);
+                    lblAvatar.setIcon(new ImageIcon(image));
+                    
+                    // Hiện nút lưu/huỷ, ẩn nút đổi avatar
+                    btnUpdateAvatar.setVisible(false);
+                    btnSaveAvatar.setVisible(true);
+                    btnCancelAvatar.setVisible(true);
+                    
+                    selectedAvatarPath = file.getAbsolutePath();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Không thể tải ảnh: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Xử lý sự kiện lưu ảnh
+        btnSaveAvatar.addActionListener(e -> {
+            try {
+                File selectedFile = new File(selectedAvatarPath);
+                String newFileName = selectedFile.getName();
+                
+                // Copy file vào thư mục resources
+                String targetPath = "/img/avt/" + newFileName; 
+                File targetFile = new File(getClass().getResource(targetPath).getFile());
+                Files.copy(selectedFile.toPath(), targetFile.toPath(), 
+                    StandardCopyOption.REPLACE_EXISTING);
+
+                // Cập nhật trong database
+                User user = SessionManager.getInstance().getLoggedInUser();
+                if (user != null) {
+                    user.setAvatar(newFileName);
+                    if (userController.updateUser(user)) {
+                        JOptionPane.showMessageDialog(this,
+                            "Cập nhật ảnh đại diện thành công!",
+                            "Thành công",
+                            JOptionPane.INFORMATION_MESSAGE);
+                            
+                        // Reset UI
+                        btnUpdateAvatar.setVisible(true); 
+                        btnSaveAvatar.setVisible(false);
+                        btnCancelAvatar.setVisible(false);
+                        originalAvatarPath = null;
+                        selectedAvatarPath = null;
+                    }
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                    "Lỗi khi lưu ảnh: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Xử lý sự kiện huỷ
+        btnCancelAvatar.addActionListener(e -> {
+            if (originalAvatarPath != null) {
+                try {
+                    URL imageUrl = getClass().getResource("/img/avt/" + originalAvatarPath);
+                    ImageIcon originalIcon = new ImageIcon(imageUrl);
+                    Image image = originalIcon.getImage().getScaledInstance(
+                        250, 250, Image.SCALE_SMOOTH);
+                    lblAvatar.setIcon(new ImageIcon(image));
+                } catch (Exception ex) {
+                    lblAvatar.setIcon(null);
+                }
+            }
+            
+            // Reset UI
+            btnUpdateAvatar.setVisible(true);
+            btnSaveAvatar.setVisible(false);
+            btnCancelAvatar.setVisible(false);
+            originalAvatarPath = null;
+            selectedAvatarPath = null;
+        });
+
+        // Style cho các fields
+        JTextField[] fields = {txtUsername, txtEmail, txtDOB, txtCCCD};
+        for (JTextField field : fields) {
+            styleTextField(field);
+        }
+    }
+
+    private void styleButton(JButton button, Color bgColor) {
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        
+        button.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(bgColor.darker());
+            }
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(bgColor);
+            }
+        });
+    }
+
+    private void styleTextField(JTextField field) {
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(5, 0, 5, 0)
+        ));
+        field.setBackground(Color.WHITE);
+    }
+
+    private void handleUpdate() {
+        setFieldsEditable(true);
+        btnSave.setEnabled(true);
+        // Lưu lại giá trị ban đầu để có thể khôi phục
+        originalUsername = txtUsername.getText();
+        originalEmail = txtEmail.getText();
+        originalCCCD = txtCCCD.getText();
+    }
+
+    private void handleCancel() {
+        // Khôi phục các giá trị ban đầu
+        txtUsername.setText(originalUsername);
+        txtEmail.setText(originalEmail);
+        txtCCCD.setText(originalCCCD);
+        
+        setFieldsEditable(false);
+        btnSave.setEnabled(false);
+    }
+
+    private void handleSave() {
+        User user = SessionManager.getInstance().getLoggedInUser();
+        if (user != null) {
+            // Update user information
+            user.setUsername(txtUsername.getText());
+            user.setEmail(txtEmail.getText());
+            user.setStatus(txtCCCD.getText());
+
+            if (userController.updateUser(user)) {
+                JOptionPane.showMessageDialog(this, 
+                    "Cập nhật thành công!", 
+                    "Thành công", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                setFieldsEditable(false);
+                btnSave.setEnabled(false);
+                btnUpdate.setText("Cập nhật");
+                btnUpdate.setBackground(new Color(255, 193, 7));
+                loadUserData(); // Reload data
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Cập nhật thất bại!", 
+                    "Lỗi", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void loadAvatar() {
+        if (lblAvatar.getWidth() <= 0 || lblAvatar.getHeight() <= 0) return;
+
+        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+        if (loggedInUser != null && loggedInUser.getAvatar() != null) {
+            try {
+                String avatarPath = "/img/avt/" + loggedInUser.getAvatar();
+                URL imageUrl = getClass().getResource(avatarPath);
+                if (imageUrl != null) {
+                    ImageIcon originalIcon = new ImageIcon(imageUrl);
+                    Image originalImage = originalIcon.getImage();
+
+                    // Scale ảnh giữ nguyên tỷ lệ và fit vào lblAvatar 
+                    int labelWidth = lblAvatar.getWidth();
+                    int labelHeight = lblAvatar.getHeight();
+                    int imageWidth = originalImage.getWidth(null);
+                    int imageHeight = originalImage.getHeight(null);
+
+                    double scale = Math.min(
+                        (double) labelWidth / imageWidth,
+                        (double) labelHeight / imageHeight
+                    );
+
+                    int scaledWidth = (int) (imageWidth * scale);
+                    int scaledHeight = (int) (imageHeight * scale);
+
+                    Image scaledImage = originalImage.getScaledInstance(
+                        scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+                    
+                    lblAvatar.setIcon(new ImageIcon(scaledImage));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Load ảnh default nếu không load được avatar
+                try {
+                    URL defaultImageUrl = getClass().getResource("/img/avt/default-avatar.png");
+                    if (defaultImageUrl != null) {
+                        lblAvatar.setIcon(new ImageIcon(defaultImageUrl));
+                    }
+                } catch (Exception ex) {
+                    lblAvatar.setIcon(null);
+                }
+            }
+        }
+    }
+
+    private void showSuccessToast() {
+        JPanel successPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Đổi màu nền tối hơn
+                g2d.setColor(new Color(0, 0, 0, 180)); // Màu nền đen mờ
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                
+                // Tăng kích thước toast
+                int width = 300;
+                int height = 80;
+                int x = (getWidth() - width) / 2;
+                int y = (getHeight() - height) / 2;
+                
+                g2d.setColor(new Color(46, 125, 50, 230)); // Xanh lá đậm hơn
+                g2d.fillRoundRect(x, y, width, height, 20, 20);
+                
+                // Tăng kích thước và đổi màu text
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Segoe UI", Font.BOLD, 16)); // Tăng font size
+                String message = "Tải dữ liệu thành công!";
+                
+                // Căn giữa text
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = x + (width - fm.stringWidth(message)) / 2;
+                int textY = y + (height + fm.getAscent() - fm.getDescent()) / 2;
+                g2d.drawString(message, textX, textY);
+                
+                g2d.dispose();
+            }
+        };
+        
+        // ...existing code...
+    }
+
+    private void showChangePasswordDialog() {
+        JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), 
+                                   "Đổi mật khẩu", true);
+        // Đặt dialog ở giữa frame chính
+        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(400, 250);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Add password fields
+        JPasswordField oldPwField = new JPasswordField(20);
+        JPasswordField newPwField = new JPasswordField(20);
+        JPasswordField confirmPwField = new JPasswordField(20);
+
+        // Style fields
+        styleTextField(oldPwField);
+        styleTextField(newPwField);
+        styleTextField(confirmPwField);
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Mật khẩu cũ:"), gbc);
+        gbc.gridx = 1;
+        panel.add(oldPwField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("Mật khẩu mới:"), gbc);
+        gbc.gridx = 1;
+        panel.add(newPwField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        panel.add(new JLabel("Xác nhận mật khẩu:"), gbc);
+        gbc.gridx = 1;
+        panel.add(confirmPwField, gbc);
+
+        // Buttons panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton okButton = new JButton("Xác nhận");
+        JButton cancelButton = new JButton("Hủy");
+
+        styleButton(okButton, new Color(40, 167, 69));
+        styleButton(cancelButton, new Color(108, 117, 125));
+
+        okButton.addActionListener(e -> {
+            String oldPw = new String(oldPwField.getPassword());
+            String newPw = new String(newPwField.getPassword());
+            String confirmPw = new String(confirmPwField.getPassword());
+
+            if (!newPw.equals(confirmPw)) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Mật khẩu xác nhận không khớp!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            User user = SessionManager.getInstance().getLoggedInUser();
+            if (userController.resetPassword(user.getEmail(), oldPw, newPw)) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Đổi mật khẩu thành công!",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "Mật khẩu cũ không đúng!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void setFieldsEditable(boolean editable) {
+        txtUsername.setEditable(editable);
+        txtEmail.setEditable(editable);
+        txtCCCD.setEditable(editable);
+        
+        // Update background color based on editable state
+        Color bgColor = editable ? Color.WHITE : new Color(240, 240, 240);
+        txtUsername.setBackground(bgColor);
+        txtEmail.setBackground(bgColor);
+        txtCCCD.setBackground(bgColor);
+    }
+
+    private void resizeAvatar() {
+        if (lblAvatar.getWidth() > 0 && lblAvatar.getHeight() > 0) {
+            ImageIcon originalIcon = null;
+
+            // Check if a new avatar is selected
+            if (selectedAvatarPath != null) {
+                originalIcon = new ImageIcon(selectedAvatarPath);
+            } else {
+                User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+                if (loggedInUser != null && loggedInUser.getAvatar() != null) {
+                    originalIcon = new ImageIcon(getClass().getResource("/img/avt/" + loggedInUser.getAvatar()));
+                }
+            }
+
+            if (originalIcon != null) {
+                // Resize the avatar to the current avatarSize
+                Image resizedImage = originalIcon.getImage().getScaledInstance(avatarSize, avatarSize, Image.SCALE_SMOOTH);
+                lblAvatar.setIcon(new ImageIcon(resizedImage));
+            }
+        }
+    }
+
+    private void loadUserData() {
+        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+        if (loggedInUser != null) {
+            txtUsername.setText(loggedInUser.getUsername());
+            txtEmail.setText(loggedInUser.getEmail());
+            txtDOB.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
+            txtCCCD.setText(loggedInUser.getStatus());
+            lblStatusValue.setText(loggedInUser.getStatus());
+            lblCreateAtValue.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
+            resizeAvatar(); // Ensure the avatar is resized when loading user data
+        } else {
+            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void btnUpdateAvatarActionPerformed(java.awt.event.ActionEvent evt) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png"));
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            selectedAvatarPath = selectedFile.getAbsolutePath();
+            resizeAvatar(); // Resize the avatar after selecting a new image
+        }
+    }
+
+    private void updateUserData() {
+        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
+        if (loggedInUser != null) {
+            loggedInUser.setUsername(txtUsername.getText());
+            loggedInUser.setEmail(txtEmail.getText());
+            loggedInUser.setStatus(txtCCCD.getText());
+
+            if (selectedAvatarPath != null) {
+                try {
+                    String avatarFileName = new File(selectedAvatarPath).getName();
+                    File destination = new File(getClass().getResource("/img/avt/").getPath() + avatarFileName);
+                    Files.copy(new File(selectedAvatarPath).toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    loggedInUser.setAvatar(avatarFileName);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(this, "Failed to update avatar.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            boolean isUpdated = userController.updateUser(loggedInUser);
+            if (isUpdated) {
+                JOptionPane.showMessageDialog(this, "User information updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update user information.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -367,202 +872,6 @@ public class CashierAccount extends javax.swing.JPanel {
     private void txtUsernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUsernameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtUsernameActionPerformed
-
-    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {
-        updateUserData(); // Save updated user data when the Save button is clicked
-    }
-
-    private void btnResetPWActionPerformed(java.awt.event.ActionEvent evt) {
-        javax.swing.JDialog changePasswordDialog = new javax.swing.JDialog();
-        changePasswordDialog.setTitle("Change Password");
-        changePasswordDialog.setModal(true);
-        changePasswordDialog.setSize(500, 350); // Increased size for better spacing
-        changePasswordDialog.setLocationRelativeTo(this);
-
-        javax.swing.JPanel panel = new javax.swing.JPanel();
-        panel.setLayout(new java.awt.GridBagLayout());
-        panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add padding
-
-        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
-        gbc.insets = new java.awt.Insets(10, 10, 10, 10); // Add spacing between components
-        gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
-
-        javax.swing.JLabel lblOldPassword = new javax.swing.JLabel("Mật khẩu cũ:");
-        lblOldPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        javax.swing.JPasswordField txtOldPassword = new javax.swing.JPasswordField(40); // Longer input field
-        txtOldPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 16)); // Larger font
-
-        javax.swing.JLabel lblNewPassword = new javax.swing.JLabel("Mật khẩu mới:");
-        lblNewPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        javax.swing.JPasswordField txtNewPassword = new javax.swing.JPasswordField(40); // Longer input field
-        txtNewPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 16)); // Larger font
-
-        javax.swing.JLabel lblConfirmPassword = new javax.swing.JLabel("Xác nhận mật khẩu:");
-        lblConfirmPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        javax.swing.JPasswordField txtConfirmPassword = new javax.swing.JPasswordField(40); // Longer input field
-        txtConfirmPassword.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 16)); // Larger font
-
-        javax.swing.JButton btnSubmit = new javax.swing.JButton("Đổi mật khẩu");
-        btnSubmit.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        btnSubmit.setBackground(new java.awt.Color(40, 167, 69)); // Green color
-        btnSubmit.setForeground(java.awt.Color.WHITE);
-
-        javax.swing.JButton btnCancel = new javax.swing.JButton("Huỷ");
-        btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16)); // Larger font
-        btnCancel.setBackground(new java.awt.Color(220, 53, 69)); // Red color
-        btnCancel.setForeground(java.awt.Color.WHITE);
-
-        // Add components to the panel
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(lblOldPassword, gbc);
-
-        gbc.gridx = 1;
-        panel.add(txtOldPassword, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(lblNewPassword, gbc);
-
-        gbc.gridx = 1;
-        panel.add(txtNewPassword, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(lblConfirmPassword, gbc);
-
-        gbc.gridx = 1;
-        panel.add(txtConfirmPassword, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.anchor = java.awt.GridBagConstraints.CENTER;
-
-        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
-        buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 20, 0)); // Increased spacing between buttons
-        buttonPanel.add(btnSubmit);
-        buttonPanel.add(btnCancel);
-
-        panel.add(buttonPanel, gbc);
-
-        changePasswordDialog.add(panel);
-
-        // Add action listeners
-        btnSubmit.addActionListener(e -> {
-            String oldPassword = new String(txtOldPassword.getPassword());
-            String newPassword = new String(txtNewPassword.getPassword());
-            String confirmPassword = new String(txtConfirmPassword.getPassword());
-
-            User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-            if (loggedInUser == null) {
-                JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            String currentPassword = loggedInUser.getPassword();
-            if (currentPassword == null || !currentPassword.equals(oldPassword)) {
-                JOptionPane.showMessageDialog(this, "Old password is incorrect.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (!newPassword.equals(confirmPassword)) {
-                JOptionPane.showMessageDialog(this, "New password and confirmation do not match.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            loggedInUser.setPassword(newPassword);
-            boolean isUpdated = userController.updateUser(loggedInUser);
-            if (isUpdated) {
-                JOptionPane.showMessageDialog(this, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                changePasswordDialog.dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update password.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        btnCancel.addActionListener(e -> changePasswordDialog.dispose());
-
-        changePasswordDialog.setVisible(true);
-    }
-
-    private void resizeAvatar() {
-        if (lblAvatar.getWidth() > 0 && lblAvatar.getHeight() > 0) {
-            ImageIcon originalIcon = null;
-
-            // Check if a new avatar is selected
-            if (selectedAvatarPath != null) {
-                originalIcon = new ImageIcon(selectedAvatarPath);
-            } else {
-                User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-                if (loggedInUser != null && loggedInUser.getAvatar() != null) {
-                    originalIcon = new ImageIcon(getClass().getResource("/img/avt/" + loggedInUser.getAvatar()));
-                }
-            }
-
-            if (originalIcon != null) {
-                // Resize the avatar to the current avatarSize
-                Image resizedImage = originalIcon.getImage().getScaledInstance(avatarSize, avatarSize, Image.SCALE_SMOOTH);
-                lblAvatar.setIcon(new ImageIcon(resizedImage));
-            }
-        }
-    }
-
-    private void loadUserData() {
-        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-        if (loggedInUser != null) {
-            txtUsername.setText(loggedInUser.getUsername());
-            txtEmail.setText(loggedInUser.getEmail());
-            txtDOB.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
-            txtCCCD.setText(loggedInUser.getStatus());
-            lblStatusValue.setText(loggedInUser.getStatus());
-            lblCreateAtValue.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
-            resizeAvatar(); // Ensure the avatar is resized when loading user data
-        } else {
-            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void btnUpdateAvatarActionPerformed(java.awt.event.ActionEvent evt) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png"));
-        int result = fileChooser.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            selectedAvatarPath = selectedFile.getAbsolutePath();
-            resizeAvatar(); // Resize the avatar after selecting a new image
-        }
-    }
-
-    private void updateUserData() {
-        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-        if (loggedInUser != null) {
-            loggedInUser.setUsername(txtUsername.getText());
-            loggedInUser.setEmail(txtEmail.getText());
-            loggedInUser.setStatus(txtCCCD.getText());
-
-            if (selectedAvatarPath != null) {
-                try {
-                    String avatarFileName = new File(selectedAvatarPath).getName();
-                    File destination = new File(getClass().getResource("/img/avt/").getPath() + avatarFileName);
-                    Files.copy(new File(selectedAvatarPath).toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    loggedInUser.setAvatar(avatarFileName);
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(this, "Failed to update avatar.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-
-            boolean isUpdated = userController.updateUser(loggedInUser);
-            if (isUpdated) {
-                JOptionPane.showMessageDialog(this, "User information updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update user information.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel AccountPanel;
