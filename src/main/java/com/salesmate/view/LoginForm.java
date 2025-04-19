@@ -80,7 +80,7 @@ public class LoginForm extends JFrame {
         mainPanel.add(emailField);
 
         // Password section
-        JLabel passwordLabel = new JLabel("Mật khẩu"); 
+        JLabel passwordLabel = new JLabel("Mật khẩu");
         passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         passwordLabel.setBounds(50, 300, 300, 20);
         mainPanel.add(passwordLabel);
@@ -124,10 +124,10 @@ public class LoginForm extends JFrame {
                 try {
                     new LoginFaceID(); // Mở form FaceID login mới
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, 
-                        "Không thể khởi động camera: " + ex.getMessage(),
-                        "Lỗi",
-                        JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null,
+                            "Không thể khởi động camera: " + ex.getMessage(),
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
                     new LoginForm(); // Nếu có lỗi thì quay lại form login
                 }
             });
@@ -139,8 +139,8 @@ public class LoginForm extends JFrame {
     private void styleTextField(JComponent field, String placeholder) {
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(206, 212, 218), 1, true),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                BorderFactory.createLineBorder(new Color(206, 212, 218), 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
         if (field instanceof JTextField) {
             ((JTextField) field).putClientProperty("JTextField.placeholderText", placeholder);
@@ -157,16 +157,17 @@ public class LoginForm extends JFrame {
         button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
+
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(bgColor.darker());
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(bgColor);
             }
         });
-        
+
         return button;
     }
 
@@ -179,16 +180,17 @@ public class LoginForm extends JFrame {
         button.setContentAreaFilled(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setForeground(new Color(0, 86, 179));
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setForeground(new Color(0, 123, 255));
             }
         });
-        
+
         return button;
     }
 
