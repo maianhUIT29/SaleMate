@@ -188,7 +188,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         add(ScrollPaneInvoice, BorderLayout.CENTER);
         add(paginationPanel, BorderLayout.SOUTH);
 
-        // Add export button next to refresh button
+        // Add export button
         JButton btnExport = new JButton("Xuất Excel");
         btnExport.setBackground(new Color(40, 167, 69));
         btnExport.setForeground(Color.WHITE);
@@ -204,26 +204,35 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
     }
 
     private void handleExport() {
-        ExportDialog dialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this));
+        ExportDialog dialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this), tblDataInvoiceRecent);
         dialog.setVisible(true);
         
         if (dialog.isExportConfirmed()) {
             File file = dialog.showSaveDialog();
             if (file != null) {
                 try {
+                    List<Integer> selectedColumns = dialog.getSelectedColumns();
                     if (dialog.isXLSX()) {
-                        ExcelExporter.exportToExcel(tblDataInvoiceRecent, file, dialog.includeHeaders());
+                        ExcelExporter.exportToExcel(tblDataInvoiceRecent, file, 
+                            dialog.includeHeaders(), selectedColumns);
                     } else {
-                        ExcelExporter.exportToCSV(tblDataInvoiceRecent, file, dialog.includeHeaders());
+                        ExcelExporter.exportToCSV(tblDataInvoiceRecent, file, 
+                            dialog.includeHeaders(), selectedColumns);
                     }
                     
                     if (dialog.openAfterExport()) {
                         ExcelExporter.openFile(file);
                     }
                     
-                    JOptionPane.showMessageDialog(this, "Xuất file thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, 
+                        "Xuất file thành công!", 
+                        "Thông báo", 
+                        JOptionPane.INFORMATION_MESSAGE);
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this,
+                        "Lỗi khi xuất file: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
@@ -583,6 +592,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         comboBoxMonth = new javax.swing.JComboBox<>();
         txtYear = new javax.swing.JTextField();
         btnRefresh = new javax.swing.JButton();
+        btnExport = new javax.swing.JButton();
 
         tblDataInvoiceRecent.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -606,6 +616,8 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
 
         btnRefresh.setText("Refresh");
 
+        btnExport.setText("Xuất Excel");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -619,8 +631,10 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(comboBoxMonth, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(36, 36, 36)
-                        .addComponent(txtYear)
-                        .addGap(352, 352, 352)
+                        .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(300, 300, 300)
+                        .addComponent(btnExport)
+                        .addGap(18, 18, 18) 
                         .addComponent(btnRefresh))
                     .addComponent(ScrollPaneInvoice, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addGap(25, 25, 25))
@@ -632,16 +646,13 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
                 .addComponent(lblHeader)
                 .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(comboBoxMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExport)
                     .addComponent(btnRefresh))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(ScrollPaneInvoice, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(20, 20, 20))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -649,6 +660,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane ScrollPaneInvoice;
     private javax.swing.JButton btnRefresh;
+    private javax.swing.JButton btnExport;
     private javax.swing.JComboBox<String> comboBoxMonth;
     private javax.swing.JLabel lblHeader;
     private javax.swing.JTable tblDataInvoiceRecent;

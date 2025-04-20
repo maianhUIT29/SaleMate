@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 import javax.swing.JTable;
 
@@ -74,6 +75,60 @@ public class ExcelExporter {
         workbook.close();
     }
 
+    public static void exportToExcel(JTable table, File file, boolean includeHeaders, List<Integer> selectedColumns) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Data");
+
+        // Create header font
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        
+        // Create header cell style
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+
+        int rowNum = 0;
+        
+        // Write headers if requested
+        if (includeHeaders) {
+            Row headerRow = sheet.createRow(rowNum++);
+            int colNum = 0;
+            for (int col : selectedColumns) {
+                Cell cell = headerRow.createCell(colNum++);
+                cell.setCellValue(table.getColumnName(col));
+                cell.setCellStyle(headerStyle);
+            }
+        }
+
+        // Write data
+        for (int row = 0; row < table.getRowCount(); row++) {
+            Row currentRow = sheet.createRow(rowNum++);
+            int colNum = 0;
+            for (int col : selectedColumns) {
+                Cell cell = currentRow.createCell(colNum++);
+                Object value = table.getValueAt(row, col);
+                if (value != null) {
+                    cell.setCellValue(value.toString());
+                }
+            }
+        }
+
+        // Autosize columns
+        for (int i = 0; i < selectedColumns.size(); i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Write to file
+        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+            workbook.write(outputStream);
+        }
+        workbook.close();
+    }
+
     public static void exportToCSV(JTable table, File file, boolean includeHeaders) throws IOException {
         try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
             // Write headers if requested
@@ -95,6 +150,35 @@ public class ExcelExporter {
                         pw.print(value.toString());
                     }
                     if (col < table.getColumnCount() - 1) {
+                        pw.print(",");
+                    }
+                }
+                pw.println();
+            }
+        }
+    }
+
+    public static void exportToCSV(JTable table, File file, boolean includeHeaders, List<Integer> selectedColumns) throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+            // Write headers if requested
+            if (includeHeaders) {
+                for (int i = 0; i < selectedColumns.size(); i++) {
+                    pw.print(table.getColumnName(selectedColumns.get(i)));
+                    if (i < selectedColumns.size() - 1) {
+                        pw.print(",");
+                    }
+                }
+                pw.println();
+            }
+
+            // Write data
+            for (int row = 0; row < table.getRowCount(); row++) {
+                for (int i = 0; i < selectedColumns.size(); i++) {
+                    Object value = table.getValueAt(row, selectedColumns.get(i));
+                    if (value != null) {
+                        pw.print(value.toString());
+                    }
+                    if (i < selectedColumns.size() - 1) {
                         pw.print(",");
                     }
                 }

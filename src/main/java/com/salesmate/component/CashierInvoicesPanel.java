@@ -130,7 +130,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         // Add pagination panel to main panel  
         add(paginationPanel, BorderLayout.SOUTH);
 
-        // Add export button next to refresh button
+        // Add export button
         JButton btnExport = new JButton("Xuất Excel");
         btnExport.setBackground(new Color(40, 167, 69));
         btnExport.setForeground(Color.WHITE);
@@ -146,17 +146,20 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
     }
 
     private void handleExport() {
-        ExportDialog dialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this));
+        ExportDialog dialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this), tblInvoices);
         dialog.setVisible(true);
 
         if (dialog.isExportConfirmed()) {
             File file = dialog.showSaveDialog();
             if (file != null) {
                 try {
+                    List<Integer> selectedColumns = dialog.getSelectedColumns();
                     if (dialog.isXLSX()) {
-                        ExcelExporter.exportToExcel(tblInvoices, file, dialog.includeHeaders());
+                        ExcelExporter.exportToExcel(tblInvoices, file, 
+                            dialog.includeHeaders(), selectedColumns);
                     } else {
-                        ExcelExporter.exportToCSV(tblInvoices, file, dialog.includeHeaders());
+                        ExcelExporter.exportToCSV(tblInvoices, file, 
+                            dialog.includeHeaders(), selectedColumns);
                     }
 
                     if (dialog.openAfterExport()) {
@@ -518,6 +521,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         cbbMonth = new javax.swing.JComboBox<>();
         txtYear = new javax.swing.JTextField();
         btnRefresh = new javax.swing.JButton();
+        JButton btnExport = new JButton("Xuất Excel");
 
         tblInvoices.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         tblInvoices.setModel(new javax.swing.table.DefaultTableModel(
@@ -561,8 +565,10 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
                                                 .addComponent(cbbMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addGap(18, 18, 18)
                                                 .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(417, 417, 417)
-                                                .addComponent(btnRefresh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                                .addGap(300, 300, 300)
+                                                .addComponent(btnExport)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(btnRefresh)))
                                 .addGap(20, 20, 20))
         );
         layout.setVerticalGroup(
@@ -571,16 +577,12 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
                                 .addContainerGap()
                                 .addComponent(lblHeader)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addGap(19, 19, 19)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                                 .addComponent(cbbMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(9, 9, 9))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addGap(18, 18, 18)
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                                        .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(btnRefresh))
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
+                                                .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(btnExport)
+                                                .addComponent(btnRefresh)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(panelInvoiceTable, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
                                 .addGap(20, 20, 20))
         );
