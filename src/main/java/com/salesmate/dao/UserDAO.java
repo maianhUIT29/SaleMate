@@ -118,14 +118,15 @@ public class UserDAO {
     }
 
     public boolean updateUser(User user) {
-        String query = "UPDATE users SET username = ?, email = ?, status = ? WHERE users_id = ?";
+        String query = "UPDATE users SET username = ?, email = ?, status = ?, avatar = ? WHERE users_id = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query)) {
 
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getStatus());
-            stmt.setInt(4, user.getUsersId());
+            stmt.setString(4, user.getAvatar()); // Add avatar update
+            stmt.setInt(5, user.getUsersId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

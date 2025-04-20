@@ -75,13 +75,16 @@ public class CashierView extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(204, 255, 255));
+        getContentPane().setLayout(new java.awt.BorderLayout());
 
-        tpCashier.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        tpCashier.setBorder(javax.swing.BorderFactory.createLineBorder(null));
         tpCashier.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         panelSaleContainer.setLayout(new java.awt.BorderLayout());
 
-        productSelectionPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        productSelectionPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null));
+
+        checkoutPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         javax.swing.GroupLayout PanelSaleLayout = new javax.swing.GroupLayout(PanelSale);
         PanelSale.setLayout(PanelSaleLayout);
@@ -89,7 +92,7 @@ public class CashierView extends javax.swing.JFrame {
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
                 .addGap(16, 16, 16)
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 548, Short.MAX_VALUE)
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 548, Short.MAX_VALUE)
                 .addGap(8, 8, 8)
                 .addComponent(checkoutPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(12, 12, 12))
@@ -130,10 +133,6 @@ public class CashierView extends javax.swing.JFrame {
         panelAccountContainer.add(jPanel1, java.awt.BorderLayout.CENTER);
 
         tpCashier.addTab("Hoá Đơn Gần Đây", panelAccountContainer);
-
-        panelSalaryContainer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-
-        cashierInvoicesPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
         javax.swing.GroupLayout panelSalaryContainerLayout = new javax.swing.GroupLayout(panelSalaryContainer);
         panelSalaryContainer.setLayout(panelSalaryContainerLayout);

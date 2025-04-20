@@ -11,7 +11,10 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.beans.Beans;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,6 +45,8 @@ import com.salesmate.model.Detail;
 import com.salesmate.model.Invoice;
 import com.salesmate.model.Product;
 import com.salesmate.model.User;
+import com.salesmate.utils.ExcelExporter;
+import com.salesmate.utils.ExportDialog;
 import com.salesmate.utils.SessionManager;
 
 public class CashierInvoicesPanel extends javax.swing.JPanel {
@@ -50,18 +55,125 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
     private InvoiceController invoiceController;
     private DefaultTableModel tableModel;
     private List<Invoice> invoices;
+    private static final int ROWS_PER_PAGE = 15; // Thay đổi số dòng mỗi trang
+    private int currentPage = 1;
+    private JButton prevButton;
+    private JButton nextButton;
+    private JLabel pageInfoLabel;
 
     public CashierInvoicesPanel() {
         initComponents();
 
         if (!Beans.isDesignTime()) {
-            setupTable();
+            setupComponents();
             loadUserInvoices();
 
             // Add action listeners
             btnRefresh.addActionListener(e -> loadUserInvoices());
-            cbbMonth.addActionListener(e -> filterInvoices());
-            txtYear.addActionListener(e -> filterInvoices());
+            cbbMonth.addActionListener(e -> refreshTableData(filterInvoices()));
+            txtYear.addActionListener(e -> refreshTableData(filterInvoices()));
+        }
+    }
+
+    private void setupComponents() {
+        setupTable();
+
+        // Thay đổi layout chính
+        setLayout(new BorderLayout());
+        add(panelInvoiceTable, BorderLayout.CENTER);
+
+        JPanel paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        paginationPanel.setBackground(Color.WHITE);
+        paginationPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        prevButton = new JButton("Trang trước");
+        nextButton = new JButton("Trang sau");
+        pageInfoLabel = new JLabel("Trang 1/1");
+
+        // Style buttons
+        prevButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        prevButton.setForeground(Color.WHITE);
+        prevButton.setBackground(new Color(0, 123, 255));
+        prevButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        prevButton.setFocusPainted(false);
+
+        nextButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        nextButton.setForeground(Color.WHITE);
+        nextButton.setBackground(new Color(0, 123, 255));
+        nextButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        nextButton.setFocusPainted(false);
+
+        pageInfoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        pageInfoLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        // Add pagination controls
+        paginationPanel.add(prevButton);
+        paginationPanel.add(pageInfoLabel);
+        paginationPanel.add(nextButton);
+
+        // Add listeners
+        prevButton.addActionListener(e -> {
+            if (currentPage > 1) {
+                currentPage--;
+                refreshTableData(filterInvoices());
+            }
+        });
+
+        nextButton.addActionListener(e -> {
+            int totalPages = getTotalPages(invoices);
+            if (currentPage < totalPages) {
+                currentPage++;
+                refreshTableData(filterInvoices());
+            }
+        });
+
+        // Add pagination panel to main panel  
+        add(paginationPanel, BorderLayout.SOUTH);
+
+        // Add export button next to refresh button
+        JButton btnExport = new JButton("Xuất Excel");
+        btnExport.setBackground(new Color(40, 167, 69));
+        btnExport.setForeground(Color.WHITE);
+        btnExport.setFocusPainted(false);
+        btnExport.addActionListener(e -> handleExport());
+
+        // Add to layout
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(btnExport);
+        buttonPanel.add(btnRefresh);
+        // Update layout to include button panel
+        add(buttonPanel, BorderLayout.NORTH);
+    }
+
+    private void handleExport() {
+        ExportDialog dialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this));
+        dialog.setVisible(true);
+
+        if (dialog.isExportConfirmed()) {
+            File file = dialog.showSaveDialog();
+            if (file != null) {
+                try {
+                    if (dialog.isXLSX()) {
+                        ExcelExporter.exportToExcel(tblInvoices, file, dialog.includeHeaders());
+                    } else {
+                        ExcelExporter.exportToCSV(tblInvoices, file, dialog.includeHeaders());
+                    }
+
+                    if (dialog.openAfterExport()) {
+                        ExcelExporter.openFile(file);
+                    }
+
+                    JOptionPane.showMessageDialog(this, 
+                        "Xuất file thành công!", 
+                        "Thành công", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Lỗi khi xuất file: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 
@@ -139,7 +251,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
     }
 
     private void refreshTableData(List<Invoice> invoicesToShow) {
-        tableModel.setRowCount(0); // Clear existing rows
+        tableModel.setRowCount(0);
 
         if (invoicesToShow == null || invoicesToShow.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -149,10 +261,17 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
             return;
         }
 
+        int start = (currentPage - 1) * ROWS_PER_PAGE;
+        int end = Math.min(start + ROWS_PER_PAGE, invoicesToShow.size());
+        List<Invoice> pageInvoices = invoicesToShow.subList(start, end);
+
+        // Update pagination controls
+        updatePaginationControls(invoicesToShow.size());
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         DecimalFormat currencyFormat = new DecimalFormat("#,### VNĐ");
 
-        for (Invoice invoice : invoicesToShow) {
+        for (Invoice invoice : pageInvoices) {
             tableModel.addRow(new Object[]{
                 "#" + invoice.getInvoiceId(),
                 dateFormat.format(invoice.getCreatedAt()),
@@ -163,9 +282,20 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         }
     }
 
-    private void filterInvoices() {
+    private void updatePaginationControls(int totalItems) {
+        int totalPages = (int) Math.ceil((double) totalItems / ROWS_PER_PAGE);
+        pageInfoLabel.setText(String.format("Trang %d/%d", currentPage, totalPages));
+        prevButton.setEnabled(currentPage > 1);
+        nextButton.setEnabled(currentPage < totalPages);
+    }
+
+    private int getTotalPages(List<Invoice> items) {
+        return (int) Math.ceil((double) items.size() / ROWS_PER_PAGE);
+    }
+
+    private List<Invoice> filterInvoices() {
         if (invoices == null || invoices.isEmpty()) {
-            return;
+            return new ArrayList<>();
         }
 
         String selectedMonth = (String) cbbMonth.getSelectedItem();
@@ -200,7 +330,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
             }
         }
 
-        refreshTableData(filteredInvoices);
+        return filteredInvoices;
     }
 
     private void showInvoiceDetails(int invoiceId) {
