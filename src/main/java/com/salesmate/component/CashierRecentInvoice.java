@@ -195,7 +195,19 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         btnExport.setFocusPainted(false);
         btnExport.addActionListener(e -> handleExport());
         
-        // Remove status filter code
+        // Add filter months and year
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filterPanel.setBackground(Color.WHITE);
+        
+        comboBoxMonth.setPreferredSize(new Dimension(150, 25));
+        comboBoxMonth.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        
+        txtYear.setPreferredSize(new Dimension(80, 25)); 
+        txtYear.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        
+        filterPanel.add(comboBoxMonth);
+        filterPanel.add(txtYear);
+
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
         
@@ -204,6 +216,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         rightButtons.add(btnExport);
         rightButtons.add(btnRefresh);
         
+        topPanel.add(filterPanel, BorderLayout.WEST);
         topPanel.add(rightButtons, BorderLayout.EAST);
         
         add(topPanel, BorderLayout.NORTH);
@@ -302,7 +315,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
 
         List<Invoice> filteredInvoices = new ArrayList<>(invoices);
 
-        // Filter by month if selected
+        // Filter by month if selected 
         if (!"Tất cả các tháng".equals(selectedMonth)) {
             int month = comboBoxMonth.getSelectedIndex(); // 0 is "Tất cả các tháng"
             filteredInvoices.removeIf(invoice -> {
@@ -322,8 +335,8 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
                     return cal.get(Calendar.YEAR) != year;
                 });
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Năm không hợp lệ!", 
+                JOptionPane.showMessageDialog(this,
+                    "Năm không hợp lệ!",
                     "Lỗi", 
                     JOptionPane.ERROR_MESSAGE);
             }
