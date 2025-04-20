@@ -2,7 +2,9 @@ com\salesmate\component\CashierAccount.class
 com\salesmate\model\Salary.class
 com\salesmate\model\Stock.class
 com\salesmate\model\Payment.class
+com\salesmate\utils\ExportDialog.class
 com\salesmate\component\CashierInvoicesPanel$ButtonRenderer.class
+com\salesmate\component\CashierAccount$7.class
 com\salesmate\controller\DetailController.class
 com\salesmate\component\CheckoutPanel.class
 com\salesmate\component\CashierHeader.class
@@ -27,6 +29,7 @@ com\salesmate\view\LoginFaceID$1.class
 com\salesmate\component\ProductSelectionPanel.class
 com\salesmate\controller\ProductController.class
 com\salesmate\controller\InvoiceController.class
+com\salesmate\utils\ExcelExporter.class
 com\salesmate\component\CashierInvoicesPanel$3.class
 com\salesmate\component\CheckoutPanel$2.class
 com\salesmate\component\ProductSelectionPanel$1.class
@@ -36,7 +39,13 @@ com\salesmate\view\LoginForm$1.class
 com\salesmate\component\ProductCard$ProductCardListener.class
 com\salesmate\view\ForgotPasswordForm$4.class
 com\salesmate\component\ProductCard.class
+com\salesmate\view\CashierView$1.class
+com\salesmate\utils\BarcodeScanner.class
 com\salesmate\component\ProductCard$4.class
 com\salesmate\dao\DetailDAO.class
 com\salesmate\controller\UserController.class
 com\salesmate\component\CashierAccount$6.class
+com\salesmate\utils\BarcodeGenerator.class
+com\salesmate\component\CashierAccount$8.class
+com\salesmate\component\CashierAccount$9.class
+com\salesmate\component\CashierQRPayment.class

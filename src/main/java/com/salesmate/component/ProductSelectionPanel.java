@@ -36,12 +36,17 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     private int productsPerPage = 30; // 6 cột x 5 dòng
     private javax.swing.JPanel paginationPanel;
     private static final int MAX_PAGE_BUTTONS = 5; // Số nút trang tối đa hiển thị
+    private boolean isLoading = false; // Add flag to track loading state
 
     public ProductSelectionPanel() {
         initComponents();
         setLayout(new java.awt.BorderLayout());
-        setupFilterPanel();
-        showLoadingAnimation();
+        // chỉ chạy khi thực sự chạy chương trình
+        if (!java.beans.Beans.isDesignTime()) {
+            setupFilterPanel();
+            // Remove the automatic loading animation from constructor
+            // The animation will only show when setProducts is called
+        }
     }
 
     private int spinnerAngle = 0;
@@ -104,7 +109,6 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
                 int textX = x + (width - fm.stringWidth(text)) / 2;
                 int textY = y + height / 2 + 35;
 
-                // Vẽ text với đường viền mỏng tạo hiệu ứng nổi
                 g2d.setColor(new Color(33, 33, 33, 240));
                 g2d.drawString(text, textX, textY);
 
@@ -123,13 +127,21 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
         spinnerTimer.start();
 
-        // Tự động ẩn loading sau 2 giây
+        // Tự động ẩn loading sau 2 giây và hiển thị dữ liệu nếu có
         Timer removeTimer = new Timer(2000, e -> {
             remove(mainPanel);
             spinnerTimer.stop();
             revalidate();
             repaint();
             showSuccessToast();
+            
+            // Reset loading flag when animation is done
+            isLoading = false;
+            
+            // Tự động hiển thị dữ liệu nếu có
+            if (products != null && !products.isEmpty()) {
+                displayFilteredProducts(products);
+            }
         });
         removeTimer.setRepeats(false);
         removeTimer.start();
@@ -185,50 +197,17 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             return;
         }
 
-        // Tạo loading panel với text đậm và padding
-        JPanel loadingPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // Background mờ
-                g2d.setColor(new Color(0, 0, 0, 100));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-
-                // Toast background
-                int width = 300;  // Tăng width để text không bị dính
-                int height = 120; // Tăng height để có padding
-                int x = (getWidth() - width) / 2;
-                int y = (getHeight() - height) / 2;
-
-                g2d.setColor(new Color(0, 0, 0, 220));
-                g2d.fillRoundRect(x, y, width, height, 20, 20);
-
-                // Vẽ spinner
-                drawSpinner(g2d, x + 30, y + height / 2 - 15); // Điều chỉnh vị trí spinner
-
-                // Text với font lớn hơn, màu trắng đậm và padding
-                g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font("Segoe UI", Font.BOLD, 20));
-                g2d.drawString("Đang tải dữ liệu...", x + 90, y + height / 2 + 7);
-
-                g2d.dispose();
-            }
-        };
-
-        // Simulate loading delay
-        Timer timer = new Timer(1500, e -> {
-            this.products = products;
-            this.filteredProducts = new ArrayList<>(products);
-            currentPage = 1;
-            displayFilteredProducts(this.products);
-
-            ((Timer) e.getSource()).stop();
-        });
-        timer.setRepeats(false);
-        timer.start();
+        this.products = products;
+        this.filteredProducts = new ArrayList<>(products);
+        currentPage = 1;
+        
+        // Nếu không đang ở design time và chưa hiển thị loading, thì hiển thị loading animation
+        if (!java.beans.Beans.isDesignTime() && !isLoading) {
+            isLoading = true; // Set loading flag to prevent multiple animations
+            showLoadingAnimation(); // Loading animation sẽ tự động hiển thị dữ liệu sau khi hoàn thành
+        } else if (java.beans.Beans.isDesignTime()) {
+            displayFilteredProducts(products); // Hiển thị trực tiếp khi ở design time
+        }
     }
 
     public void setCheckoutPanel(CheckoutPanel checkoutPanel) {
@@ -352,9 +331,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         categoryFilter.addActionListener(e -> {
             if (!"Tất cả danh mục".equals(categoryFilter.getSelectedItem())) {
                 applyFilters();
-            } else if (searchField.getText().isEmpty() && 
-                     "Tất cả giá".equals(priceFilter.getSelectedItem()) && 
-                     "Tất cả số lượng".equals(quantityFilter.getSelectedItem())) {
+            } else if (searchField.getText().isEmpty()
+                    && "Tất cả giá".equals(priceFilter.getSelectedItem())
+                    && "Tất cả số lượng".equals(quantityFilter.getSelectedItem())) {
                 displayFilteredProducts(products);
             }
         });
@@ -585,7 +564,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
 
     // Thêm phương thức để cập nhật sản phẩm
     public void updateProductQuantities(Map<Integer, Integer> soldQuantities) {
-        if (products == null) return;
+        if (products == null) {
+            return;
+        }
 
         for (Product product : products) {
             if (soldQuantities.containsKey(product.getProductId())) {
@@ -602,18 +583,19 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        setBorder(javax.swing.BorderFactory.createLineBorder(null));
         setForeground(new java.awt.Color(255, 255, 255));
         setPreferredSize(new java.awt.Dimension(600, 500));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 601, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 598, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 500, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 498, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 

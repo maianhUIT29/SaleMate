@@ -11,6 +11,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Repor
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Purchase.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierAccount.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Detail.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ExcelExporter.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Supplier.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Salary.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierRecentInvoice.java
@@ -29,14 +30,18 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\DBC
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\User.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\Toast.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Promotion.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\BarcodeScanner.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Invoice.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ColorPalette.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CheckoutPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\CashierView.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\ProductDAO.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ExportDialog.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\WebcamConfig.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\ProductController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\SessionManager.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginFaceID.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\AdminView.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierQRPayment.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductCard.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\BarcodeGenerator.java

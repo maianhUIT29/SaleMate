@@ -55,6 +55,32 @@ public class ProductDAO {
         }
     }
 
+    /**
+     * Updates the product quantity after a sale
+     * 
+     * @param productId The ID of the product to update
+     * @param soldQuantity The quantity that was sold
+     * @return true if the update was successful, false otherwise
+     */
+    public boolean updateProductQuantity(int productId, int soldQuantity) {
+        String query = "UPDATE product SET quantity = quantity - ? WHERE product_id = ? AND quantity >= ?";
+        
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, soldQuantity);
+            stmt.setInt(2, productId);
+            stmt.setInt(3, soldQuantity); // Ensure we have enough stock
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating product quantity: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // Lấy danh sách tất cả sản phẩm
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
