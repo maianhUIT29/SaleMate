@@ -41,3 +41,4 @@ com\salesmate\component\ProductCard$4.class
 com\salesmate\dao\DetailDAO.class
 com\salesmate\controller\UserController.class
 com\salesmate\component\CashierAccount$6.class
+com\salesmate\component\CashierQRPayment.class

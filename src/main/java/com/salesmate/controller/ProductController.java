@@ -51,4 +51,20 @@ public class ProductController {
             return false;
         }
     }
+
+    /**
+     * Updates the product quantity after a sale by delegating to ProductDAO
+     * 
+     * @param productId The ID of the product to update
+     * @param soldQuantity The quantity that was sold
+     * @return true if the update was successful, false otherwise
+     */
+    public boolean updateProductQuantity(int productId, int soldQuantity) {
+        try {
+            return productDAO.updateProductQuantity(productId, soldQuantity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
