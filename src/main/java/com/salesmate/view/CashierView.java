@@ -138,10 +138,10 @@ public class CashierView extends javax.swing.JFrame {
         panelSalaryContainer.setLayout(panelSalaryContainerLayout);
         panelSalaryContainerLayout.setHorizontalGroup(
             panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelSalaryContainerLayout.createSequentialGroup()
-                .addGap(100, 100, 100)
-                .addComponent(cashierInvoicesPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 812, Short.MAX_VALUE)
-                .addGap(55, 55, 55))
+            .addGroup(panelSalaryContainerLayout.createSequentialGroup()
+                .addGap(37, 37, 37)
+                .addComponent(cashierInvoicesPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 903, Short.MAX_VALUE)
+                .addGap(27, 27, 27))
         );
         panelSalaryContainerLayout.setVerticalGroup(
             panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

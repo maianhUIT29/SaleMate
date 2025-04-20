@@ -195,12 +195,18 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         btnExport.setFocusPainted(false);
         btnExport.addActionListener(e -> handleExport());
         
-        // Add to layout
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(btnExport);
-        buttonPanel.add(btnRefresh);
-        // Update layout to include button panel
-        add(buttonPanel, BorderLayout.NORTH);
+        // Remove status filter code
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        
+        JPanel rightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightButtons.setBackground(Color.WHITE);
+        rightButtons.add(btnExport);
+        rightButtons.add(btnRefresh);
+        
+        topPanel.add(rightButtons, BorderLayout.EAST);
+        
+        add(topPanel, BorderLayout.NORTH);
     }
 
     private void handleExport() {
@@ -248,11 +254,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         tableModel.setRowCount(0); // Clear existing rows
         
         if (invoicesToShow == null || invoicesToShow.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Không có hoá đơn nào trong thời gian gần đây!", 
-                "Thông báo", 
-                JOptionPane.INFORMATION_MESSAGE);
-            return;
+            return; // Just clear table and return - no message needed
         }
 
         int start = (currentPage - 1) * ROWS_PER_PAGE;
@@ -483,15 +485,46 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
-        // Nút in
-        JButton printButton = new JButton("In hoá đơn");
-        printButton.setBackground(new Color(0, 123, 255));
-        printButton.setForeground(Color.WHITE);
-        printButton.setFocusPainted(false);
-        printButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        printButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        printButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(detailDialog, "Chức năng in sẽ được cập nhật sau!");
+        // Nút xuất Excel thay thế nút in
+        JButton exportButton = new JButton("Xuất Excel");
+        exportButton.setBackground(new Color(0, 123, 255));
+        exportButton.setForeground(Color.WHITE);
+        exportButton.setFocusPainted(false);
+        exportButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        exportButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        exportButton.addActionListener(e -> {
+            ExportDialog dialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this), detailTable);
+            dialog.setVisible(true);
+            
+            if (dialog.isExportConfirmed()) {
+                File file = dialog.showSaveDialog();
+                if (file != null) {
+                    try {
+                        List<Integer> selectedColumns = dialog.getSelectedColumns();
+                        if (dialog.isXLSX()) {
+                            ExcelExporter.exportToExcel(detailTable, file, 
+                                dialog.includeHeaders(), selectedColumns);
+                        } else {
+                            ExcelExporter.exportToCSV(detailTable, file, 
+                                dialog.includeHeaders(), selectedColumns);
+                        }
+                        
+                        if (dialog.openAfterExport()) {
+                            ExcelExporter.openFile(file);
+                        }
+                        
+                        JOptionPane.showMessageDialog(detailDialog,
+                            "Xuất file thành công!", 
+                            "Thông báo", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(detailDialog,
+                            "Lỗi khi xuất file: " + ex.getMessage(),
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
         });
         
         // Nút đóng
@@ -503,7 +536,7 @@ public class CashierRecentInvoice extends javax.swing.JPanel {
         closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         closeButton.addActionListener(e -> detailDialog.dispose());
 
-        buttonPanel.add(printButton);
+        buttonPanel.add(exportButton);
         buttonPanel.add(closeButton);
 
         // Layout
