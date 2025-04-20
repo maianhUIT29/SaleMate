@@ -28,13 +28,13 @@ import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.ModeEnum;
+import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import java.io.File;
 import java.util.ArrayList;
 
 import com.salesmate.utils.SessionManager;
-
 import javax.swing.*;
 
 import java.awt.*;
@@ -556,9 +556,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
             detailsPanel.add(Box.createVerticalStrut(10));
         }
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
-        buttonPanel.setOpaque(false);
-
+        // Prepare resources directory path
         String resourcesDir = System.getProperty("user.dir") + "/src/main/resources";
         String invoicesDir = resourcesDir + "/invoices";
         new File(invoicesDir).mkdirs();
@@ -566,30 +564,44 @@ public class CheckoutPanel extends javax.swing.JPanel {
         String fileName = "Invoice_" + invoiceId + ".pdf";
         String outputPath = invoicesDir + File.separator + fileName;
 
+        // Button panel with 3 buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonPanel.setOpaque(false);
+
+        // Print button - shows print dialog directly
         JButton printButton = createStyledButton("In hoá đơn", new Color(0, 123, 255));
         printButton.addActionListener(e -> {
             try {
+                // Generate JasperPrint for preview
                 JasperPrint jasperPrint = createInvoiceReport(invoiceId);
-                JasperPrintManager.printReport(jasperPrint, true);
+                
+                // Show print preview
+                showPrintPreview(jasperPrint);
+                
+                successDialog.dispose();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
                     successDialog,
-                    "Lỗi khi in hoá đơn: " + ex.getMessage(),
+                    "Lỗi khi chuẩn bị hoá đơn: " + ex.getMessage(),
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE
                 );
             }
         });
 
+        // Save button - saves the file and shows confirmation
         JButton saveButton = createStyledButton("Lưu hoá đơn", new Color(40, 167, 69));
         saveButton.addActionListener(e -> {
             try {
                 JasperPrint jasperPrint = createInvoiceReport(invoiceId);
                 JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
                 
+                successDialog.dispose();
+                
+                // Show dialog with Open and OK buttons
                 Object[] options = {"Mở", "OK"};
                 int choice = JOptionPane.showOptionDialog(
-                    successDialog,
+                    this,
                     "Hoá đơn đã được lưu thành công tại:\n" + outputPath,
                     "Lưu thành công",
                     JOptionPane.DEFAULT_OPTION,
@@ -599,12 +611,12 @@ public class CheckoutPanel extends javax.swing.JPanel {
                     options[1]
                 );
                 
-                if (choice == 0) {
+                if (choice == 0) { // Open button clicked
                     try {
                         Desktop.getDesktop().open(new File(outputPath));
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(
-                            successDialog,
+                            this,
                             "Không thể mở file: " + ex.getMessage(),
                             "Lỗi",
                             JOptionPane.ERROR_MESSAGE
@@ -621,6 +633,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
 
+        // Close button - simply closes the dialog
         JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
         closeButton.addActionListener(e -> successDialog.dispose());
 
@@ -634,6 +647,55 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
         successDialog.add(mainPanel);
         successDialog.setVisible(true);
+    }
+
+    /**
+     * Shows a print preview dialog before printing
+     * @param jasperPrint The JasperPrint object to preview
+     */
+    private void showPrintPreview(JasperPrint jasperPrint) {
+        JDialog previewDialog = new JDialog();
+        previewDialog.setTitle("Xem trước khi in");
+        previewDialog.setModal(true);
+        previewDialog.setSize(800, 600);
+        previewDialog.setLocationRelativeTo(this);
+        
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        
+        // Create viewer component
+        net.sf.jasperreports.swing.JRViewer viewer = new net.sf.jasperreports.swing.JRViewer(jasperPrint);
+        mainPanel.add(viewer, BorderLayout.CENTER);
+        
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        
+        // Print button
+        JButton printButton = createStyledButton("In", new Color(0, 123, 255));
+        printButton.addActionListener(e -> {
+            try {
+                JasperPrintManager.printReport(jasperPrint, true); // Show system print dialog
+            } catch (JRException ex) {
+                JOptionPane.showMessageDialog(
+                    previewDialog,
+                    "Lỗi khi in: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+        
+        // Close button
+        JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
+        closeButton.addActionListener(e -> previewDialog.dispose());
+        
+        buttonPanel.add(printButton);
+        buttonPanel.add(closeButton);
+        
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        previewDialog.add(mainPanel);
+        
+        previewDialog.setVisible(true);
     }
 
     private JasperPrint createInvoiceReport(int invoiceId) throws JRException {
