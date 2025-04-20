@@ -17,8 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -70,8 +68,6 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
 
             // Add action listeners
             btnRefresh.addActionListener(e -> loadUserInvoices());
-            cbbMonth.addActionListener(e -> refreshTableData(filterInvoices()));
-            txtYear.addActionListener(e -> refreshTableData(filterInvoices()));
         }
     }
 
@@ -115,7 +111,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         prevButton.addActionListener(e -> {
             if (currentPage > 1) {
                 currentPage--;
-                refreshTableData(filterInvoices());
+                refreshTableData(invoices);
             }
         });
 
@@ -123,7 +119,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
             int totalPages = getTotalPages(invoices);
             if (currentPage < totalPages) {
                 currentPage++;
-                refreshTableData(filterInvoices());
+                refreshTableData(invoices);
             }
         });
 
@@ -263,7 +259,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         tableModel.setRowCount(0);
 
         if (invoicesToShow == null || invoicesToShow.isEmpty()) {
-            return; // Just clear table and return - no message needed
+            return;
         }
 
         int start = (currentPage - 1) * ROWS_PER_PAGE;
@@ -296,46 +292,6 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
 
     private int getTotalPages(List<Invoice> items) {
         return (int) Math.ceil((double) items.size() / ROWS_PER_PAGE);
-    }
-
-    private List<Invoice> filterInvoices() {
-        if (invoices == null || invoices.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        String selectedMonth = (String) cbbMonth.getSelectedItem();
-        String yearText = txtYear.getText().trim();
-
-        List<Invoice> filteredInvoices = new ArrayList<>(invoices);
-
-        // Filter by month if selected
-        if (!"Tất cả tháng".equals(selectedMonth)) {
-            int month = cbbMonth.getSelectedIndex(); // 0 is "Tất cả tháng"
-            filteredInvoices.removeIf(invoice -> {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(invoice.getCreatedAt());
-                return cal.get(Calendar.MONTH) + 1 != month;
-            });
-        }
-
-        // Filter by year if entered
-        if (!yearText.isEmpty() && !yearText.equals("Nhập năm")) {
-            try {
-                int year = Integer.parseInt(yearText);
-                filteredInvoices.removeIf(invoice -> {
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(invoice.getCreatedAt());
-                    return cal.get(Calendar.YEAR) != year;
-                });
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this,
-                    "Năm không hợp lệ!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        return filteredInvoices;
     }
 
     private void showInvoiceDetails(int invoiceId) {
@@ -551,22 +507,20 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         panelInvoiceTable = new javax.swing.JScrollPane();
         tblInvoices = new javax.swing.JTable();
         lblHeader = new javax.swing.JLabel();
-        cbbMonth = new javax.swing.JComboBox<>();
-        txtYear = new javax.swing.JTextField();
         btnRefresh = new javax.swing.JButton();
-        JButton btnExport = new JButton("Xuất Excel");
+        btnPrint = new javax.swing.JButton();
 
         tblInvoices.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         tblInvoices.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                    {null, null, null, null, null},
-                    {null, null, null, null, null},
-                    {null, null, null, null, null},
-                    {null, null, null, null, null}
-                },
-                new String[]{
-                    "Số Hoá Đơn", "Ngày tạo", "Tổng tiền", "Trạng thái", "Hành động"
-                }
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "Số Hoá Đơn", "Ngày tạo", "Tổng tiền", "Trạng thái", "Hành động"
+            }
         ));
         panelInvoiceTable.setViewportView(tblInvoices);
 
@@ -574,59 +528,49 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         lblHeader.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblHeader.setText("DANH SÁCH HOÁ ĐƠN ĐÃ LẬP ");
 
-        cbbMonth.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        cbbMonth.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Tất cả tháng", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"}));
-
-        txtYear.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        txtYear.setText("Nhập năm");
-
         btnRefresh.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         btnRefresh.setText("Refresh");
+
+        btnPrint.setText("In danh sách");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addGap(20, 20, 20)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(panelInvoiceTable, javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                                .addComponent(lblHeader)
-                                                .addGap(0, 0, Short.MAX_VALUE))
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addComponent(cbbMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(300, 300, 300)
-                                                .addComponent(btnExport)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(btnRefresh)))
-                                .addGap(20, 20, 20))
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(panelInvoiceTable, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 736, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(lblHeader)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnPrint)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnRefresh)))
+                .addGap(20, 20, 20))
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(lblHeader)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                                .addComponent(cbbMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(txtYear, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(btnExport)
-                                                .addComponent(btnRefresh)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(panelInvoiceTable, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
-                                .addGap(20, 20, 20))
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lblHeader)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnRefresh)
+                    .addComponent(btnPrint, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(panelInvoiceTable, javax.swing.GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
+                .addGap(20, 20, 20))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnPrint;
     private javax.swing.JButton btnRefresh;
-    private javax.swing.JComboBox<String> cbbMonth;
     private javax.swing.JLabel lblHeader;
     private javax.swing.JScrollPane panelInvoiceTable;
     private javax.swing.JTable tblInvoices;
-    private javax.swing.JTextField txtYear;
     // End of variables declaration//GEN-END:variables
 }
