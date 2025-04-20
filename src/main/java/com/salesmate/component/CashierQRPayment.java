@@ -26,6 +26,19 @@ public class CashierQRPayment extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        dialogQRPayment = new javax.swing.JDialog();
+
+        javax.swing.GroupLayout dialogQRPaymentLayout = new javax.swing.GroupLayout(dialogQRPayment.getContentPane());
+        dialogQRPayment.getContentPane().setLayout(dialogQRPaymentLayout);
+        dialogQRPaymentLayout.setHorizontalGroup(
+            dialogQRPaymentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        dialogQRPaymentLayout.setVerticalGroup(
+            dialogQRPaymentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -40,5 +53,6 @@ public class CashierQRPayment extends javax.swing.JPanel {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDialog dialogQRPayment;
     // End of variables declaration//GEN-END:variables
 }

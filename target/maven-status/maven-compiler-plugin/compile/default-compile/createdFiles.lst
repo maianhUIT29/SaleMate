@@ -37,8 +37,10 @@ com\salesmate\component\ProductCard$ProductCardListener.class
 com\salesmate\view\ForgotPasswordForm$4.class
 com\salesmate\component\ProductCard.class
 com\salesmate\view\CashierView$1.class
+com\salesmate\utils\BarcodeScanner.class
 com\salesmate\component\ProductCard$4.class
 com\salesmate\dao\DetailDAO.class
 com\salesmate\controller\UserController.class
 com\salesmate\component\CashierAccount$6.class
+com\salesmate\utils\BarcodeGenerator.class
 com\salesmate\component\CashierQRPayment.class
