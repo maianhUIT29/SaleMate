@@ -1,8 +1,11 @@
 package com.salesmate.view;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
@@ -13,21 +16,38 @@ public class CashierView extends javax.swing.JFrame {
 
     public CashierView() {
         initComponents();
-        loadProductList();
         productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setUndecorated(false);
-
+        
         // Link panels
         productSelectionPanel.setCheckoutPanel(checkoutPanel2);
         checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
+        
+        // Add window listener to maximize window after it becomes visible
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                setExtendedState(JFrame.MAXIMIZED_BOTH);
+            }
+        });
+        
+        // Load products after UI is set up
+        SwingUtilities.invokeLater(this::loadProductList);
     }
 
     private void loadProductList() {
         productController = new ProductController();
         List<Product> products = productController.getAllProducts();
         if (products != null && !products.isEmpty()) {
+            // Set products will trigger a single loading animation in ProductSelectionPanel
             productSelectionPanel.setProducts(products);
+        } else {
+            // Show an error message if no products are found
+            javax.swing.JOptionPane.showMessageDialog(
+                this,
+                "Không tìm thấy sản phẩm nào trong cơ sở dữ liệu.",
+                "Thông báo",
+                javax.swing.JOptionPane.INFORMATION_MESSAGE
+            );
         }
     }
 

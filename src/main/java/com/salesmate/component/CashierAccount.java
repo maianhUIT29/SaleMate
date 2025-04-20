@@ -49,6 +49,9 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import java.beans.Beans;
+
+
 public class CashierAccount extends javax.swing.JPanel {
 
     private final UserController userController = new UserController();
@@ -64,8 +67,10 @@ public class CashierAccount extends javax.swing.JPanel {
 
     public CashierAccount() {
         initComponents();
-        setupComponents();
-        loadUserData(); // Load dữ liệu user khi khởi tạo
+        if (!Beans.isDesignTime()) {
+            setupComponents();
+            loadUserData(); // Load dữ liệu user khi khởi tạo
+        }
     }
 
     private void setupComponents() {

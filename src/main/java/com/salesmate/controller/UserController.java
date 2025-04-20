@@ -61,4 +61,9 @@ public class UserController {
         return userDAO.updateUser(user);
     }
 
+    // Lấy thông tin người dùng theo ID
+    public User getUserById(int id) {
+        return userDAO.getUserById(id);
+    }
+
 }

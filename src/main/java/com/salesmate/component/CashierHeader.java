@@ -12,13 +12,18 @@ import com.salesmate.view.LoginForm;
 import java.awt.Image;
 import java.awt.geom.Ellipse2D;
 import javax.swing.ImageIcon;
+import java.beans.Beans;
 
 public class CashierHeader extends javax.swing.JPanel {
 
     public CashierHeader() {
         initComponents();
-        createDropdown();
-        loadUserData(); // Gọi ngay sau khi init xong UI
+
+        // chỉ chạy khi thực sự chạy chương trình
+        if (!Beans.isDesignTime()) {
+            createDropdown();
+            loadUserData(); // Gọi ngay sau khi init xong UI
+        }
     }
 
     @Override

@@ -38,23 +38,18 @@ import com.salesmate.model.Invoice;
 import com.salesmate.model.Product;
 import com.salesmate.model.User;
 
-/**
- *
- * @author Nhan
- */
 public class CashierRecentInvoice extends javax.swing.JPanel {
     private InvoiceController invoiceController;
     private UserDAO userDAO;
     private DefaultTableModel tableModel;
     private List<Invoice> invoices;
 
-    /**
-     * Creates new form CashierRecentInvoice
-     */
     public CashierRecentInvoice() {
         initComponents();
-        setupTable();
-        loadRecentInvoices();
+        if (!java.beans.Beans.isDesignTime()) {
+            setupTable();
+            loadRecentInvoices();
+        }
         
         // Add action listeners
         btnRefresh.addActionListener(e -> loadRecentInvoices());
