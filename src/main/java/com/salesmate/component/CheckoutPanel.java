@@ -559,37 +559,65 @@ public class CheckoutPanel extends javax.swing.JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         buttonPanel.setOpaque(false);
 
-        JButton printButton = createStyledButton("In hoá đơn", new Color(33, 150, 243));
-        printButton.addActionListener(e -> {
-            exportToPDF(invoiceId);
-            successDialog.dispose();
-        });
+        String resourcesDir = System.getProperty("user.dir") + "/src/main/resources";
+        String invoicesDir = resourcesDir + "/invoices";
+        new File(invoicesDir).mkdirs();
         
-        JButton viewButton = createStyledButton("Xem hoá đơn", new Color(76, 175, 80));
-        viewButton.addActionListener(e -> {
-            String resourcesDir = System.getProperty("user.dir") + "/src/main/resources";
-            String invoicesDir = resourcesDir + "/invoices";
-            new File(invoicesDir).mkdirs();
-            
-            String fileName = "Invoice_" + invoiceId + ".pdf";
-            String outputPath = invoicesDir + File.separator + fileName;
-            File pdfFile = new File(outputPath);
-            
-            if (pdfFile.exists()) {
-                try {
-                    Desktop.getDesktop().open(pdfFile);
-                    successDialog.dispose();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(
-                        successDialog,
-                        "Không thể mở file: " + ex.getMessage(),
-                        "Lỗi",
-                        JOptionPane.ERROR_MESSAGE
-                    );
+        String fileName = "Invoice_" + invoiceId + ".pdf";
+        String outputPath = invoicesDir + File.separator + fileName;
+
+        JButton printButton = createStyledButton("In hoá đơn", new Color(0, 123, 255));
+        printButton.addActionListener(e -> {
+            try {
+                JasperPrint jasperPrint = createInvoiceReport(invoiceId);
+                JasperPrintManager.printReport(jasperPrint, true);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    successDialog,
+                    "Lỗi khi in hoá đơn: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        JButton saveButton = createStyledButton("Lưu hoá đơn", new Color(40, 167, 69));
+        saveButton.addActionListener(e -> {
+            try {
+                JasperPrint jasperPrint = createInvoiceReport(invoiceId);
+                JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
+                
+                Object[] options = {"Mở", "OK"};
+                int choice = JOptionPane.showOptionDialog(
+                    successDialog,
+                    "Hoá đơn đã được lưu thành công tại:\n" + outputPath,
+                    "Lưu thành công",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    options,
+                    options[1]
+                );
+                
+                if (choice == 0) {
+                    try {
+                        Desktop.getDesktop().open(new File(outputPath));
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(
+                            successDialog,
+                            "Không thể mở file: " + ex.getMessage(),
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
                 }
-            } else {
-                exportToPDF(invoiceId);
-                successDialog.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    successDialog,
+                    "Lỗi khi lưu hoá đơn: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
             }
         });
 
@@ -597,7 +625,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
         closeButton.addActionListener(e -> successDialog.dispose());
 
         buttonPanel.add(printButton);
-        buttonPanel.add(viewButton);
+        buttonPanel.add(saveButton);
         buttonPanel.add(closeButton);
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
@@ -606,6 +634,70 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
         successDialog.add(mainPanel);
         successDialog.setVisible(true);
+    }
+
+    private JasperPrint createInvoiceReport(int invoiceId) throws JRException {
+        String invoiceNumber = generateInvoiceNumber(invoiceId);
+        
+        List<Map<String, Object>> data = new ArrayList<>();
+        int index = 1;
+        BigDecimal subtotal = BigDecimal.ZERO;
+        
+        for (Product product : checkoutProducts.values()) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("no", index++);
+            row.put("productName", product.getProductName());
+            row.put("price", formatCurrency(product.getPrice()));
+            row.put("quantity", product.getQuantity());
+            BigDecimal itemTotal = product.getPrice().multiply(new BigDecimal(product.getQuantity()));
+            row.put("total", formatCurrency(itemTotal));
+            subtotal = subtotal.add(itemTotal);
+            data.add(row);
+        }
+
+        BigDecimal taxRate = new BigDecimal("0.1");
+        BigDecimal taxAmount = subtotal.multiply(taxRate);
+        BigDecimal grandTotal = subtotal.add(taxAmount);
+        
+        String cashierName = SessionManager.getInstance().getLoggedInUser().getUsername();
+        
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("invoiceNo", invoiceNumber);
+        parameters.put("date", new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
+        parameters.put("cashierName", cashierName);
+        parameters.put("subtotal", formatCurrency(subtotal));
+        parameters.put("tax", formatCurrency(taxAmount));
+        parameters.put("totalAmount", formatCurrency(grandTotal));
+        parameters.put("paymentMethod", paymentMethodComboBox.getSelectedItem().toString());
+        parameters.put("companyName", "SalesMate - Phần mềm quản lý bán hàng");
+        parameters.put("companyAddress", "Trường Đại học Công nghệ Thông tin TP.HCM");
+        parameters.put("companyPhone", "(+84) 28 1234 5678");
+        parameters.put("companyEmail", "contact@salesmate.vn");
+        parameters.put("thankYouMessage", "Cảm ơn quý khách đã mua hàng! Hẹn gặp lại.");
+        
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(data);
+        
+        JasperReport jasperReport;
+        try {
+            try (InputStream reportStream = getClass().getResourceAsStream("/reports/invoice_template.jrxml")) {
+                if (reportStream != null) {
+                    jasperReport = JasperCompileManager.compileReport(reportStream);
+                } else {
+                    String templatePath = System.getProperty("user.dir") + "/src/main/resources/reports/invoice_template.jrxml";
+                    File templateFile = new File(templatePath);
+                    
+                    if (templateFile.exists()) {
+                        jasperReport = JasperCompileManager.compileReport(templatePath);
+                    } else {
+                        jasperReport = createDynamicReport();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            jasperReport = createDynamicReport();
+        }
+        
+        return JasperFillManager.fillReport(jasperReport, parameters, dataSource);
     }
 
     private JasperReport createDynamicReport() throws JRException {
