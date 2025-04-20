@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SalesMate_Invoice" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="4eedbb89-b4f6-4469-9ab6-f642a1688cf7">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-	<style name="Title" forecolor="#000000" fontName="DejaVu Sans" fontSize="26" isBold="true"/>
-	<style name="SubTitle" forecolor="#666666" fontName="DejaVu Sans" fontSize="18"/>
-	<style name="Column header" forecolor="#666666" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
-	<style name="Detail" fontName="DejaVu Sans" fontSize="12"/>
-	<style name="Row" mode="Transparent" fontName="DejaVu Sans">
+	<style name="Title" forecolor="#000000" fontName="Arial" fontSize="26" isBold="true"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<style name="Row" mode="Transparent" fontName="Arial">
 		<conditionalStyle>
 			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
 			<style backcolor="#F0F0F0"/>
@@ -30,7 +30,7 @@
 	<field name="quantity" class="java.lang.Integer"/>
 	<field name="total" class="java.lang.String"/>
 	<title>
-		<band height="160" splitType="Stretch">
+		<band height="180" splitType="Stretch">
 			<image hAlign="Center">
 				<reportElement x="0" y="0" width="80" height="80" uuid="94883631-a913-43e2-b182-ab8d77d0181e"/>
 				<imageExpression><![CDATA["https://upload.wikimedia.org/wikipedia/commons/5/50/User_icon-cp.svg"]]></imageExpression>
@@ -49,32 +49,39 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$P{companyName}]]></textFieldExpression>
 			</textField>
+            <textField>
+				<reportElement style="SubTitle" x="0" y="80" width="535" height="25" uuid="88d4231e-f014-4b0d-b871-1737ba63a1af"/>
+				<textElement textAlignment="Center">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{invoiceNo}]]></textFieldExpression>
+			</textField>
 			<staticText>
-				<reportElement style="Column header" x="0" y="90" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb0"/>
+				<reportElement style="Column header" x="0" y="110" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb0"/>
 				<text><![CDATA[Địa chỉ:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Detail" x="100" y="90" width="435" height="20" uuid="70865acd-a3e7-4b79-a238-caa747c74258"/>
+				<reportElement style="Detail" x="100" y="110" width="435" height="20" uuid="70865acd-a3e7-4b79-a238-caa747c74258"/>
 				<textFieldExpression><![CDATA[$P{companyAddress}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Column header" x="0" y="110" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb1"/>
+				<reportElement style="Column header" x="0" y="130" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb1"/>
 				<text><![CDATA[Điện thoại:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Detail" x="100" y="110" width="435" height="20" uuid="70865acd-a3e7-4b79-a238-caa747c74259"/>
+				<reportElement style="Detail" x="100" y="130" width="435" height="20" uuid="70865acd-a3e7-4b79-a238-caa747c74259"/>
 				<textFieldExpression><![CDATA[$P{companyPhone}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Column header" x="0" y="130" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb2"/>
+				<reportElement style="Column header" x="0" y="150" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb2"/>
 				<text><![CDATA[Email:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Detail" x="100" y="130" width="435" height="20" uuid="70865acd-a3e7-4b79-a238-caa747c74260"/>
+				<reportElement style="Detail" x="100" y="150" width="435" height="20" uuid="70865acd-a3e7-4b79-a238-caa747c74260"/>
 				<textFieldExpression><![CDATA[$P{companyEmail}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="-20" y="159" width="590" height="1" forecolor="#666666" uuid="89160867-1c41-4f59-9cff-a7e749ee693c"/>
+				<reportElement x="-20" y="179" width="590" height="1" forecolor="#666666" uuid="89160867-1c41-4f59-9cff-a7e749ee693c"/>
 			</line>
 		</band>
 	</title>
@@ -82,34 +89,26 @@
 		<band height="90" splitType="Stretch">
 			<staticText>
 				<reportElement style="Column header" x="0" y="10" width="100" height="20" uuid="3fe0a0fc-137f-4165-8a65-c3be575f0c76"/>
-				<text><![CDATA[Số hóa đơn:]]></text>
-			</staticText>
-			<textField>
-				<reportElement style="Detail" x="100" y="10" width="150" height="20" uuid="896e7a0a-0a9a-4283-8f69-96c0740a5742"/>
-				<textFieldExpression><![CDATA[$P{invoiceNo}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement style="Column header" x="280" y="10" width="110" height="20" uuid="4f9c3448-2eff-4b89-a85d-0b698cdb28c9"/>
 				<text><![CDATA[Ngày:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Detail" x="390" y="10" width="145" height="20" uuid="141a0e31-0e33-46d6-b795-80dae2cfb1cf"/>
+				<reportElement style="Detail" x="100" y="10" width="150" height="20" uuid="896e7a0a-0a9a-4283-8f69-96c0740a5742"/>
 				<textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Column header" x="0" y="30" width="100" height="20" uuid="4f9c3448-2eff-4b89-a85d-0b698cdb28ca"/>
+				<reportElement style="Column header" x="280" y="10" width="110" height="20" uuid="4f9c3448-2eff-4b89-a85d-0b698cdb28c9"/>
 				<text><![CDATA[Nhân viên:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Detail" x="100" y="30" width="150" height="20" uuid="141a0e31-0e33-46d6-b795-80dae2cfb1cg"/>
+				<reportElement style="Detail" x="390" y="10" width="145" height="20" uuid="141a0e31-0e33-46d6-b795-80dae2cfb1cf"/>
 				<textFieldExpression><![CDATA[$P{cashierName}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Column header" x="280" y="30" width="110" height="20" uuid="4f9c3448-2eff-4b89-a85d-0b698cdb28cb"/>
+				<reportElement style="Column header" x="0" y="30" width="100" height="20" uuid="4f9c3448-2eff-4b89-a85d-0b698cdb28ca"/>
 				<text><![CDATA[Thanh toán:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Detail" x="390" y="30" width="145" height="20" uuid="141a0e31-0e33-46d6-b795-80dae2cfb1ch"/>
+				<reportElement style="Detail" x="100" y="30" width="150" height="20" uuid="141a0e31-0e33-46d6-b795-80dae2cfb1cg"/>
 				<textFieldExpression><![CDATA[$P{paymentMethod}]]></textFieldExpression>
 			</textField>
 			<staticText>
@@ -303,12 +302,12 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
-			<textField pattern="EEEEE dd MMMMM yyyy">
+			<textField>
 				<reportElement style="Column header" x="0" y="0" width="197" height="20" uuid="474203bf-6633-45b3-882f-d8cd14cf7f04"/>
 				<textElement>
 					<font size="10" isBold="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Nhân viên: " + $P{cashierName}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>

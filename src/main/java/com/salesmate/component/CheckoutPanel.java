@@ -46,6 +46,11 @@ import java.util.Date;
 import java.util.Locale;
 
 public class CheckoutPanel extends javax.swing.JPanel {
+
+    private String formatCurrency(java.math.BigDecimal amount) {
+        java.text.NumberFormat currencyFormatter = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("vi", "VN"));
+        return currencyFormatter.format(amount);
+    }
     
     private List<Product> products;
     private double totalPrice;
@@ -70,6 +75,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
             public boolean isCellEditable(int row, int column) {
                 // Only allow editing of the "Số Lượng" column (index 2)
                 return column == 2;
+            }
+        
+            private String formatCurrency(BigDecimal amount) {
+                java.text.NumberFormat currencyFormatter = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("vi", "VN"));
+                return currencyFormatter.format(amount);
             }
 
             @Override
@@ -270,10 +280,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
             jasperDesign.addParameter(parameter);
         }
 
-        // Create title band
+        // Create title band with proper height to contain all elements
         JRDesignBand titleBand = new JRDesignBand();
-        titleBand.setHeight(50);
+        titleBand.setHeight(100); // Increased height to accommodate all elements
         
+        // Main title
         JRDesignStaticText titleText = new JRDesignStaticText();
         titleText.setX(0);
         titleText.setY(10);
@@ -283,7 +294,87 @@ public class CheckoutPanel extends javax.swing.JPanel {
         titleText.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
         titleText.setStyle(titleStyle);
         titleBand.addElement(titleText);
+
+        // Add invoice number field in the title section
+        JRDesignTextField invoiceNoField = new JRDesignTextField();
+        invoiceNoField.setX(0);
+        invoiceNoField.setY(50); // Adjusted Y position to fit in the band
+        invoiceNoField.setWidth(jasperDesign.getColumnWidth());
+        invoiceNoField.setHeight(25);
+        
+        JRDesignExpression invoiceNoExpr = new JRDesignExpression();
+        invoiceNoExpr.setText("\"Mã hóa đơn: \" + $P{invoiceNo}");
+        invoiceNoField.setExpression(invoiceNoExpr);
+        invoiceNoField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        titleBand.addElement(invoiceNoField);
+
         jasperDesign.setTitle(titleBand);
+
+        // Create page header for additional info
+        JRDesignBand pageHeaderBand = new JRDesignBand();
+        pageHeaderBand.setHeight(60); // Sufficient height for header content
+        
+        // Date info
+        JRDesignStaticText dateLabel = new JRDesignStaticText();
+        dateLabel.setX(0);
+        dateLabel.setY(10);
+        dateLabel.setWidth(100);
+        dateLabel.setHeight(20);
+        dateLabel.setText("Ngày:");
+        dateLabel.setHorizontalTextAlign(HorizontalTextAlignEnum.LEFT);
+        pageHeaderBand.addElement(dateLabel);
+        
+        JRDesignTextField dateField = new JRDesignTextField();
+        dateField.setX(100);
+        dateField.setY(10);
+        dateField.setWidth(200);
+        dateField.setHeight(20);
+        JRDesignExpression dateExpr = new JRDesignExpression();
+        dateExpr.setText("$P{date}");
+        dateField.setExpression(dateExpr);
+        pageHeaderBand.addElement(dateField);
+        
+        // Cashier info
+        JRDesignStaticText cashierLabel = new JRDesignStaticText();
+        cashierLabel.setX(350);
+        cashierLabel.setY(10);
+        cashierLabel.setWidth(80);
+        cashierLabel.setHeight(20);
+        cashierLabel.setText("Nhân viên:");
+        cashierLabel.setHorizontalTextAlign(HorizontalTextAlignEnum.LEFT);
+        pageHeaderBand.addElement(cashierLabel);
+        
+        JRDesignTextField cashierField = new JRDesignTextField();
+        cashierField.setX(430);
+        cashierField.setY(10);
+        cashierField.setWidth(125);
+        cashierField.setHeight(20);
+        JRDesignExpression cashierExpr = new JRDesignExpression();
+        cashierExpr.setText("$P{cashierName}");
+        cashierField.setExpression(cashierExpr);
+        pageHeaderBand.addElement(cashierField);
+        
+        // Payment method info
+        JRDesignStaticText paymentLabel = new JRDesignStaticText();
+        paymentLabel.setX(0);
+        paymentLabel.setY(35);
+        paymentLabel.setWidth(100);
+        paymentLabel.setHeight(20);
+        paymentLabel.setText("Thanh toán:");
+        paymentLabel.setHorizontalTextAlign(HorizontalTextAlignEnum.LEFT);
+        pageHeaderBand.addElement(paymentLabel);
+        
+        JRDesignTextField paymentField = new JRDesignTextField();
+        paymentField.setX(100);
+        paymentField.setY(35);
+        paymentField.setWidth(200);
+        paymentField.setHeight(20);
+        JRDesignExpression paymentExpr = new JRDesignExpression();
+        paymentExpr.setText("$P{paymentMethod}");
+        paymentField.setExpression(paymentExpr);
+        pageHeaderBand.addElement(paymentField);
+        
+        jasperDesign.setPageHeader(pageHeaderBand);
 
         // Create column headers
         JRDesignBand columnHeaderBand = new JRDesignBand();
@@ -419,12 +510,45 @@ public class CheckoutPanel extends javax.swing.JPanel {
         summaryBand.addElement(thankYouText);
         
         jasperDesign.setSummary(summaryBand);
+
+        // Add cashier info in footer section - with proper height
+        JRDesignBand pageFooterBand = new JRDesignBand();
+        pageFooterBand.setHeight(30);
+        
+        JRDesignTextField footerCashierField = new JRDesignTextField();
+        footerCashierField.setX(0);
+        footerCashierField.setY(5);
+        footerCashierField.setWidth(jasperDesign.getColumnWidth() / 2);
+        footerCashierField.setHeight(20);
+        
+        JRDesignExpression footerCashierExpr = new JRDesignExpression();
+        footerCashierExpr.setText("\"Nhân viên: \" + $P{cashierName}");
+        footerCashierField.setExpression(footerCashierExpr);
+        pageFooterBand.addElement(footerCashierField);
+        
+        // Add page number in footer
+        JRDesignTextField pageField = new JRDesignTextField();
+        pageField.setX(jasperDesign.getColumnWidth() / 2);
+        pageField.setY(5);
+        pageField.setWidth(jasperDesign.getColumnWidth() / 2);
+        pageField.setHeight(20);
+        
+        JRDesignExpression pageExpr = new JRDesignExpression();
+        pageExpr.setText("\"Trang \" + $V{PAGE_NUMBER}");
+        pageField.setExpression(pageExpr);
+        pageField.setHorizontalTextAlign(HorizontalTextAlignEnum.RIGHT);
+        pageFooterBand.addElement(pageField);
+        
+        jasperDesign.setPageFooter(pageFooterBand);
         
         return JasperCompileManager.compileReport(jasperDesign);
     }
 
     private void exportToPDF() {
         try {
+            // Generate a unique invoice number
+            String invoiceNumber = generateInvoiceNumber();
+            
             // Convert checkoutProducts to a list for JasperReports
             List<Map<String, Object>> data = new ArrayList<>();
             int index = 1;
@@ -447,17 +571,20 @@ public class CheckoutPanel extends javax.swing.JPanel {
             BigDecimal taxAmount = subtotal.multiply(taxRate);
             BigDecimal grandTotal = subtotal.add(taxAmount);
             
+            // Get cashier information
+            String cashierName = SessionManager.getInstance().getLoggedInUser().getUsername();
+            
             // Create parameters map with additional invoice details
             Map<String, Object> parameters = new HashMap<>();
-            parameters.put("invoiceNo", "INV" + System.currentTimeMillis());
+            parameters.put("invoiceNo", invoiceNumber);
             parameters.put("date", new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
-            parameters.put("cashierName", SessionManager.getInstance().getLoggedInUser().getUsername());
+            parameters.put("cashierName", cashierName);
             parameters.put("subtotal", formatCurrency(subtotal));
             parameters.put("tax", formatCurrency(taxAmount));
             parameters.put("totalAmount", formatCurrency(grandTotal));
             parameters.put("paymentMethod", paymentMethodComboBox.getSelectedItem().toString());
             parameters.put("companyName", "SalesMate");
-            parameters.put("companyAddress", "123 Nguyễn Huệ, Quận 1, TP.HCM");
+            parameters.put("companyAddress", "Trường Đại học Công nghệ Thông tin TP.HCM");
             parameters.put("companyPhone", "(+84) 28 1234 5678");
             parameters.put("companyEmail", "contact@salesmate.vn");
             parameters.put("thankYouMessage", "Cảm ơn quý khách đã mua hàng! Hẹn gặp lại.");
@@ -493,36 +620,17 @@ public class CheckoutPanel extends javax.swing.JPanel {
             // Fill the report
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
             
-            // Export to PDF
-            String fileName = "Invoice_" + System.currentTimeMillis() + ".pdf";
-            String outputFolder = System.getProperty("user.home") + File.separator + "Downloads";
-            new File(outputFolder).mkdirs(); // Create folders if they don't exist
-            String outputPath = outputFolder + File.separator + fileName;
+            // Create invoices directory if it doesn't exist
+            String appDir = System.getProperty("user.dir");
+            String invoicesDir = appDir + File.separator + "invoices";
+            new File(invoicesDir).mkdirs();
             
-            JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
+            // Define output path
+            String fileName = "Invoice_" + invoiceNumber.replace("#", "") + ".pdf";
+            String outputPath = invoicesDir + File.separator + fileName;
             
-            // Show success message with file location
-            int option = JOptionPane.showConfirmDialog(
-                this,
-                "Hóa đơn đã được xuất thành công!\nVị trí: " + outputPath + "\n\nBạn có muốn mở file không?",
-                "Xuất hóa đơn thành công",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            
-            // Open the PDF if user chooses Yes
-            if (option == JOptionPane.YES_OPTION) {
-                try {
-                    Desktop.getDesktop().open(new File(outputPath));
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Không thể mở file. Vui lòng mở bằng cách thủ công từ: " + outputPath,
-                        "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE
-                    );
-                }
-            }
+            // Show preview before printing
+            showPDFPreview(jasperPrint, outputPath);
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -535,11 +643,110 @@ public class CheckoutPanel extends javax.swing.JPanel {
         }
     }
 
-    // Helper method to format currency values
-    private String formatCurrency(BigDecimal amount) {
-        java.text.NumberFormat currencyFormatter = java.text.NumberFormat.getNumberInstance(new Locale("vi", "VN"));
-        currencyFormatter.setMaximumFractionDigits(0);
-        return currencyFormatter.format(amount) + " VNĐ";
+    private String generateInvoiceNumber() {
+        String dateFormat = new java.text.SimpleDateFormat("yyyyMMdd").format(new Date());
+        String randomPart = String.format("%04d", new java.util.Random().nextInt(10000));
+        return "#INV-" + dateFormat + "-" + randomPart;
+    }
+
+    private void showPDFPreview(JasperPrint jasperPrint, String outputPath) {
+        try {
+            // Create a preview frame
+            JDialog previewDialog = new JDialog();
+            previewDialog.setTitle("Xem trước hóa đơn");
+            previewDialog.setSize(800, 600);
+            previewDialog.setLocationRelativeTo(this);
+            previewDialog.setModal(true);
+            
+            // Create panel to hold the preview
+            JPanel previewPanel = new JPanel(new BorderLayout());
+            
+            // Use JasperViewer component for preview
+            net.sf.jasperreports.swing.JRViewer viewer = new net.sf.jasperreports.swing.JRViewer(jasperPrint);
+            previewPanel.add(viewer, BorderLayout.CENTER);
+            
+            // Create button panel
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+            buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+            
+            JButton printButton = createStyledButton("In hóa đơn", new Color(33, 150, 243));
+            JButton saveButton = createStyledButton("Lưu PDF", new Color(46, 125, 50));
+            JButton cancelButton = createStyledButton("Đóng", new Color(108, 117, 125));
+            
+            // Print button action
+            printButton.addActionListener(e -> {
+                try {
+                    JasperPrintManager.printReport(jasperPrint, true); // Show print dialog
+                } catch (JRException ex) {
+                    JOptionPane.showMessageDialog(previewDialog,
+                        "Lỗi khi in: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            
+            // Save button action
+            saveButton.addActionListener(e -> {
+                try {
+                    JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
+                    JOptionPane.showMessageDialog(previewDialog,
+                        "Đã lưu hóa đơn vào: " + outputPath,
+                        "Lưu thành công",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    
+                } catch (JRException ex) {
+                    JOptionPane.showMessageDialog(previewDialog,
+                        "Lỗi khi lưu: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            
+            // Cancel button action
+            cancelButton.addActionListener(e -> previewDialog.dispose());
+            
+            buttonPanel.add(printButton);
+            buttonPanel.add(saveButton);
+            buttonPanel.add(cancelButton);
+            
+            previewPanel.add(buttonPanel, BorderLayout.SOUTH);
+            
+            previewDialog.getContentPane().add(previewPanel);
+            previewDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            previewDialog.setVisible(true);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                this,
+                "Lỗi khi hiển thị xem trước: " + e.getMessage(),
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE
+            );
+            
+            // If preview fails, try direct save
+            try {
+                JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
+                int option = JOptionPane.showConfirmDialog(
+                    this,
+                    "Đã lưu hóa đơn vào: " + outputPath + "\n\nBạn có muốn mở file không?",
+                    "Lưu thành công",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                
+                if (option == JOptionPane.YES_OPTION) {
+                    Desktop.getDesktop().open(new File(outputPath));
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi khi lưu hóa đơn: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
     public void setProductSelectionPanel(ProductSelectionPanel panel) {
