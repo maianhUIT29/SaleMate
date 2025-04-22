@@ -4,17 +4,28 @@
  */
 package com.salesmate.component;
 
+import com.salesmate.controller.ProductController;
+import com.salesmate.model.Product;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+
 /**
  *
  * @author meiln
  */
 public class AdDashboard extends javax.swing.JPanel {
 
+    private ProductController productController;
+
     /**
      * Creates new form DashboardPanel
      */
     public AdDashboard() {
         initComponents();
+        productController = new ProductController();
+        loadLowStockProducts();
+        loadInventoryManagement(); // Gọi phương thức để tải dữ liệu quản lý tồn kho
     }
 
     /**
@@ -123,6 +134,51 @@ public class AdDashboard extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void loadLowStockProducts() {
+        List<Product> lowStockProducts = productController.getLowStockProducts();
+        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Tên sản phẩm", "Số lượng", "Giá"}, 0);
+
+        if (lowStockProducts.isEmpty()) {
+            model.addRow(new Object[]{"Không có sản phẩm", "", "", ""});
+        } else {
+            for (Product product : lowStockProducts) {
+                model.addRow(new Object[]{
+                        product.getProductId(),
+                        product.getProductName(),
+                        product.getQuantity(),
+                        product.getPrice()
+                });
+            }
+        }
+
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        jPanel3.setLayout(new java.awt.BorderLayout());
+        jPanel3.add(scrollPane, java.awt.BorderLayout.CENTER);
+    }
+
+    private void loadInventoryManagement() {
+        List<Product> inventoryProducts = productController.getInventoryForecast();
+        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Tên sản phẩm", "Số lượng", "Giá", "Dự báo tồn kho"}, 0);
+
+        for (Product product : inventoryProducts) {
+            // Dự báo tồn kho (giả sử tính toán dựa trên số lượng hiện tại)
+            String forecast = product.getQuantity() > 10 ? "Đủ hàng" : "Cần nhập thêm";
+
+            model.addRow(new Object[]{
+                    product.getProductId(),
+                    product.getProductName(),
+                    product.getQuantity(),
+                    product.getPrice(),
+                    forecast
+            });
+        }
+
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        jPanel4.setLayout(new java.awt.BorderLayout());
+        jPanel4.add(scrollPane, java.awt.BorderLayout.CENTER);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;

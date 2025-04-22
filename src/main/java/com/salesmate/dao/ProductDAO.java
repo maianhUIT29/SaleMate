@@ -139,4 +139,54 @@ public class ProductDAO {
         }
         return null;  // Return null if no product is found
     }
+
+    // Lấy danh sách sản phẩm có số lượng <= 5
+    public List<Product> getLowStockProducts() {
+        List<Product> products = new ArrayList<>();
+        String query = "SELECT product_id, product_name, price, quantity, barcode, image FROM product WHERE quantity <= 5";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Product product = new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("product_name"),
+                        rs.getBigDecimal("price"),
+                        rs.getInt("quantity"),
+                        rs.getString("barcode"),
+                        rs.getString("image")
+                );
+                products.add(product);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error executing query: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return products; // Trả về danh sách, ngay cả khi rỗng
+    }
+
+    // Lấy danh sách sản phẩm và dự báo tồn kho
+    public List<Product> getInventoryForecast() {
+        List<Product> products = new ArrayList<>();
+        String query = "SELECT product_id, product_name, price, quantity, barcode, image FROM product";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Product product = new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("product_name"),
+                        rs.getBigDecimal("price"),
+                        rs.getInt("quantity"),
+                        rs.getString("barcode"),
+                        rs.getString("image")
+                );
+                products.add(product);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error executing query: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return products;
+    }
 }

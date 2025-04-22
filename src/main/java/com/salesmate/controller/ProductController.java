@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.salesmate.configs.DBConnection;
@@ -94,5 +95,25 @@ public class ProductController {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // Lấy danh sách sản phẩm có số lượng <= 5
+    public List<Product> getLowStockProducts() {
+        try {
+            return productDAO.getLowStockProducts();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>(); // Trả về danh sách rỗng thay vì null
+        }
+    }
+
+    // Lấy danh sách sản phẩm và dự báo tồn kho
+    public List<Product> getInventoryForecast() {
+        try {
+            return productDAO.getInventoryForecast();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>(); // Trả về danh sách rỗng nếu có lỗi
+        }
     }
 }
