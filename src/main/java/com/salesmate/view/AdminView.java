@@ -4,17 +4,20 @@
  */
 package com.salesmate.view;
 
+import java.awt.CardLayout;
+
 /**
  *
- * @author Nhan
+ * @author meiln
  */
 public class AdminView extends javax.swing.JFrame {
 
     /**
-     * Creates new form AdminView
+     * Creates new form AdminiVew
      */
     public AdminView() {
         initComponents();
+    adminSidebar2.setParentView(this);//tạo contructor gán AdminView cho AdminSidebar
     }
 
     /**
@@ -26,18 +29,74 @@ public class AdminView extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        jPanel3 = new javax.swing.JPanel();
+        adminHeader1 = new com.salesmate.component.AdminHeader();
+        jPanel1 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        adminSidebar2 = new com.salesmate.component.AdminSidebar();
+        jPanel2 = new javax.swing.JPanel();
+        adUserPanel2 = new com.salesmate.component.AdUserPanel();
+        adProductPanel2 = new com.salesmate.component.AdProductPanel();
+        adDoanhthuPanel2 = new com.salesmate.component.AdDoanhthuPanel();
+        adDashboard2 = new com.salesmate.component.AdDashboard();
+        adInvoicePanel2 = new com.salesmate.component.AdInvoicePanel();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(adminHeader1, javax.swing.GroupLayout.DEFAULT_SIZE, 1097, Short.MAX_VALUE))
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(adminHeader1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
+
+        getContentPane().add(jPanel3);
+
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 195, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel4Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(adminSidebar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 458, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel4Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(adminSidebar2, javax.swing.GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+
+        jPanel1.add(jPanel4);
+
+        jPanel2.setLayout(new java.awt.CardLayout());
+        jPanel2.add(adUserPanel2, "card3");
+        jPanel2.add(adProductPanel2, "card4");
+        jPanel2.add(adDoanhthuPanel2, "card6");
+        jPanel2.add(adDashboard2, "card2");
+        jPanel2.add(adInvoicePanel2, "card5");
+
+        jPanel1.add(jPanel2);
+
+        getContentPane().add(jPanel1);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -68,6 +127,9 @@ public class AdminView extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(AdminView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -76,7 +138,22 @@ public class AdminView extends javax.swing.JFrame {
             }
         });
     }
-
+    //phuong thuc chuyen Card
+  public void switchCard(String cardName) {
+        CardLayout cl = (CardLayout) jPanel2.getLayout();
+        cl.show(jPanel2, cardName); // Chuyển sang card tương ứng
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private com.salesmate.component.AdDashboard adDashboard2;
+    private com.salesmate.component.AdDoanhthuPanel adDoanhthuPanel2;
+    private com.salesmate.component.AdInvoicePanel adInvoicePanel2;
+    private com.salesmate.component.AdProductPanel adProductPanel2;
+    private com.salesmate.component.AdUserPanel adUserPanel2;
+    private com.salesmate.component.AdminHeader adminHeader1;
+    private com.salesmate.component.AdminSidebar adminSidebar2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     // End of variables declaration//GEN-END:variables
 }
