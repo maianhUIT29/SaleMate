@@ -88,39 +88,11 @@ public class AdDashboard extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Thống kê doanh thu", jPanel2);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 718, Short.MAX_VALUE)
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 265, Short.MAX_VALUE)
-        );
+        // Thêm LowStockPanel vào tab "Cảnh báo hết hàng"
+        jTabbedPane1.addTab("Cảnh báo hết hàng", new LowStockPanel());
 
-        jTabbedPane1.addTab("Cảnh báo hết hàng", jPanel3);
-
-        jLabel1.setText("Gồm quẳn lý tồn kho + Dự báo tồn kho  và doanh thu");
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(262, 262, 262)
-                .addComponent(jLabel1)
-                .addContainerGap(167, Short.MAX_VALUE))
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(64, 64, 64)
-                .addComponent(jLabel1)
-                .addContainerGap(185, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("Quản lý tồn kho", jPanel4);
+        // Thêm InventoryManagementPanel vào tab "Quản lý tồn kho"
+        jTabbedPane1.addTab("Quản lý tồn kho", new InventoryManagementPanel());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -159,18 +131,14 @@ public class AdDashboard extends javax.swing.JPanel {
 
     private void loadInventoryManagement() {
         List<Product> inventoryProducts = productController.getInventoryForecast();
-        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Tên sản phẩm", "Số lượng", "Giá", "Dự báo tồn kho"}, 0);
+        DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Tên sản phẩm", "Số lượng", "Giá"}, 0);
 
         for (Product product : inventoryProducts) {
-            // Dự báo tồn kho (giả sử tính toán dựa trên số lượng hiện tại)
-            String forecast = product.getQuantity() > 10 ? "Đủ hàng" : "Cần nhập thêm";
-
             model.addRow(new Object[]{
                     product.getProductId(),
                     product.getProductName(),
                     product.getQuantity(),
-                    product.getPrice(),
-                    forecast
+                    product.getPrice()
             });
         }
 
