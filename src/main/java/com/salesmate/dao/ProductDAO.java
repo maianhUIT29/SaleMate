@@ -139,4 +139,43 @@ public class ProductDAO {
         }
         return null;  // Return null if no product is found
     }
+    //San pham ban chay nhat cua Thien
+     public List<Product> getTopSellingProducts(int limit) {
+    List<Product> products = new ArrayList<>();
+    String sql = "SELECT p.*, COUNT(d.product_id) as total_sold " +
+                 "FROM product p " +
+                 "LEFT JOIN detail d ON p.product_id = d.product_id " +
+                 "GROUP BY p.product_id, p.product_name, p.price, p.quantity, p.barcode, p.image " +
+                 "ORDER BY total_sold DESC " +
+                 "FETCH FIRST ? ROWS ONLY";
+
+    
+    try (Connection connection = DBConnection.getConnection(); 
+         PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        
+        pstmt.setInt(1, limit);
+        
+        try (ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                Product product = new Product();
+                product.setProductId(rs.getInt("product_id"));
+                product.setProductName(rs.getString("product_name"));
+                product.setPrice(rs.getBigDecimal("price"));
+                product.setQuantity(rs.getInt("quantity"));
+                product.setBarcode(rs.getString("barcode"));
+                product.setImage(rs.getString("image"));
+                products.add(product);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  // Xử lý lỗi ResultSet
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();  // Xử lý lỗi kết nối hoặc PreparedStatement
+    }
+    
+    return products;
+}
+
+    
 }

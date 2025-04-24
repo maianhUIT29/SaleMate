@@ -7,10 +7,7 @@ import com.salesmate.view.AdminView;
 
 import org.apache.batik.swing.JSVGCanvas;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import javax.swing.*;
-import java.net.URL;
-import com.salesmate.model.User;
+
 import com.salesmate.utils.ColorPalette;
 import com.salesmate.utils.SessionManager;
 import com.salesmate.view.LoginForm;
@@ -46,54 +43,59 @@ public class AdminSidebar extends javax.swing.JPanel {
     private void initComponents() {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        jToggleButton1 = new javax.swing.JToggleButton();
-        jToggleButton2 = new javax.swing.JToggleButton();
-        jToggleButton3 = new javax.swing.JToggleButton();
-        jToggleButton4 = new javax.swing.JToggleButton();
-        jToggleButton5 = new javax.swing.JToggleButton();
+        tbtnDashBoard = new javax.swing.JToggleButton();
+        tbtnUser = new javax.swing.JToggleButton();
+        tbtnProduct = new javax.swing.JToggleButton();
+        tbtnInvoice = new javax.swing.JToggleButton();
+        tbtnRevenue = new javax.swing.JToggleButton();
 
-        buttonGroup1.add(jToggleButton1);
-        jToggleButton1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jToggleButton1.setText("DASHBOARD");
-        jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(tbtnDashBoard);
+        tbtnDashBoard.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        tbtnDashBoard.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_dashboard.png"))); // NOI18N
+        tbtnDashBoard.setText("DASHBOARD");
+        tbtnDashBoard.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButton1ActionPerformed(evt);
+                tbtnDashBoardActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jToggleButton2);
-        jToggleButton2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jToggleButton2.setText("NGƯỜI DÙNG");
-        jToggleButton2.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(tbtnUser);
+        tbtnUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        tbtnUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_user.png"))); // NOI18N
+        tbtnUser.setText("NHÂN VIÊN");
+        tbtnUser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButton2ActionPerformed(evt);
+                tbtnUserActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jToggleButton3);
-        jToggleButton3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jToggleButton3.setText("SẢN PHẨM");
-        jToggleButton3.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(tbtnProduct);
+        tbtnProduct.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        tbtnProduct.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_product.png"))); // NOI18N
+        tbtnProduct.setText("SẢN PHẨM");
+        tbtnProduct.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButton3ActionPerformed(evt);
+                tbtnProductActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jToggleButton4);
-        jToggleButton4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jToggleButton4.setText("HÓA ĐƠN");
-        jToggleButton4.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(tbtnInvoice);
+        tbtnInvoice.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        tbtnInvoice.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_invoice.png"))); // NOI18N
+        tbtnInvoice.setText("HÓA ĐƠN");
+        tbtnInvoice.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButton4ActionPerformed(evt);
+                tbtnInvoiceActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jToggleButton5);
-        jToggleButton5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jToggleButton5.setText("DOANH THU");
-        jToggleButton5.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(tbtnRevenue);
+        tbtnRevenue.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        tbtnRevenue.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_revenue.png"))); // NOI18N
+        tbtnRevenue.setText("DOANH THU");
+        tbtnRevenue.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButton5ActionPerformed(evt);
+                tbtnRevenueActionPerformed(evt);
             }
         });
 
@@ -101,30 +103,30 @@ public class AdminSidebar extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(34, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(16, 16, 16)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jToggleButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jToggleButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jToggleButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jToggleButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jToggleButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(26, 26, 26))
+                    .addComponent(tbtnUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tbtnDashBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tbtnProduct, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tbtnInvoice, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(tbtnRevenue, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(27, 27, 27)
-                .addComponent(jToggleButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(32, 32, 32)
+                .addComponent(tbtnDashBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jToggleButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(tbtnUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jToggleButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(tbtnProduct, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jToggleButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(tbtnInvoice, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jToggleButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(59, 59, 59))
+                .addComponent(tbtnRevenue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(54, 54, 54))
         );
     }// </editor-fold>//GEN-END:initComponents
 @Override
@@ -142,33 +144,33 @@ protected void paintComponent(Graphics g) {
 
 
 
-    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
-      parentView.switchCard("card2"); // AdDashboard
+    private void tbtnDashBoardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnDashBoardActionPerformed
+      parentView.switchCard("cardDashBoard"); // AdDashboard
 
-    }//GEN-LAST:event_jToggleButton1ActionPerformed
+    }//GEN-LAST:event_tbtnDashBoardActionPerformed
 
-    private void jToggleButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton2ActionPerformed
-         parentView.switchCard("card3"); // AdUserPanel
-    }//GEN-LAST:event_jToggleButton2ActionPerformed
+    private void tbtnUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnUserActionPerformed
+         parentView.switchCard("cardUserPanel"); // AdUserPanel
+    }//GEN-LAST:event_tbtnUserActionPerformed
 
-    private void jToggleButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton3ActionPerformed
-       parentView.switchCard("card4"); // AdProductPanel
-    }//GEN-LAST:event_jToggleButton3ActionPerformed
+    private void tbtnProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnProductActionPerformed
+       parentView.switchCard("cardProductPanel"); // AdProductPanel
+    }//GEN-LAST:event_tbtnProductActionPerformed
 
-    private void jToggleButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton4ActionPerformed
-       parentView.switchCard("card5"); // AdInvoicePanel
-    }//GEN-LAST:event_jToggleButton4ActionPerformed
+    private void tbtnInvoiceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnInvoiceActionPerformed
+       parentView.switchCard("cardInvoicePanel"); // AdInvoicePanel
+    }//GEN-LAST:event_tbtnInvoiceActionPerformed
 
-    private void jToggleButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton5ActionPerformed
-         parentView.switchCard("card6"); // AdDoanhthuPanel
-    }//GEN-LAST:event_jToggleButton5ActionPerformed
+    private void tbtnRevenueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnRevenueActionPerformed
+         parentView.switchCard("cardRevenuePanel"); // AdDoanhthuPanel
+    }//GEN-LAST:event_tbtnRevenueActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.JToggleButton jToggleButton1;
-    private javax.swing.JToggleButton jToggleButton2;
-    private javax.swing.JToggleButton jToggleButton3;
-    private javax.swing.JToggleButton jToggleButton4;
-    private javax.swing.JToggleButton jToggleButton5;
+    private javax.swing.JToggleButton tbtnDashBoard;
+    private javax.swing.JToggleButton tbtnInvoice;
+    private javax.swing.JToggleButton tbtnProduct;
+    private javax.swing.JToggleButton tbtnRevenue;
+    private javax.swing.JToggleButton tbtnUser;
     // End of variables declaration//GEN-END:variables
 }
