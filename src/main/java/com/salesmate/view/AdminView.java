@@ -12,12 +12,18 @@ import java.awt.CardLayout;
  */
 public class AdminView extends javax.swing.JFrame {
 
+    // Removed duplicate declaration of productManagementPanel
+
     /**
      * Creates new form AdminiVew
      */
     public AdminView() {
         initComponents();
-    adminSidebar2.setParentView(this);//tạo contructor gán AdminView cho AdminSidebar
+        adminSidebar2.setParentView(this); // Gán AdminView cho AdminSidebar
+
+        // Khởi tạo ProductManagementPanel và thêm vào jPanel2
+        productManagementPanel = new com.salesmate.component.ProductManagementPanel();
+        jPanel2.add(productManagementPanel, "cardProductManagement"); // Gán tên card
     }
 
     /**
@@ -101,6 +107,10 @@ public class AdminView extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jToggleButton3ActionPerformed(java.awt.event.ActionEvent evt) {
+        this.switchCard("cardProductManagement"); // Hiển thị ProductManagementPanel
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -151,6 +161,7 @@ public class AdminView extends javax.swing.JFrame {
     private com.salesmate.component.AdUserPanel adUserPanel2;
     private com.salesmate.component.AdminHeader adminHeader1;
     private com.salesmate.component.AdminSidebar adminSidebar2;
+    private com.salesmate.component.ProductManagementPanel productManagementPanel; // Thêm biến này
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
