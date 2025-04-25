@@ -3,18 +3,35 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.salesmate.component;
-
+import com.salesmate.model.Product;
+import com.salesmate.controller.InvoiceController;
+import com.salesmate.controller.ProductController;
+import com.salesmate.controller.UserController;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+import java.util.Map;
 /**
  *
  * @author meiln
  */
 public class AdDashBoard extends javax.swing.JPanel {
-
+    private InvoiceController invoiceController;
+    private ProductController productController;
+ private UserController userController;
     /**
      * Creates new form AdDashBoard
      */
     public AdDashBoard() {
         initComponents();
+         invoiceController = new InvoiceController(); // Khởi tạo controller
+        updateInvoiceCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
+        
+        productController = new ProductController(); // Khởi tạo controller
+        updateProductCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
+         updateBestSellingTable();
+         
+          userController = new UserController(); // Khởi tạo controller
+        updateUserCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
     }
 
     /**
@@ -30,8 +47,11 @@ public class AdDashBoard extends javax.swing.JPanel {
         panelAdmin = new javax.swing.JPanel();
         panelStatistic = new javax.swing.JPanel();
         panelUserCount = new javax.swing.JPanel();
+        lblUserCount = new javax.swing.JLabel();
         panelProductCount = new javax.swing.JPanel();
+        lblProductCount = new javax.swing.JLabel();
         panelInvoiceCount = new javax.swing.JPanel();
+        lblInvoiceCount = new javax.swing.JLabel();
         spBestSellingTable = new javax.swing.JScrollPane();
         tbBestSelling = new javax.swing.JTable();
 
@@ -46,45 +66,72 @@ public class AdDashBoard extends javax.swing.JPanel {
 
         panelUserCount.setBackground(new java.awt.Color(204, 255, 255));
 
+        lblUserCount.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblUserCount.setText("slg user");
+
         javax.swing.GroupLayout panelUserCountLayout = new javax.swing.GroupLayout(panelUserCount);
         panelUserCount.setLayout(panelUserCountLayout);
         panelUserCountLayout.setHorizontalGroup(
             panelUserCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 205, Short.MAX_VALUE)
+            .addGroup(panelUserCountLayout.createSequentialGroup()
+                .addGap(94, 94, 94)
+                .addComponent(lblUserCount)
+                .addContainerGap(116, Short.MAX_VALUE))
         );
         panelUserCountLayout.setVerticalGroup(
             panelUserCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 105, Short.MAX_VALUE)
+            .addGroup(panelUserCountLayout.createSequentialGroup()
+                .addGap(48, 48, 48)
+                .addComponent(lblUserCount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(49, 49, 49))
         );
 
         panelStatistic.add(panelUserCount);
 
         panelProductCount.setBackground(new java.awt.Color(255, 204, 204));
 
+        lblProductCount.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblProductCount.setText("slg product");
+
         javax.swing.GroupLayout panelProductCountLayout = new javax.swing.GroupLayout(panelProductCount);
         panelProductCount.setLayout(panelProductCountLayout);
         panelProductCountLayout.setHorizontalGroup(
             panelProductCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 205, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelProductCountLayout.createSequentialGroup()
+                .addContainerGap(111, Short.MAX_VALUE)
+                .addComponent(lblProductCount)
+                .addGap(100, 100, 100))
         );
         panelProductCountLayout.setVerticalGroup(
             panelProductCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 105, Short.MAX_VALUE)
+            .addGroup(panelProductCountLayout.createSequentialGroup()
+                .addGap(51, 51, 51)
+                .addComponent(lblProductCount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(46, 46, 46))
         );
 
         panelStatistic.add(panelProductCount);
 
         panelInvoiceCount.setBackground(new java.awt.Color(204, 255, 204));
 
+        lblInvoiceCount.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblInvoiceCount.setText("slg hóa đơn");
+
         javax.swing.GroupLayout panelInvoiceCountLayout = new javax.swing.GroupLayout(panelInvoiceCount);
         panelInvoiceCount.setLayout(panelInvoiceCountLayout);
         panelInvoiceCountLayout.setHorizontalGroup(
             panelInvoiceCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 205, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelInvoiceCountLayout.createSequentialGroup()
+                .addContainerGap(131, Short.MAX_VALUE)
+                .addComponent(lblInvoiceCount)
+                .addGap(80, 80, 80))
         );
         panelInvoiceCountLayout.setVerticalGroup(
             panelInvoiceCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 105, Short.MAX_VALUE)
+            .addGroup(panelInvoiceCountLayout.createSequentialGroup()
+                .addGap(52, 52, 52)
+                .addComponent(lblInvoiceCount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(45, 45, 45))
         );
 
         panelStatistic.add(panelInvoiceCount);
@@ -94,10 +141,11 @@ public class AdDashBoard extends javax.swing.JPanel {
                 {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
+                {null, null, null, null},
                 {null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "STT", "Tên sản phẩm", "Giá", "Số lượng bán"
             }
         ));
         spBestSellingTable.setViewportView(tbBestSelling);
@@ -106,8 +154,8 @@ public class AdDashBoard extends javax.swing.JPanel {
         panelAdmin.setLayout(panelAdminLayout);
         panelAdminLayout.setHorizontalGroup(
             panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spBestSellingTable, javax.swing.GroupLayout.DEFAULT_SIZE, 617, Short.MAX_VALUE)
-            .addComponent(panelStatistic, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(spBestSellingTable)
+            .addComponent(panelStatistic, javax.swing.GroupLayout.DEFAULT_SIZE, 835, Short.MAX_VALUE)
         );
         panelAdminLayout.setVerticalGroup(
             panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -122,9 +170,75 @@ public class AdDashBoard extends javax.swing.JPanel {
 
         add(spAdmin);
     }// </editor-fold>//GEN-END:initComponents
+ private void updateInvoiceCount() {
+        try {
+            // Lấy số lượng hóa đơn từ controller
+            int totalInvoices = invoiceController.countInvoices();
+            // Cập nhật số lượng hóa đơn lên lblInvoiceCount
+            lblInvoiceCount.setText("Số lượng hóa đơn: " + totalInvoices);
+        } catch (Exception e) {
+            e.printStackTrace();
+            lblInvoiceCount.setText("Không thể lấy số lượng hóa đơn");
+        }
+ }
+ 
+ private void updateProductCount() {
+        try {
+            // Lấy số lượng sản phẩm từ controller
+            int totalProduct = productController.countProduct();
+            // Cập nhật số lượng hóa đơn lên lblProductCount
+            lblProductCount.setText("Số lượng sản phẩm: " + totalProduct);
+        } catch (Exception e) {
+            e.printStackTrace();
+            lblProductCount.setText("Không thể lấy số lượng sản phẩm");
+        }
+ }
+ 
+  private void updateUserCount() {
+        try {
+            // Lấy số lượng user từ controller
+            int totalUser = userController.countUser();
+            // Cập nhật số lượng user lên lbluserCount
+            lblUserCount.setText("Số lượng nhân viên: " + totalUser);
+        } catch (Exception e) {
+            e.printStackTrace();
+            lblUserCount.setText("Không thể lấy số lượng nhân viên");
+        }
+ }
+  
+// Cập nhật bảng sản phẩm bán chạy nhất
+// Cập nhật bảng sản phẩm bán chạy nhất
+private void updateBestSellingTable() {
+    try {
+        // Lấy danh sách sản phẩm bán chạy nhất từ controller (dữ liệu sẽ là List<Map<String, Object>>)
+        List<Map<String, Object>> topSellingProducts = productController.getTopSellingProducts(); // Không cần tham số nữa
+
+        // Duyệt qua danh sách và đưa dữ liệu vào bảng
+        DefaultTableModel model = (DefaultTableModel) tbBestSelling.getModel(); // Lấy model hiện tại của JTable
+        model.setRowCount(0); // Xóa tất cả các hàng trong bảng trước khi thêm mới
+
+        // Duyệt qua danh sách và thêm dữ liệu vào bảng
+        for (int i = 0; i < topSellingProducts.size(); i++) {
+            Map<String, Object> productData = topSellingProducts.get(i);
+            model.addRow(new Object[] {
+                i + 1,                             // STT (Số thứ tự) từ 1 đến 10
+                productData.get("product_name"),   // Tên sản phẩm
+                productData.get("price"),          // Giá sản phẩm
+                productData.get("total_sold")      // Số lượng bán được của sản phẩm
+            });
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        // Nếu có lỗi, hiển thị thông báo cho người dùng
+    }
+}
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel lblInvoiceCount;
+    private javax.swing.JLabel lblProductCount;
+    private javax.swing.JLabel lblUserCount;
     private javax.swing.JPanel panelAdmin;
     private javax.swing.JPanel panelInvoiceCount;
     private javax.swing.JPanel panelProductCount;

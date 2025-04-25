@@ -9,6 +9,8 @@ import java.util.List;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Product;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProductDAO {
 
@@ -139,43 +141,59 @@ public class ProductDAO {
         }
         return null;  // Return null if no product is found
     }
-    //San pham ban chay nhat cua Thien
-     public List<Product> getTopSellingProducts(int limit) {
-    List<Product> products = new ArrayList<>();
-    String sql = "SELECT p.*, COUNT(d.product_id) as total_sold " +
-                 "FROM product p " +
-                 "LEFT JOIN detail d ON p.product_id = d.product_id " +
-                 "GROUP BY p.product_id, p.product_name, p.price, p.quantity, p.barcode, p.image " +
-                 "ORDER BY total_sold DESC " +
-                 "FETCH FIRST ? ROWS ONLY";
+   
+// Đếm số lượng sản phẩm
+public int countProduct() {
+    String sql = "SELECT COUNT(*) FROM product";
+    try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+            return rs.getInt(1); // Trả về số lượng sản phẩm
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
+}
+  
 
-    
-    try (Connection connection = DBConnection.getConnection(); 
+// Lấy top 10 sản phẩm bán chạy nhất
+// Đếm số lượng sản phẩm bán ra
+public List<Map<String, Object>> getTopSellingProducts() {
+    List<Map<String, Object>> products = new ArrayList<>();
+    String sql = "SELECT p.product_id, " +
+                 "p.product_name, " +
+                 "p.price, " +
+                 "p.quantity, " +
+                 "p.barcode, " +
+                 "p.image, " +
+                 "COUNT(d.product_id) as total_sold " +  // Đếm số lượng bán ra từ bảng detail
+                 "FROM product p " +
+                 "LEFT JOIN detail d ON p.product_id = d.product_id " +  // Kết nối với bảng detail
+                 "GROUP BY p.product_id, p.product_name, p.price, p.quantity, p.barcode, p.image " +
+                 "ORDER BY total_sold DESC " +  // Sắp xếp theo số lượng bán ra từ cao đến thấp
+                 "FETCH FIRST 10 ROWS ONLY";  // Giới hạn 10 sản phẩm bán chạy nhất
+
+    try (Connection connection = DBConnection.getConnection();
          PreparedStatement pstmt = connection.prepareStatement(sql)) {
-        
-        pstmt.setInt(1, limit);
-        
+
         try (ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                Product product = new Product();
-                product.setProductId(rs.getInt("product_id"));
-                product.setProductName(rs.getString("product_name"));
-                product.setPrice(rs.getBigDecimal("price"));
-                product.setQuantity(rs.getInt("quantity"));
-                product.setBarcode(rs.getString("barcode"));
-                product.setImage(rs.getString("image"));
+                // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
+                Map<String, Object> product = new HashMap<>();
+                product.put("product_id", rs.getInt("product_id"));
+                product.put("product_name", rs.getString("product_name"));
+                product.put("price", rs.getBigDecimal("price"));
+                product.put("quantity", rs.getInt("quantity"));
+                product.put("barcode", rs.getString("barcode"));
+                product.put("image", rs.getString("image"));
+                product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
                 products.add(product);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();  // Xử lý lỗi ResultSet
         }
-
     } catch (SQLException e) {
-        e.printStackTrace();  // Xử lý lỗi kết nối hoặc PreparedStatement
+        e.printStackTrace();
     }
-    
     return products;
 }
 
-    
 }

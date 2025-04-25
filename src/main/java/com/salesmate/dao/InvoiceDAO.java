@@ -183,5 +183,17 @@ public class InvoiceDAO {
             throw new RuntimeException("Failed to save invoice: " + e.getMessage());
         }
     }
+// Đếm số lượng hóa đơn
+public int countInvoices() {
+    String sql = "SELECT COUNT(*) FROM invoice";
+    try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+            return rs.getInt(1); // Trả về số lượng hóa đơn
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
+}
 
 }

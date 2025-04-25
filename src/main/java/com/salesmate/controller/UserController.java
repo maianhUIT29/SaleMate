@@ -65,5 +65,13 @@ public class UserController {
     public User getUserById(int id) {
         return userDAO.getUserById(id);
     }
-
+ // Đếm số lượng user
+    public int countUser() {
+        try {
+            return userDAO.countUser();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // Return 0 if there's an error
+        }
+    }
 }

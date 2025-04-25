@@ -9,6 +9,7 @@ import java.util.List;
 import com.salesmate.configs.DBConnection;
 import com.salesmate.dao.ProductDAO;
 import com.salesmate.model.Product;
+import java.util.Map;
 
 public class ProductController {
 
@@ -94,5 +95,20 @@ public class ProductController {
             e.printStackTrace();
         }
         return null;
+    }
+    
+     // Đếm số lượng sảnpham
+    public int countProduct() {
+        try {
+            return productDAO.countProduct();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // Return 0 if there's an error
+        }
+    }
+    
+ // Lấy danh sách sản phẩm bán chạy nhất với số thứ tự từ 1 đến 10
+    public List<Map<String, Object>> getTopSellingProducts() {
+        return productDAO.getTopSellingProducts(); // Không cần tham số nữa
     }
 }

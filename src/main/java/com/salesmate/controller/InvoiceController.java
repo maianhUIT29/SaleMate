@@ -101,5 +101,13 @@ public class InvoiceController {
             return null;
         }
     }
-
+ // Đếm số lượng hóa đơn
+    public int countInvoices() {
+        try {
+            return invoiceDAO.countInvoices();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // Return 0 if there's an error
+        }
+    }
 }

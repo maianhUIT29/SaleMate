@@ -161,4 +161,17 @@ public class UserDAO {
 
         return user;
     }
+     // Đếm số lượng user
+public int countUser() {
+    String sql = "SELECT COUNT(*) FROM users";
+    try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+            return rs.getInt(1); // Trả về số lượng user
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
+}
+
 }
