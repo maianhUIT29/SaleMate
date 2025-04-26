@@ -134,13 +134,49 @@ public class ProductDAO {
     }
 
     public boolean deleteProduct(int productId) {
-        String query = "DELETE FROM product WHERE product_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productId);
-            return stmt.executeUpdate() > 0;
+        String deleteDetailQuery = "DELETE FROM detail WHERE product_id = ?";
+        String deletePurchaseDetailQuery = "DELETE FROM purchase_detail WHERE product_id = ?";
+        String deleteStockQuery = "DELETE FROM stock WHERE product_id = ?";
+        String deleteProductPromotionQuery = "DELETE FROM product_promotion WHERE product_id = ?";
+        String deleteProductQuery = "DELETE FROM product WHERE product_id = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false); // Bắt đầu transaction
+
+            // Xóa các bản ghi liên quan
+            try (PreparedStatement stmt1 = conn.prepareStatement(deleteDetailQuery)) {
+                stmt1.setInt(1, productId);
+                stmt1.executeUpdate();
+            }
+
+            try (PreparedStatement stmt2 = conn.prepareStatement(deletePurchaseDetailQuery)) {
+                stmt2.setInt(1, productId);
+                stmt2.executeUpdate();
+            }
+
+            try (PreparedStatement stmt3 = conn.prepareStatement(deleteStockQuery)) {
+                stmt3.setInt(1, productId);
+                stmt3.executeUpdate();
+            }
+
+            try (PreparedStatement stmt4 = conn.prepareStatement(deleteProductPromotionQuery)) {
+                stmt4.setInt(1, productId);
+                stmt4.executeUpdate();
+            }
+
+            // Xóa sản phẩm
+            try (PreparedStatement stmt5 = conn.prepareStatement(deleteProductQuery)) {
+                stmt5.setInt(1, productId);
+                int rowsAffected = stmt5.executeUpdate();
+                if (rowsAffected > 0) {
+                    conn.commit(); // Commit transaction nếu thành công
+                    return true;
+                } else {
+                    conn.rollback(); // Rollback nếu không xóa được sản phẩm
+                    return false;
+                }
+            }
         } catch (SQLException e) {
-            System.err.println("Error deleting product: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
