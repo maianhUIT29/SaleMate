@@ -84,30 +84,23 @@ public class ProductDAO {
     // Lấy danh sách tất cả sản phẩm
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
-        String query = "SELECT product_id, product_name, price, quantity, barcode, image FROM product";
-
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
-
-            System.out.println("Executing query: " + query);
+        String query = "SELECT * FROM product";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                Product product = new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("product_name"),
-                        rs.getBigDecimal("price"),
-                        rs.getInt("quantity"),
-                        rs.getString("barcode"),
-                        rs.getString("image")
-                );
+                Product product = new Product();
+                product.setProductId(rs.getInt("product_id"));
+                product.setProductName(rs.getString("product_name"));
+                product.setPrice(rs.getBigDecimal("price"));
+                product.setQuantity(rs.getInt("quantity"));
                 products.add(product);
             }
         } catch (SQLException e) {
-            System.err.println("Error executing query: " + e.getMessage());
             e.printStackTrace();
         }
-
-        System.out.println("Total products retrieved: " + products.size());
-        return products;
+        return products; // Trả về danh sách rỗng nếu không có dữ liệu
     }
 
     // Lấy sản phẩm theo ID
@@ -138,5 +131,54 @@ public class ProductDAO {
             e.printStackTrace();
         }
         return null;  // Return null if no product is found
+    }
+
+    public boolean deleteProduct(int productId) {
+        String deleteDetailQuery = "DELETE FROM detail WHERE product_id = ?";
+        String deletePurchaseDetailQuery = "DELETE FROM purchase_detail WHERE product_id = ?";
+        String deleteStockQuery = "DELETE FROM stock WHERE product_id = ?";
+        String deleteProductPromotionQuery = "DELETE FROM product_promotion WHERE product_id = ?";
+        String deleteProductQuery = "DELETE FROM product WHERE product_id = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false); // Bắt đầu transaction
+
+            // Xóa các bản ghi liên quan
+            try (PreparedStatement stmt1 = conn.prepareStatement(deleteDetailQuery)) {
+                stmt1.setInt(1, productId);
+                stmt1.executeUpdate();
+            }
+
+            try (PreparedStatement stmt2 = conn.prepareStatement(deletePurchaseDetailQuery)) {
+                stmt2.setInt(1, productId);
+                stmt2.executeUpdate();
+            }
+
+            try (PreparedStatement stmt3 = conn.prepareStatement(deleteStockQuery)) {
+                stmt3.setInt(1, productId);
+                stmt3.executeUpdate();
+            }
+
+            try (PreparedStatement stmt4 = conn.prepareStatement(deleteProductPromotionQuery)) {
+                stmt4.setInt(1, productId);
+                stmt4.executeUpdate();
+            }
+
+            // Xóa sản phẩm
+            try (PreparedStatement stmt5 = conn.prepareStatement(deleteProductQuery)) {
+                stmt5.setInt(1, productId);
+                int rowsAffected = stmt5.executeUpdate();
+                if (rowsAffected > 0) {
+                    conn.commit(); // Commit transaction nếu thành công
+                    return true;
+                } else {
+                    conn.rollback(); // Rollback nếu không xóa được sản phẩm
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
