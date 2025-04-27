@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.dao.ProductDAO;
@@ -32,10 +33,11 @@ public class ProductController {
     // READ ALL
     public List<Product> getAllProducts() {
         try {
-            return productDAO.getAllProducts();
+            List<Product> products = productDAO.getAllProducts();
+            return products != null ? products : new ArrayList<>(); // Trả về danh sách rỗng nếu null
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -69,6 +71,16 @@ public class ProductController {
     public boolean updateProductQuantity(int productId, int soldQuantity) {
         try {
             return productDAO.updateProductQuantity(productId, soldQuantity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // DELETE
+    public boolean deleteProduct(int productId) {
+        try {
+            return productDAO.deleteProduct(productId);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package com.salesmate.component;
 import com.salesmate.view.AdminView;
 
@@ -16,17 +12,10 @@ import java.awt.geom.Ellipse2D;
 import javax.swing.ImageIcon;
 import java.beans.Beans;
 
-/**
- *
- * @author meiln
- */
 public class AdminSidebar extends javax.swing.JPanel {
 
-      private AdminView parentView; // Đối tượng AdminView
+      private AdminView parentView;
 
-    /**
-     * Creates new form AdminSidebar
-     */
     public AdminSidebar() {
         initComponents();
     }
