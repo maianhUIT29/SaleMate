@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Product;
@@ -57,21 +59,20 @@ public class ProductDAO {
 
     /**
      * Updates the product quantity after a sale
-     * 
+     *
      * @param productId The ID of the product to update
      * @param soldQuantity The quantity that was sold
      * @return true if the update was successful, false otherwise
      */
     public boolean updateProductQuantity(int productId, int soldQuantity) {
         String query = "UPDATE product SET quantity = quantity - ? WHERE product_id = ? AND quantity >= ?";
-        
-        try (Connection conn = DBConnection.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+
             stmt.setInt(1, soldQuantity);
             stmt.setInt(2, productId);
             stmt.setInt(3, soldQuantity); // Ensure we have enough stock
-            
+
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -85,9 +86,7 @@ public class ProductDAO {
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
         String query = "SELECT * FROM product";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Product product = new Product();
@@ -133,52 +132,71 @@ public class ProductDAO {
         return null;  // Return null if no product is found
     }
 
-    public boolean deleteProduct(int productId) {
-        String deleteDetailQuery = "DELETE FROM detail WHERE product_id = ?";
-        String deletePurchaseDetailQuery = "DELETE FROM purchase_detail WHERE product_id = ?";
-        String deleteStockQuery = "DELETE FROM stock WHERE product_id = ?";
-        String deleteProductPromotionQuery = "DELETE FROM product_promotion WHERE product_id = ?";
-        String deleteProductQuery = "DELETE FROM product WHERE product_id = ?";
-
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Bắt đầu transaction
-
-            // Xóa các bản ghi liên quan
-            try (PreparedStatement stmt1 = conn.prepareStatement(deleteDetailQuery)) {
-                stmt1.setInt(1, productId);
-                stmt1.executeUpdate();
+// Đếm số lượng sản phẩm
+    public int countProduct() {
+        String sql = "SELECT COUNT(*) FROM product";
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1); // Trả về số lượng sản phẩm
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
+    }
 
-            try (PreparedStatement stmt2 = conn.prepareStatement(deletePurchaseDetailQuery)) {
-                stmt2.setInt(1, productId);
-                stmt2.executeUpdate();
-            }
+// Lấy top 10 sản phẩm bán chạy nhất
+    public List<Map<String, Object>> getTopSellingProducts() {
+        List<Map<String, Object>> products = new ArrayList<>();
+        String sql = "SELECT p.product_id, "
+                + "p.product_name, "
+                + "p.price, "
+                + "p.quantity, "
+                + "p.barcode, "
+                + "p.image, "
+                + "COUNT(d.product_id) as total_sold "
+                + "FROM product p "
+                + "LEFT JOIN detail d ON p.product_id = d.product_id "
+                + "GROUP BY p.product_id, p.product_name, p.price, p.quantity, p.barcode, p.image "
+                + "ORDER BY total_sold DESC "
+                + "FETCH FIRST 10 ROWS ONLY";  // Giới hạn 10 sản phẩm bán chạy nhất
 
-            try (PreparedStatement stmt3 = conn.prepareStatement(deleteStockQuery)) {
-                stmt3.setInt(1, productId);
-                stmt3.executeUpdate();
-            }
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
-            try (PreparedStatement stmt4 = conn.prepareStatement(deleteProductPromotionQuery)) {
-                stmt4.setInt(1, productId);
-                stmt4.executeUpdate();
-            }
-
-            // Xóa sản phẩm
-            try (PreparedStatement stmt5 = conn.prepareStatement(deleteProductQuery)) {
-                stmt5.setInt(1, productId);
-                int rowsAffected = stmt5.executeUpdate();
-                if (rowsAffected > 0) {
-                    conn.commit(); // Commit transaction nếu thành công
-                    return true;
-                } else {
-                    conn.rollback(); // Rollback nếu không xóa được sản phẩm
-                    return false;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
+                    Map<String, Object> product = new HashMap<>();
+                    product.put("product_id", rs.getInt("product_id"));
+                    product.put("product_name", rs.getString("product_name"));
+                    product.put("price", rs.getBigDecimal("price"));
+                    product.put("quantity", rs.getInt("quantity"));
+                    product.put("barcode", rs.getString("barcode"));
+                    product.put("image", rs.getString("image"));
+                    product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
+                    products.add(product);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        return products;
+    }
+
+    // Xóa sản phẩm
+    public boolean deleteProduct(int productId) {
+        String query = "DELETE FROM product WHERE product_id = ?";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, productId);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0; // If rows are affected, the delete was successful
+        } catch (SQLException e) {
+            System.err.println("Error executing query: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
+
 }
