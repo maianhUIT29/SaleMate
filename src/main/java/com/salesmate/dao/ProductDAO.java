@@ -157,7 +157,7 @@ public int countProduct() {
   
 
 // Lấy top 10 sản phẩm bán chạy nhất
-// Đếm số lượng sản phẩm bán ra
+
 public List<Map<String, Object>> getTopSellingProducts() {
     List<Map<String, Object>> products = new ArrayList<>();
     String sql = "SELECT p.product_id, " +

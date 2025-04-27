@@ -6,6 +6,8 @@ import java.util.List;
 import com.salesmate.dao.InvoiceDAO;
 import com.salesmate.dao.UserDAO;
 import com.salesmate.model.Invoice;
+import com.salesmate.model.RevenueLineChartModel;
+
 
 public class InvoiceController {
 
@@ -109,5 +111,22 @@ public class InvoiceController {
             e.printStackTrace();
             return 0; // Return 0 if there's an error
         }
+    }
+   //Tinh doanh thu thang hien tai
+
+
+    /**
+     * Trả về tổng doanh thu tháng hiện tại.
+     */
+    public BigDecimal getCurrentMonthRevenue() {
+        return invoiceDAO.getRevenueForCurrentMonth();
+    }
+
+    /**
+     * Trả về danh sách doanh thu theo ngày trong tháng hiện tại
+     * để vẽ biểu đồ line chart.
+     */
+    public List<RevenueLineChartModel> getDailyRevenue() {
+        return invoiceDAO.getDailyRevenue();
     }
 }

@@ -7,9 +7,13 @@ import com.salesmate.model.Product;
 import com.salesmate.controller.InvoiceController;
 import com.salesmate.controller.ProductController;
 import com.salesmate.controller.UserController;
+import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
 import java.util.Map;
+import javax.swing.SwingUtilities;
 /**
  *
  * @author meiln
@@ -32,6 +36,13 @@ public class AdDashBoard extends javax.swing.JPanel {
          
           userController = new UserController(); // Khởi tạo controller
         updateUserCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
+        
+        spBestSellingTable.addComponentListener(new ComponentAdapter() {
+    @Override
+    public void componentResized(ComponentEvent e) {
+        resizeRowsToFill();
+    }
+                });
     }
 
     /**
@@ -45,6 +56,8 @@ public class AdDashBoard extends javax.swing.JPanel {
 
         spAdmin = new javax.swing.JScrollPane();
         panelAdmin = new javax.swing.JPanel();
+        spBestSellingTable = new javax.swing.JScrollPane();
+        tbBestSelling = new javax.swing.JTable();
         panelStatistic = new javax.swing.JPanel();
         panelUserCount = new javax.swing.JPanel();
         lblUserCount = new javax.swing.JLabel();
@@ -52,8 +65,9 @@ public class AdDashBoard extends javax.swing.JPanel {
         lblProductCount = new javax.swing.JLabel();
         panelInvoiceCount = new javax.swing.JPanel();
         lblInvoiceCount = new javax.swing.JLabel();
-        spBestSellingTable = new javax.swing.JScrollPane();
-        tbBestSelling = new javax.swing.JTable();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        revenueLineChart1 = new com.salesmate.component.RevenueLineChart();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
 
@@ -62,7 +76,24 @@ public class AdDashBoard extends javax.swing.JPanel {
         spAdmin.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         spAdmin.setViewportView(panelAdmin);
 
-        panelStatistic.setLayout(new javax.swing.BoxLayout(panelStatistic, javax.swing.BoxLayout.X_AXIS));
+        spBestSellingTable.setBorder(null);
+
+        tbBestSelling.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "STT", "Tên sản phẩm", "Giá", "Số lượng bán"
+            }
+        ));
+        tbBestSelling.setShowGrid(true);
+        spBestSellingTable.setViewportView(tbBestSelling);
+
+        panelStatistic.setLayout(new java.awt.GridLayout(1, 0));
 
         panelUserCount.setBackground(new java.awt.Color(204, 255, 255));
 
@@ -76,7 +107,7 @@ public class AdDashBoard extends javax.swing.JPanel {
             .addGroup(panelUserCountLayout.createSequentialGroup()
                 .addGap(94, 94, 94)
                 .addComponent(lblUserCount)
-                .addContainerGap(116, Short.MAX_VALUE))
+                .addContainerGap(117, Short.MAX_VALUE))
         );
         panelUserCountLayout.setVerticalGroup(
             panelUserCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -98,7 +129,7 @@ public class AdDashBoard extends javax.swing.JPanel {
         panelProductCountLayout.setHorizontalGroup(
             panelProductCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelProductCountLayout.createSequentialGroup()
-                .addContainerGap(111, Short.MAX_VALUE)
+                .addContainerGap(86, Short.MAX_VALUE)
                 .addComponent(lblProductCount)
                 .addGap(100, 100, 100))
         );
@@ -122,7 +153,7 @@ public class AdDashBoard extends javax.swing.JPanel {
         panelInvoiceCountLayout.setHorizontalGroup(
             panelInvoiceCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelInvoiceCountLayout.createSequentialGroup()
-                .addContainerGap(131, Short.MAX_VALUE)
+                .addContainerGap(104, Short.MAX_VALUE)
                 .addComponent(lblInvoiceCount)
                 .addGap(80, 80, 80))
         );
@@ -130,40 +161,55 @@ public class AdDashBoard extends javax.swing.JPanel {
             panelInvoiceCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelInvoiceCountLayout.createSequentialGroup()
                 .addGap(52, 52, 52)
-                .addComponent(lblInvoiceCount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(45, 45, 45))
+                .addComponent(lblInvoiceCount, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
+                .addGap(54, 54, 54))
         );
 
         panelStatistic.add(panelInvoiceCount);
 
-        tbBestSelling.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "STT", "Tên sản phẩm", "Giá", "Số lượng bán"
-            }
-        ));
-        spBestSellingTable.setViewportView(tbBestSelling);
+        jPanel1.setBackground(new java.awt.Color(153, 153, 255));
+
+        jLabel1.setText("Doanh thu hôm nay");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(134, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addGap(21, 21, 21))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(84, 84, 84)
+                .addComponent(jLabel1)
+                .addContainerGap(94, Short.MAX_VALUE))
+        );
+
+        panelStatistic.add(jPanel1);
 
         javax.swing.GroupLayout panelAdminLayout = new javax.swing.GroupLayout(panelAdmin);
         panelAdmin.setLayout(panelAdminLayout);
         panelAdminLayout.setHorizontalGroup(
             panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spBestSellingTable)
-            .addComponent(panelStatistic, javax.swing.GroupLayout.DEFAULT_SIZE, 835, Short.MAX_VALUE)
+            .addGroup(panelAdminLayout.createSequentialGroup()
+                .addGroup(panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(revenueLineChart1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelStatistic, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(spBestSellingTable))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelAdminLayout.setVerticalGroup(
             panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelAdminLayout.createSequentialGroup()
                 .addComponent(panelStatistic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spBestSellingTable, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(48, Short.MAX_VALUE))
+                .addComponent(spBestSellingTable, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(revenueLineChart1, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         spAdmin.setViewportView(panelAdmin);
@@ -207,35 +253,57 @@ public class AdDashBoard extends javax.swing.JPanel {
  }
   
 // Cập nhật bảng sản phẩm bán chạy nhất
-// Cập nhật bảng sản phẩm bán chạy nhất
 private void updateBestSellingTable() {
     try {
-        // Lấy danh sách sản phẩm bán chạy nhất từ controller (dữ liệu sẽ là List<Map<String, Object>>)
-        List<Map<String, Object>> topSellingProducts = productController.getTopSellingProducts(); // Không cần tham số nữa
+        List<Map<String, Object>> topSellingProducts = productController.getTopSellingProducts();
+        DefaultTableModel model = (DefaultTableModel) tbBestSelling.getModel();
+        model.setRowCount(0);
 
-        // Duyệt qua danh sách và đưa dữ liệu vào bảng
-        DefaultTableModel model = (DefaultTableModel) tbBestSelling.getModel(); // Lấy model hiện tại của JTable
-        model.setRowCount(0); // Xóa tất cả các hàng trong bảng trước khi thêm mới
-
-        // Duyệt qua danh sách và thêm dữ liệu vào bảng
         for (int i = 0; i < topSellingProducts.size(); i++) {
             Map<String, Object> productData = topSellingProducts.get(i);
-            model.addRow(new Object[] {
-                i + 1,                             // STT (Số thứ tự) từ 1 đến 10
-                productData.get("product_name"),   // Tên sản phẩm
-                productData.get("price"),          // Giá sản phẩm
-                productData.get("total_sold")      // Số lượng bán được của sản phẩm
+            model.addRow(new Object[]{
+                i + 1,
+                productData.get("product_name"),
+                productData.get("price"),
+                productData.get("total_sold")
             });
         }
 
+        // Sau khi fill dữ liệu, yêu cầu Swing cập nhật rowHeight
+        SwingUtilities.invokeLater(this::resizeRowsToFill);
+
     } catch (Exception e) {
         e.printStackTrace();
-        // Nếu có lỗi, hiển thị thông báo cho người dùng
     }
 }
 
+/**
+ * Chia đều phần chiều cao viewport (trừ header) cho tất cả các row.
+ */
+private void resizeRowsToFill() {
+    int rowCount = tbBestSelling.getRowCount();
+    if (rowCount <= 0) return;
+
+    // Lấy chiều cao viewport (phần hiển thị các hàng)
+    int viewportHeight = spBestSellingTable.getViewport().getHeight();
+    int headerHeight   = tbBestSelling.getTableHeader().getHeight();
+    int available      = viewportHeight - headerHeight;
+    if (available <= 0) return;
+
+    // Chia đều cho từng row
+    int rowHeight = available / rowCount;
+    if (rowHeight < 1) rowHeight = 1;
+    tbBestSelling.setRowHeight(rowHeight);
+}
+
+// Trong constructor hoặc nơi khởi tạo UI, thêm listener để tự động tái resize khi scroll pane thay đổi:
+
+
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lblInvoiceCount;
     private javax.swing.JLabel lblProductCount;
     private javax.swing.JLabel lblUserCount;
@@ -244,6 +312,7 @@ private void updateBestSellingTable() {
     private javax.swing.JPanel panelProductCount;
     private javax.swing.JPanel panelStatistic;
     private javax.swing.JPanel panelUserCount;
+    private com.salesmate.component.RevenueLineChart revenueLineChart1;
     private javax.swing.JScrollPane spAdmin;
     private javax.swing.JScrollPane spBestSellingTable;
     private javax.swing.JTable tbBestSelling;
