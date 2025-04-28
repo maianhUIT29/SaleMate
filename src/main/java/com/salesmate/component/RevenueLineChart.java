@@ -27,9 +27,12 @@ public class RevenueLineChart extends JPanel {
     public RevenueLineChart() {
         controller = new InvoiceController();
         initChart();
-        loadData();
+        // chỉ load data khi không phải là design time
+        if (!java.beans.Beans.isDesignTime()) {
+            controller = new InvoiceController();
+            loadData();
+        }
     }
-
     private void initChart() {
         dataset = new DefaultCategoryDataset();
         JFreeChart chart = ChartFactory.createLineChart(

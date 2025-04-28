@@ -27,24 +27,25 @@ public class AdDashBoard extends javax.swing.JPanel {
      */
     public AdDashBoard() {
         initComponents();
-         invoiceController = new InvoiceController(); // Khởi tạo controller
-        updateInvoiceCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
+        if (!java.beans.Beans.isDesignTime()) { 
+        invoiceController = new InvoiceController(); 
+        updateInvoiceCount();
         
-        productController = new ProductController(); // Khởi tạo controller
-        updateProductCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
-         updateBestSellingTable();
-         
-          userController = new UserController(); // Khởi tạo controller
-        updateUserCount(); // Cập nhật số lượng hóa đơn khi panel được khởi tạo
+        productController = new ProductController(); 
+        updateProductCount(); 
+        updateBestSellingTable();
         
-        spBestSellingTable.addComponentListener(new ComponentAdapter() {
-    @Override
-    public void componentResized(ComponentEvent e) {
-        resizeRowsToFill();
-    }
-                });
+        userController = new UserController(); 
+        updateUserCount();
     }
 
+    spBestSellingTable.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            resizeRowsToFill();
+        }
+    });
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

@@ -16,18 +16,18 @@ public class AdminView extends javax.swing.JFrame {
      */
     public AdminView() {
         initComponents();
-         adminSidebar.setParentView(this);
-            adAccountPopup1.setParentView(this);
+          if (!java.beans.Beans.isDesignTime()) { 
+        adminSidebar.setParentView(this);
+        adAccountPopup1.setParentView(this);
 
         CardLayout cl = (CardLayout) panelCard.getLayout();
         panelCard.add(cardDashBoard,    "cardDashBoard");
-        panelCard.add(cardRevenuePanel,"cardRevenuePanel");
+        panelCard.add(cardRevenuePanel, "cardRevenuePanel");
         panelCard.add(cardInvoicePanel, "cardInvoicePanel");
         panelCard.add(cardProductPanel, "cardProductPanel");
         panelCard.add(cardUserPanel,    "cardUserPanel");
-        
     }
-
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
