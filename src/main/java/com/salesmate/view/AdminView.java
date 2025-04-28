@@ -1,22 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.salesmate.view;
 
 import java.awt.CardLayout;
-/**
- *
- * @author meiln
- */
+
 public class AdminView extends javax.swing.JFrame {
-   
-    /**
-     * 
-     */
+
     public AdminView() {
         initComponents();
-          if (!java.beans.Beans.isDesignTime()) { 
+      if (!java.beans.Beans.isDesignTime()) { 
         adminSidebar.setParentView(this);
         adAccountPopup1.setParentView(this);
 
@@ -61,19 +51,19 @@ public class AdminView extends javax.swing.JFrame {
         javax.swing.GroupLayout panelDisplayLayout = new javax.swing.GroupLayout(panelDisplay);
         panelDisplay.setLayout(panelDisplayLayout);
         panelDisplayLayout.setHorizontalGroup(
-            panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelDisplayLayout.createSequentialGroup()
-                .addComponent(adminSidebar, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE))
+                panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(panelDisplayLayout.createSequentialGroup()
+                                .addComponent(adminSidebar, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE))
         );
         panelDisplayLayout.setVerticalGroup(
-            panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelDisplayLayout.createSequentialGroup()
-                .addGroup(panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(adminSidebar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE))
-                .addContainerGap())
+                panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelDisplayLayout.createSequentialGroup()
+                                .addGroup(panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(adminSidebar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE))
+                                .addContainerGap())
         );
 
         getContentPane().add(panelDisplay, java.awt.BorderLayout.CENTER);
@@ -81,15 +71,8 @@ public class AdminView extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -116,8 +99,9 @@ public class AdminView extends javax.swing.JFrame {
             }
         });
     }
-//phuong thuc chuyen Card
-  public void switchCard(String cardName) {
+
+    //phuong thuc chuyen Card
+    public void switchCard(String cardName) {
         CardLayout cl = (CardLayout) panelCard.getLayout();
         cl.show(panelCard, cardName); // Chuyển sang card tương ứng
     }

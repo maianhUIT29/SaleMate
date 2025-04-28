@@ -5,12 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Product;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ProductDAO {
 
@@ -59,21 +59,20 @@ public class ProductDAO {
 
     /**
      * Updates the product quantity after a sale
-     * 
+     *
      * @param productId The ID of the product to update
      * @param soldQuantity The quantity that was sold
      * @return true if the update was successful, false otherwise
      */
     public boolean updateProductQuantity(int productId, int soldQuantity) {
         String query = "UPDATE product SET quantity = quantity - ? WHERE product_id = ? AND quantity >= ?";
-        
-        try (Connection conn = DBConnection.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+
             stmt.setInt(1, soldQuantity);
             stmt.setInt(2, productId);
             stmt.setInt(3, soldQuantity); // Ensure we have enough stock
-            
+
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -86,30 +85,21 @@ public class ProductDAO {
     // Lấy danh sách tất cả sản phẩm
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
-        String query = "SELECT product_id, product_name, price, quantity, barcode, image FROM product";
-
+        String query = "SELECT * FROM product";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 
-            System.out.println("Executing query: " + query);
-
             while (rs.next()) {
-                Product product = new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("product_name"),
-                        rs.getBigDecimal("price"),
-                        rs.getInt("quantity"),
-                        rs.getString("barcode"),
-                        rs.getString("image")
-                );
+                Product product = new Product();
+                product.setProductId(rs.getInt("product_id"));
+                product.setProductName(rs.getString("product_name"));
+                product.setPrice(rs.getBigDecimal("price"));
+                product.setQuantity(rs.getInt("quantity"));
                 products.add(product);
             }
         } catch (SQLException e) {
-            System.err.println("Error executing query: " + e.getMessage());
             e.printStackTrace();
         }
-
-        System.out.println("Total products retrieved: " + products.size());
-        return products;
+        return products; // Trả về danh sách rỗng nếu không có dữ liệu
     }
 
     // Lấy sản phẩm theo ID
@@ -141,23 +131,21 @@ public class ProductDAO {
         }
         return null;  // Return null if no product is found
     }
-   
+
 // Đếm số lượng sản phẩm
-public int countProduct() {
-    String sql = "SELECT COUNT(*) FROM product";
-    try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
-        if (rs.next()) {
-            return rs.getInt(1); // Trả về số lượng sản phẩm
+    public int countProduct() {
+        String sql = "SELECT COUNT(*) FROM product";
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1); // Trả về số lượng sản phẩm
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
     }
-    return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
-}
-  
 
 // Lấy top 10 sản phẩm bán chạy nhất
-
 public List<Map<String, Object>> getTopSellingProducts() {
     List<Map<String, Object>> products = new ArrayList<>();
     String sql = "SELECT p.product_id, " +
@@ -189,11 +177,26 @@ public List<Map<String, Object>> getTopSellingProducts() {
                 product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
                 products.add(product);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return products;
     }
-    return products;
-}
+
+    // Xóa sản phẩm
+    public boolean deleteProduct(int productId) {
+        String query = "DELETE FROM product WHERE product_id = ?";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, productId);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0; // If rows are affected, the delete was successful
+        } catch (SQLException e) {
+            System.err.println("Error executing query: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 
 }
