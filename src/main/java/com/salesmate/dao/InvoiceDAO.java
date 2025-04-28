@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Invoice;
+import com.salesmate.model.RevenueLineChartModel;
+import java.util.Date;
 
 public class InvoiceDAO {
 
@@ -195,5 +197,53 @@ public int countInvoices() {
     }
     return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
 }
+ public List<RevenueLineChartModel> getDailyRevenue() {
+        String sql =
+            "SELECT TO_CHAR(created_at, 'DD') AS day_label, " +
+            "       NVL(SUM(total_amount),0) AS total_revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND created_at >= TRUNC(SYSDATE, 'MM') " +
+            "  AND created_at <  ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1) " +
+            "GROUP BY TO_CHAR(created_at, 'DD') " +
+            "ORDER BY TO_NUMBER(TO_CHAR(created_at, 'DD'))";
 
+        List<RevenueLineChartModel> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String day   = rs.getString("day_label");
+                double total = rs.getDouble("total_revenue");
+                list.add(new RevenueLineChartModel(day, total));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Tổng doanh thu tháng hiện tại.
+     */
+    public BigDecimal getRevenueForCurrentMonth() {
+        String sql =
+            "SELECT NVL(SUM(total_amount),0) AS total_revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND created_at >= TRUNC(SYSDATE, 'MM') " +
+            "  AND created_at <  ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
 }

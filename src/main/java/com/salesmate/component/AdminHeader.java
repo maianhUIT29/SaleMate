@@ -79,25 +79,25 @@ private JPopupMenu notiMenu;
 
     private void tbtnNotificationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnNotificationActionPerformed
         // TODO add your handling code here:
-         if (tbtnNotification.isSelected()) {
-            // ensure account popup đóng trước
-            accountMenu.setVisible(false);
-            // show notification popup ngay dưới nút
-            notiMenu.show(tbtnNotification, 0, tbtnNotification.getHeight());
-        } else {
-            // ấn lại để đóng
-            notiMenu.setVisible(false);
-        }
+         if (notiMenu == null) return; // Bảo vệ tránh lỗi khi mở Designer
+
+    if (tbtnNotification.isSelected()) {
+        if (accountMenu != null) accountMenu.setVisible(false);
+        notiMenu.show(tbtnNotification, 0, tbtnNotification.getHeight());
+    } else {
+        notiMenu.setVisible(false);
+    }
     }//GEN-LAST:event_tbtnNotificationActionPerformed
 
     private void tbtnAdminAccountActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tbtnAdminAccountActionPerformed
-        // TODO add your handling code here:
-          if (tbtnAdminAccount.isSelected()) {
-            notiMenu.setVisible(false);
-            accountMenu.show(tbtnAdminAccount, 0, tbtnAdminAccount.getHeight());
-        } else {
-            accountMenu.setVisible(false);
-        }
+      if (accountMenu == null) return;
+
+    if (tbtnAdminAccount.isSelected()) {
+        if (notiMenu != null) notiMenu.setVisible(false);
+        accountMenu.show(tbtnAdminAccount, 0, tbtnAdminAccount.getHeight());
+    } else {
+        accountMenu.setVisible(false);
+    }
     }//GEN-LAST:event_tbtnAdminAccountActionPerformed
 
    @Override

@@ -146,36 +146,36 @@ public class ProductDAO {
     }
 
 // Lấy top 10 sản phẩm bán chạy nhất
-    public List<Map<String, Object>> getTopSellingProducts() {
-        List<Map<String, Object>> products = new ArrayList<>();
-        String sql = "SELECT p.product_id, "
-                + "p.product_name, "
-                + "p.price, "
-                + "p.quantity, "
-                + "p.barcode, "
-                + "p.image, "
-                + "COUNT(d.product_id) as total_sold "
-                + "FROM product p "
-                + "LEFT JOIN detail d ON p.product_id = d.product_id "
-                + "GROUP BY p.product_id, p.product_name, p.price, p.quantity, p.barcode, p.image "
-                + "ORDER BY total_sold DESC "
-                + "FETCH FIRST 10 ROWS ONLY";  // Giới hạn 10 sản phẩm bán chạy nhất
+public List<Map<String, Object>> getTopSellingProducts() {
+    List<Map<String, Object>> products = new ArrayList<>();
+    String sql = "SELECT p.product_id, " +
+                 "p.product_name, " +
+                 "p.price, " +
+                 "p.quantity, " +
+                 "p.barcode, " +
+                 "p.image, " +
+                 "COUNT(d.product_id) as total_sold " +  // Đếm số lượng bán ra từ bảng detail
+                 "FROM product p " +
+                 "LEFT JOIN detail d ON p.product_id = d.product_id " +  // Kết nối với bảng detail
+                 "GROUP BY p.product_id, p.product_name, p.price, p.quantity, p.barcode, p.image " +
+                 "ORDER BY total_sold DESC " +  // Sắp xếp theo số lượng bán ra từ cao đến thấp
+                 "FETCH FIRST 10 ROWS ONLY";  // Giới hạn 10 sản phẩm bán chạy nhất
 
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
-                    Map<String, Object> product = new HashMap<>();
-                    product.put("product_id", rs.getInt("product_id"));
-                    product.put("product_name", rs.getString("product_name"));
-                    product.put("price", rs.getBigDecimal("price"));
-                    product.put("quantity", rs.getInt("quantity"));
-                    product.put("barcode", rs.getString("barcode"));
-                    product.put("image", rs.getString("image"));
-                    product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
-                    products.add(product);
-                }
+        try (ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
+                Map<String, Object> product = new HashMap<>();
+                product.put("product_id", rs.getInt("product_id"));
+                product.put("product_name", rs.getString("product_name"));
+                product.put("price", rs.getBigDecimal("price"));
+                product.put("quantity", rs.getInt("quantity"));
+                product.put("barcode", rs.getString("barcode"));
+                product.put("image", rs.getString("image"));
+                product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
+                products.add(product);
             }
         } catch (SQLException e) {
             e.printStackTrace();
