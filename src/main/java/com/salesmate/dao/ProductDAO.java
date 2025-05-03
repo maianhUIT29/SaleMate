@@ -94,6 +94,9 @@ public class ProductDAO {
                 product.setProductName(rs.getString("product_name"));
                 product.setPrice(rs.getBigDecimal("price"));
                 product.setQuantity(rs.getInt("quantity"));
+                product.setBarcode(rs.getString("barcode"));
+                product.setImage(rs.getString("image"));
+                product.setCategory(rs.getString("category"));
                 products.add(product);
             }
         } catch (SQLException e) {
@@ -205,6 +208,7 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         categories.add("Tất cả"); // Add default "All" option first
         
         try (Connection conn = DBConnection.getConnection()) {
+            // Modified query to handle null and empty categories properly
             String query = "SELECT DISTINCT category FROM product WHERE category IS NOT NULL AND category <> '' ORDER BY category";
             try (PreparedStatement stmt = conn.prepareStatement(query);
                  ResultSet rs = stmt.executeQuery()) {
@@ -212,23 +216,25 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
                     String category = rs.getString("category");
                     if (category != null && !category.trim().isEmpty()) {
                         categories.add(category.trim());
+                        System.out.println("Added category from DB: " + category);
                     }
+                }
+                
+                // Add "No category" option if not already in the list
+                if (!categories.contains("Không có danh mục")) {
+                    categories.add("Không có danh mục");
+                    System.out.println("Added 'Không có danh mục' category");
                 }
             }
             
             // If no categories found in database, add some defaults
-            if (categories.size() <= 1) { // Only "Tất cả" exists
-                String[] defaultCategories = {
-                    "Thực phẩm & Đồ uống",
-                    "Đồ điện gia dụng", 
-                    "Thời trang",
-                    "Điện tử & Công nghệ",
-                    "Hàng gia dụng"
-                };
-                
-                for (String category : defaultCategories) {
-                    categories.add(category);
-                }
+            if (categories.size() <= 1) {
+                categories.add("Nước giặt");
+                categories.add("Dầu gội");
+                categories.add("Nước xả");
+                categories.add("Sữa tắm");
+                categories.add("Không có danh mục");
+                System.out.println("Added default categories since none found in DB");
             }
         } catch (SQLException e) {
             System.err.println("Error fetching product categories: " + e.getMessage());
@@ -236,9 +242,12 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
             
             // In case of error, ensure we have at least some categories
             if (categories.size() <= 1) {
-                categories.add("Thực phẩm & Đồ uống");
-                categories.add("Đồ điện gia dụng");
-                categories.add("Thời trang");
+                categories.add("Nước giặt");
+                categories.add("Dầu gội");
+                categories.add("Nước xả");
+                categories.add("Sữa tắm");
+                categories.add("Không có danh mục");
+                System.out.println("Added fallback categories due to error");
             }
         }
         

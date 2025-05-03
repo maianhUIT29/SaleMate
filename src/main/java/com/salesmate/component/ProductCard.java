@@ -2,6 +2,7 @@ package com.salesmate.component;
 
 import java.awt.Image;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
@@ -146,8 +147,10 @@ public class ProductCard extends javax.swing.JPanel {
         lblProductPriceValue.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         lblProductPriceValue.setText("0");
 
-        lblProductCategory.setFont(new java.awt.Font("Segoe UI", 0, 10));
+        lblProductCategory.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 9));
         lblProductCategory.setText("Danh mục");
+        lblProductCategory.setForeground(new Color(100, 100, 100));
+        lblProductCategory.setHorizontalAlignment(SwingConstants.LEFT);
 
         javax.swing.GroupLayout panelProductDetailLayout = new javax.swing.GroupLayout(panelProductDetail);
         panelProductDetail.setLayout(panelProductDetailLayout);
@@ -156,14 +159,14 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(panelProductDetailLayout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblProductCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panelProductDetailLayout.createSequentialGroup()
                         .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())
                     .addGroup(panelProductDetailLayout.createSequentialGroup()
                         .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblProductPriceKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblProductCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
@@ -176,8 +179,7 @@ public class ProductCard extends javax.swing.JPanel {
                 .addGap(0, 0, 0)
                 .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
-                .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblProductCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(lblProductCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(3, 3, 3)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -232,12 +234,19 @@ public class ProductCard extends javax.swing.JPanel {
         // Display product name
         lblProductNameValue.setText(product.getProductName());
 
-        // Display category
-        if (product.getCategory() != null && !product.getCategory().isEmpty()) {
+        // Display category - Make sure it's visible and properly formatted
+        // Debug the category value to see what's coming in
+        System.out.println("Product " + product.getProductId() + " category: " + product.getCategory());
+        
+        if (product.getCategory() != null && !product.getCategory().trim().isEmpty()) {
             lblProductCategory.setText(product.getCategory());
             lblProductCategory.setVisible(true);
+            // Make sure category has proper styling
+            lblProductCategory.setForeground(new java.awt.Color(100, 100, 100));
+            lblProductCategory.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 9));
         } else {
-            lblProductCategory.setVisible(false);
+            lblProductCategory.setText("Không có danh mục");
+            lblProductCategory.setVisible(true);
         }
 
         // Display quantity and price
@@ -526,10 +535,18 @@ public class ProductCard extends javax.swing.JPanel {
         
         // Giới hạn và xử lý tên sản phẩm
         String name = lblProductNameValue.getText();
-        if (name.length() > 25) {
+        if (name.length() > 20) { // Reduced max length to make room for category
             // Truncate and add ellipsis
-            lblProductNameValue.setText(name.substring(0, 22) + "...");
+            lblProductNameValue.setText(name.substring(0, 17) + "...");
         }
+
+        // Style for category label - make it italic and smaller than the product name
+        lblProductCategory.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 9));
+        lblProductCategory.setForeground(new Color(100, 100, 100));
+        lblProductCategory.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        lblProductCategory.setMaximumSize(new Dimension(panelProductDetail.getWidth(), 14));
+        lblProductCategory.setPreferredSize(new Dimension(panelProductDetail.getWidth() - 20, 14));
+        lblProductCategory.setOpaque(false);
 
         // Style cho các label khác
         styleLabel(lblProductQuantityKey, "Segoe UI", java.awt.Font.PLAIN, 11);

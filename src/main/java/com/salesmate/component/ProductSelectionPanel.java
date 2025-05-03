@@ -461,9 +461,13 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             filteredProducts.removeIf(p -> !p.getProductName().toLowerCase().contains(searchText));
         }
 
-        // Lọc theo danh mục
+        // Lọc theo danh mục - với xử lý đặc biệt cho "Không có danh mục"
         if (!"Tất cả".equals(category)) {
-            filteredProducts.removeIf(p -> !matchesCategory(p, category));
+            if ("Không có danh mục".equals(category)) {
+                filteredProducts.removeIf(p -> p.getCategory() != null && !p.getCategory().trim().isEmpty());
+            } else {
+                filteredProducts.removeIf(p -> !matchesCategory(p, category));
+            }
         }
 
         // Lọc theo giá
@@ -519,8 +523,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         
         // Get the product category, handle null case
         String productCategory = p.getCategory();
-        if (productCategory == null) {
-            return false;
+        if (productCategory == null || productCategory.trim().isEmpty()) {
+            // For "Không có danh mục" filter special case
+            return "Không có danh mục".equals(category);
         }
         
         // Trim and compare case-insensitively
