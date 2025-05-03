@@ -94,6 +94,9 @@ public class ProductDAO {
                 product.setProductName(rs.getString("product_name"));
                 product.setPrice(rs.getBigDecimal("price"));
                 product.setQuantity(rs.getInt("quantity"));
+                product.setBarcode(rs.getString("barcode"));
+                product.setImage(rs.getString("image"));
+                product.setCategory(rs.getString("category"));
                 products.add(product);
             }
         } catch (SQLException e) {
@@ -146,7 +149,7 @@ public class ProductDAO {
     }
 
 // Lấy top 10 sản phẩm bán chạy nhất
-public List<Map<String, Object>> getTopSellingProducts() {
+public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
     List<Map<String, Object>> products = new ArrayList<>();
     String sql = "SELECT p.product_id, " +
                  "p.product_name, " +
@@ -162,27 +165,24 @@ public List<Map<String, Object>> getTopSellingProducts() {
                  "FETCH FIRST 10 ROWS ONLY";  // Giới hạn 10 sản phẩm bán chạy nhất
 
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
-        try (ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) {
-                // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
-                Map<String, Object> product = new HashMap<>();
-                product.put("product_id", rs.getInt("product_id"));
-                product.put("product_name", rs.getString("product_name"));
-                product.put("price", rs.getBigDecimal("price"));
-                product.put("quantity", rs.getInt("quantity"));
-                product.put("barcode", rs.getString("barcode"));
-                product.put("image", rs.getString("image"));
-                product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
-                products.add(product);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+         PreparedStatement pstmt = connection.prepareStatement(sql);
+         ResultSet rs = pstmt.executeQuery()) {
+        
+        while (rs.next()) {
+            // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
+            Map<String, Object> product = new HashMap<>();
+            product.put("product_id", rs.getInt("product_id"));
+            product.put("product_name", rs.getString("product_name"));
+            product.put("price", rs.getBigDecimal("price"));
+            product.put("quantity", rs.getInt("quantity"));
+            product.put("barcode", rs.getString("barcode"));
+            product.put("image", rs.getString("image"));
+            product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
+            products.add(product);
         }
-        return products;
     }
-
+    return products;
+}
     // Xóa sản phẩm
     public boolean deleteProduct(int productId) {
         String query = "DELETE FROM product WHERE product_id = ?";
@@ -197,6 +197,61 @@ public List<Map<String, Object>> getTopSellingProducts() {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Retrieves all distinct categories from products in the database
+     * @return List of category names
+     */
+    public List<String> getProductCategories() {
+        List<String> categories = new ArrayList<>();
+        categories.add("Tất cả"); // Add default "All" option first
+        
+        try (Connection conn = DBConnection.getConnection()) {
+            // Modified query to handle null and empty categories properly
+            String query = "SELECT DISTINCT category FROM product WHERE category IS NOT NULL AND category <> '' ORDER BY category";
+            try (PreparedStatement stmt = conn.prepareStatement(query);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String category = rs.getString("category");
+                    if (category != null && !category.trim().isEmpty()) {
+                        categories.add(category.trim());
+                        System.out.println("Added category from DB: " + category);
+                    }
+                }
+                
+                // Add "No category" option if not already in the list
+                if (!categories.contains("Không có danh mục")) {
+                    categories.add("Không có danh mục");
+                    System.out.println("Added 'Không có danh mục' category");
+                }
+            }
+            
+            // If no categories found in database, add some defaults
+            if (categories.size() <= 1) {
+                categories.add("Nước giặt");
+                categories.add("Dầu gội");
+                categories.add("Nước xả");
+                categories.add("Sữa tắm");
+                categories.add("Không có danh mục");
+                System.out.println("Added default categories since none found in DB");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching product categories: " + e.getMessage());
+            e.printStackTrace();
+            
+            // In case of error, ensure we have at least some categories
+            if (categories.size() <= 1) {
+                categories.add("Nước giặt");
+                categories.add("Dầu gội");
+                categories.add("Nước xả");
+                categories.add("Sữa tắm");
+                categories.add("Không có danh mục");
+                System.out.println("Added fallback categories due to error");
+            }
+        }
+        
+        return categories;
     }
 
 }

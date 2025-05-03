@@ -1,1 +1,13 @@
+# Ignore IDE-specific files
 config.properties
+
+# Ignore class files
+*.class
+
+# Ignore target folder (build output)
+target/
+
+# Other common ignores (optional)
+*.log
+.idea/
+*.iml

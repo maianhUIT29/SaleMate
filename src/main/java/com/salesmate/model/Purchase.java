@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -33,13 +31,11 @@ public class Purchase {
     @Column(name = "purchase_id")
     private int purchaseId;
 
-    @ManyToOne
-    @JoinColumn(name = "supplier_id", nullable = false)
-    private Supplier supplier;
+    @Column(name = "supplier_id", nullable = false)
+    private int supplierId;
 
-    @ManyToOne
-    @JoinColumn(name = "users_id", nullable = false)
-    private User user;
+    @Column(name = "users_id", nullable = false)
+    private int usersId;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private double totalAmount;
@@ -52,10 +48,10 @@ public class Purchase {
     public Purchase() {
     }
 
-    public Purchase(int purchaseId, Supplier supplier, User user, double totalAmount, Date purchaseDate) {
+    public Purchase(int purchaseId, int supplierId, int usersId, double totalAmount, Date purchaseDate) {
         this.purchaseId = purchaseId;
-        this.supplier = supplier;
-        this.user = user;
+        this.supplierId = supplierId;
+        this.usersId = usersId;
         this.totalAmount = totalAmount;
         this.purchaseDate = purchaseDate;
     }
@@ -69,20 +65,20 @@ public class Purchase {
         this.purchaseId = purchaseId;
     }
 
-    public Supplier getSupplier() {
-        return supplier;
+    public int getSupplierId() {
+        return supplierId;
     }
 
-    public void setSupplier(Supplier supplier) {
-        this.supplier = supplier;
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
     }
 
-    public User getUser() {
-        return user;
+    public int getUsersId() {
+        return usersId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUsersId(int usersId) {
+        this.usersId = usersId;
     }
 
     public double getTotalAmount() {

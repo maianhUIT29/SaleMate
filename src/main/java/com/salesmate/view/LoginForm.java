@@ -1,6 +1,5 @@
 package com.salesmate.view;
 
-import com.formdev.flatlaf.FlatLightLaf;
 import com.salesmate.controller.UserController;
 import com.salesmate.model.User;
 import com.salesmate.utils.SessionManager;
@@ -32,10 +31,19 @@ public class LoginForm extends JFrame {
     private UserController userController;
 
     public LoginForm() {
+        // Set system look and feel but preserve button styling
         try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception e) {
-            e.printStackTrace();
+            // Capture existing button UI before setting look and feel
+            Object buttonUI = UIManager.get("ButtonUI");
+            
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            
+            // Preserve button UI to keep their appearance
+            if (buttonUI != null) {
+                UIManager.put("ButtonUI", buttonUI);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
         userController = new UserController();
@@ -157,6 +165,10 @@ public class LoginForm extends JFrame {
         button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorderPainted(true);
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI()); // Use BasicButtonUI to maintain styling
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -226,18 +238,72 @@ public class LoginForm extends JFrame {
             return;
         }
 
+        // Add debug message
+        System.out.println("Attempting login with email: " + email);
+
         User user = userController.login(email, password);
         if (user != null) {
+            // Debug user info
+            System.out.println("Login successful for user: " + user.getUsername() + ", Role: " + user.getRole());
+            
             // Lưu thông tin đăng nhập vào SessionManager
             SessionManager.getInstance().setLoggedInUser(user);
-            dispose();
-            if ("Sales Staff".equals(user.getRole())) {
-                new CashierView().setVisible(true); // Ensure the view is visible
-            } else if ("Store Manager".equals(user.getRole())) {
-                new AdminView().setVisible(true); // Ensure the view is visible
+            
+            try {
+                final User loggedInUser = user; // Create final copy for lambda
+                
+                // Close this form
+                dispose();
+                
+                // Use SwingUtilities.invokeLater to ensure UI updates happen on EDT
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        // Check all possible role values - using contains for more flexible matching
+                        String role = loggedInUser.getRole().toLowerCase();
+                        System.out.println("Checking role: " + role);
+                        
+                        if (role.contains("sales")) {
+                            System.out.println("Opening CashierView...");
+                            CashierView cashierView = new CashierView();
+                            cashierView.setTitle("SalesMate - Bán Hàng (" + loggedInUser.getUsername() + ")");
+                            cashierView.setLocationRelativeTo(null);
+                            cashierView.setVisible(true);
+                            
+                            // Ensure the UI is correctly sized and displayed
+                            cashierView.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                            cashierView.validate();
+                            cashierView.repaint();
+                            System.out.println("CashierView opened successfully");
+                        } else if (role.contains("manager") || role.contains("admin") || role.contains("store")) {
+                            System.out.println("Opening AdminView...");
+                            AdminView adminView = new AdminView();
+                            adminView.setTitle("SalesMate - Quản Lý (" + loggedInUser.getUsername() + ")");
+                            adminView.setLocationRelativeTo(null);
+                            adminView.setVisible(true);
+                            adminView.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                            System.out.println("AdminView opened successfully");
+                        } else {
+                            // For any other role, show an error message
+                            System.out.println("Unknown role: " + role);
+                            showToast("Vai trò không được hỗ trợ: " + loggedInUser.getRole());
+                            new LoginForm(); // Reopen login form
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.err.println("Error opening view: " + e.getMessage());
+                        JOptionPane.showMessageDialog(null, 
+                                "Lỗi khi mở giao diện: " + e.getMessage(),
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        new LoginForm(); // Reopen login form
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error in login process: " + e.getMessage());
+                showToast("Lỗi khi mở giao diện: " + e.getMessage());
             }
         } else {
-            // Hiển thị toast thông báo lỗi trong 3 giây
+            System.out.println("Login failed: Invalid credentials");
             showToast("Email hoặc mật khẩu không chính xác!");
         }
     }
@@ -315,6 +381,13 @@ public class LoginForm extends JFrame {
     }
 
     public static void main(String[] args) {
+        // Set system look and feel
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        
         SwingUtilities.invokeLater(LoginForm::new);
     }
 }

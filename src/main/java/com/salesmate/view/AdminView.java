@@ -1,23 +1,66 @@
 package com.salesmate.view;
 
 import java.awt.CardLayout;
+import javax.swing.UIManager;
 
 public class AdminView extends javax.swing.JFrame {
 
     public AdminView() {
-        initComponents();
-      if (!java.beans.Beans.isDesignTime()) { 
-        adminSidebar.setParentView(this);
-        adAccountPopup1.setParentView(this);
+        try {
+            // Set system look and feel but exclude buttons
+            try {
+                // Capture existing button UI before setting look and feel
+                javax.swing.LookAndFeel oldLF = UIManager.getLookAndFeel();
+                Object buttonUI = UIManager.get("ButtonUI");
+                
+                javax.swing.UIManager.setLookAndFeel(
+                    javax.swing.UIManager.getSystemLookAndFeelClassName());
+                
+                // Preserve button UI to keep their appearance
+                if (buttonUI != null) {
+                    UIManager.put("ButtonUI", buttonUI);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            
+            initComponents();
+            
+            if (!java.beans.Beans.isDesignTime()) { 
+                // Initialize UI components
+                adminSidebar.setParentView(this);
+                adAccountPopup1.setParentView(this);
 
-        CardLayout cl = (CardLayout) panelCard.getLayout();
-        panelCard.add(cardDashBoard,    "cardDashBoard");
-        panelCard.add(cardRevenuePanel, "cardRevenuePanel");
-        panelCard.add(cardInvoicePanel, "cardInvoicePanel");
-        panelCard.add(cardProductPanel, "cardProductPanel");
-        panelCard.add(cardUserPanel,    "cardUserPanel");
+                // Set up card layout
+                CardLayout cl = (CardLayout) panelCard.getLayout();
+                panelCard.add(cardDashBoard,    "cardDashBoard");
+                panelCard.add(cardRevenuePanel, "cardRevenuePanel");
+                panelCard.add(cardInvoicePanel, "cardInvoicePanel");
+                panelCard.add(cardProductPanel, "cardProductPanel");
+                panelCard.add(cardUserPanel,    "cardUserPanel");
+                
+                // Make sure to show a default card
+                cl.show(panelCard, "cardDashBoard");
+            }
+            
+            // Set preferred size for better initial display
+            setPreferredSize(new java.awt.Dimension(1024, 768));
+            
+            // Center the window on the screen
+            setLocationRelativeTo(null);
+            
+            // Perform a complete layout of all components
+            invalidate();
+            validate();
+            repaint();
+            
+            System.out.println("AdminView constructor completed successfully");
+        } catch (Exception e) {
+            System.err.println("Error initializing AdminView: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-}
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -72,30 +115,27 @@ public class AdminView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     public static void main(String args[]) {
-
+        // Set up look and feel
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AdminView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AdminView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AdminView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AdminView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            javax.swing.UIManager.setLookAndFeel(
+                javax.swing.UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
+        
+        // Create and display the form
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new AdminView().setVisible(true);
+                try {
+                    AdminView view = new AdminView();
+                    view.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH); // Maximize
+                    view.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    javax.swing.JOptionPane.showMessageDialog(null,
+                        "Error initializing AdminView: " + e.getMessage(),
+                        "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
     }

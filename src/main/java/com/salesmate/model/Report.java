@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -43,9 +41,8 @@ public class Report {
     @Column(name = "content", length = 100)
     private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "users_id", nullable = false)
-    private User user;
+    @Column(name = "users_id", nullable = false)
+    private int usersId;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "DATE DEFAULT SYSDATE")
@@ -55,12 +52,12 @@ public class Report {
     public Report() {
     }
 
-    public Report(int reportId, String reportType, Date reportDate, String content, User user, Date createdAt) {
+    public Report(int reportId, String reportType, Date reportDate, String content, int usersId, Date createdAt) {
         this.reportId = reportId;
         this.reportType = reportType;
         this.reportDate = reportDate;
         this.content = content;
-        this.user = user;
+        this.usersId = usersId;
         this.createdAt = createdAt;
     }
 
@@ -97,12 +94,12 @@ public class Report {
         this.content = content;
     }
 
-    public User getUser() {
-        return user;
+    public int getUsersId() {
+        return usersId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUsersId(int usersId) {
+        this.usersId = usersId;
     }
 
     public Date getCreatedAt() {

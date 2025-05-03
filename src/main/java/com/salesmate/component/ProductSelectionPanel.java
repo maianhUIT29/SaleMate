@@ -9,16 +9,24 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
 
 public class ProductSelectionPanel extends javax.swing.JPanel {
@@ -37,12 +45,14 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     private javax.swing.JPanel paginationPanel;
     private static final int MAX_PAGE_BUTTONS = 5; // Số nút trang tối đa hiển thị
     private boolean isLoading = false; // Add flag to track loading state
+    private ProductController productController; // Add this field
 
     public ProductSelectionPanel() {
         initComponents();
         setLayout(new java.awt.BorderLayout());
         // chỉ chạy khi thực sự chạy chương trình
         if (!java.beans.Beans.isDesignTime()) {
+            productController = new ProductController(); // Initialize ProductController
             setupFilterPanel();
             // Remove the automatic loading animation from constructor
             // The animation will only show when setProducts is called
@@ -201,12 +211,111 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         this.filteredProducts = new ArrayList<>(products);
         currentPage = 1;
         
+        // Calculate price ranges and populate category list
+        updateFilterOptions(products);
+        
         // Nếu không đang ở design time và chưa hiển thị loading, thì hiển thị loading animation
         if (!java.beans.Beans.isDesignTime() && !isLoading) {
             isLoading = true; // Set loading flag to prevent multiple animations
             showLoadingAnimation(); // Loading animation sẽ tự động hiển thị dữ liệu sau khi hoàn thành
         } else if (java.beans.Beans.isDesignTime()) {
             displayFilteredProducts(products); // Hiển thị trực tiếp khi ở design time
+        }
+    }
+
+    // New method to calculate price ranges and categories
+    private void updateFilterOptions(List<Product> products) {
+        // Sort products by price to determine price ranges
+        List<Product> sortedByPrice = new ArrayList<>(products);
+        Collections.sort(sortedByPrice, Comparator.comparing(Product::getPrice));
+        
+        // Get minimum and maximum prices
+        BigDecimal minPrice = sortedByPrice.get(0).getPrice();
+        BigDecimal maxPrice = sortedByPrice.get(sortedByPrice.size() - 1).getPrice();
+        
+        // Create dynamic price ranges
+        String[] priceRanges;
+        if (maxPrice.compareTo(new BigDecimal(1000000)) > 0) {
+            priceRanges = new String[]{
+                "Tất cả",
+                "Dưới 100,000đ",
+                "100,000đ - 500,000đ",
+                "500,000đ - 1,000,000đ",
+                "1,000,000đ - 5,000,000đ",
+                "Trên 5,000,000đ"
+            };
+        } else if (maxPrice.compareTo(new BigDecimal(500000)) > 0) {
+            priceRanges = new String[]{
+                "Tất cả",
+                "Dưới 50,000đ",
+                "50,000đ - 200,000đ",
+                "200,000đ - 500,000đ",
+                "Trên 500,000đ"
+            };
+        } else {
+            priceRanges = new String[]{
+                "Tất cả",
+                "Dưới 20,000đ",
+                "20,000đ - 50,000đ",
+                "50,000đ - 100,000đ",
+                "Trên 100,000đ"
+            };
+        }
+        
+        // Update price filter combobox
+        if (priceFilter != null) {
+            priceFilter.setModel(new DefaultComboBoxModel<>(priceRanges));
+        }
+        
+        // Load categories from database instead of extracting from products
+        loadCategoriesFromDatabase();
+    }
+    
+    private void loadCategoriesFromDatabase() {
+        try {
+            // Clear any existing debug output
+            System.out.println("Loading categories from database...");
+            
+            // Get categories directly using the ProductController
+            List<String> categoriesList = productController.getProductCategories();
+            
+            // Debug print the categories
+            System.out.println("Retrieved " + (categoriesList != null ? categoriesList.size() : 0) + " categories");
+            if (categoriesList != null) {
+                for (String cat : categoriesList) {
+                    System.out.println(" - Category: " + cat);
+                }
+            }
+            
+            // Ensure we have valid data
+            if (categoriesList == null || categoriesList.isEmpty()) {
+                System.out.println("No categories found, using default 'All' only");
+                categoriesList = new ArrayList<>();
+                categoriesList.add("Tất cả");
+            }
+            
+            // Convert the list to an array for the combobox and ensure it's correctly populated
+            String[] categories = categoriesList.toArray(new String[0]);
+            
+            // Update the category filter combobox on the EDT
+            SwingUtilities.invokeLater(() -> {
+                if (categoryFilter != null) {
+                    categoryFilter.setModel(new DefaultComboBoxModel<>(categories));
+                    System.out.println("Category filter updated with " + categories.length + " items");
+                    categoryFilter.setSelectedIndex(0); // Ensure "Tất cả" is selected
+                }
+            });
+            
+        } catch (Exception e) {
+            System.err.println("Error loading categories: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Use a simple default model as fallback
+            SwingUtilities.invokeLater(() -> {
+                if (categoryFilter != null) {
+                    categoryFilter.setModel(new DefaultComboBoxModel<>(new String[]{"Tất cả"}));
+                }
+            });
         }
     }
 
@@ -233,13 +342,7 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         searchField.setMaximumSize(new java.awt.Dimension(200, 30));
 
         // Style cho price filter
-        priceFilter = new javax.swing.JComboBox<>(new String[]{
-            "Tất cả",
-            "Dưới 100,000đ",
-            "100,000đ - 500,000đ",
-            "500,000đ - 1,000,000đ",
-            "Trên 1,000,000đ"
-        });
+        priceFilter = new javax.swing.JComboBox<>(new String[]{"Tất cả"});
         priceFilter.setPreferredSize(new java.awt.Dimension(150, 30));
 
         // Style cho quantity filter
@@ -251,15 +354,12 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
         quantityFilter.setPreferredSize(new java.awt.Dimension(120, 30));
 
-        // Thêm category filter
-        categoryFilter = new javax.swing.JComboBox<>(new String[]{
-            "Tất cả",
-            "Đồ uống",
-            "Thức ăn",
-            "Điện thoại",
-            "Máy tính"
-        });
-        categoryFilter.setPreferredSize(new java.awt.Dimension(120, 30));
+        // Thêm category filter - Initialize empty, will be populated from database
+        categoryFilter = new javax.swing.JComboBox<>(new String[]{"Tất cả"});
+        categoryFilter.setPreferredSize(new java.awt.Dimension(150, 30)); // Increased width for category names
+        
+        // Load categories immediately
+        loadCategoriesFromDatabase();
 
         // Tạo nút reset
         resetButton = new javax.swing.JButton("Refresh");
@@ -321,7 +421,7 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
 
         priceFilter.addActionListener(e -> {
-            if (!"Tất cả giá".equals(priceFilter.getSelectedItem())) {
+            if (!"Tất cả".equals(priceFilter.getSelectedItem())) {
                 applyFilters();
             } else if (searchField.getText().isEmpty() && "Tất cả số lượng".equals(quantityFilter.getSelectedItem()) && "Tất cả danh mục".equals(categoryFilter.getSelectedItem())) {
                 displayFilteredProducts(products);
@@ -329,10 +429,10 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
 
         categoryFilter.addActionListener(e -> {
-            if (!"Tất cả danh mục".equals(categoryFilter.getSelectedItem())) {
+            if (!"Tất cả".equals(categoryFilter.getSelectedItem())) {
                 applyFilters();
             } else if (searchField.getText().isEmpty()
-                    && "Tất cả giá".equals(priceFilter.getSelectedItem())
+                    && "Tất cả".equals(priceFilter.getSelectedItem())
                     && "Tất cả số lượng".equals(quantityFilter.getSelectedItem())) {
                 displayFilteredProducts(products);
             }
@@ -361,18 +461,22 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             filteredProducts.removeIf(p -> !p.getProductName().toLowerCase().contains(searchText));
         }
 
-        // Lọc theo danh mục
-        if (!"Tất cả danh mục".equals(category)) {
-            filteredProducts.removeIf(p -> !matchesCategory(p, category));
+        // Lọc theo danh mục - với xử lý đặc biệt cho "Không có danh mục"
+        if (!"Tất cả".equals(category)) {
+            if ("Không có danh mục".equals(category)) {
+                filteredProducts.removeIf(p -> p.getCategory() != null && !p.getCategory().trim().isEmpty());
+            } else {
+                filteredProducts.removeIf(p -> !matchesCategory(p, category));
+            }
         }
 
         // Lọc theo giá
-        if (!"Tất cả giá".equals(priceRange)) {
+        if (!"Tất cả".equals(priceRange)) {
             filteredProducts.removeIf(p -> !matchesPriceRange(p.getPrice().doubleValue(), priceRange));
         }
 
         // Lọc theo số lượng
-        if (!"Tất cả số lượng".equals(quantityRange)) {
+        if (!"Tất cả".equals(quantityRange)) {
             filteredProducts.removeIf(p -> !matchesQuantityRange(p.getQuantity(), quantityRange));
         }
 
@@ -381,18 +485,21 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     }
 
     private boolean matchesPriceRange(double price, String range) {
-        switch (range) {
-            case "Dưới 100,000đ":
-                return price < 100000;
-            case "100,000đ - 500,000đ":
-                return price >= 100000 && price <= 500000;
-            case "500,000đ - 1,000,000đ":
-                return price > 500000 && price <= 1000000;
-            case "Trên 1,000,000đ":
-                return price > 1000000;
-            default:
-                return true;
+        if (range.startsWith("Dưới")) {
+            String priceStr = range.substring(5, range.length() - 1).replace(",", "");
+            return price < Double.parseDouble(priceStr);
+        } else if (range.startsWith("Trên")) {
+            String priceStr = range.substring(5, range.length() - 1).replace(",", "");
+            return price > Double.parseDouble(priceStr);
+        } else if (range.contains("-")) {
+            String[] parts = range.split("-");
+            String lowerStr = parts[0].trim().replace("đ", "").replace(",", "");
+            String upperStr = parts[1].trim().replace("đ", "").replace(",", "");
+            double lower = Double.parseDouble(lowerStr);
+            double upper = Double.parseDouble(upperStr);
+            return price >= lower && price <= upper;
         }
+        return true;
     }
 
     private boolean matchesQuantityRange(int quantity, String range) {
@@ -409,8 +516,20 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     }
 
     private boolean matchesCategory(Product p, String category) {
-        // TODO: Implement category matching logic when you have category in Product model
-        return true; // Placeholder return
+        // "Tất cả" is a special case that matches everything
+        if ("Tất cả".equals(category)) {
+            return true;
+        }
+        
+        // Get the product category, handle null case
+        String productCategory = p.getCategory();
+        if (productCategory == null || productCategory.trim().isEmpty()) {
+            // For "Không có danh mục" filter special case
+            return "Không có danh mục".equals(category);
+        }
+        
+        // Trim and compare case-insensitively
+        return category.trim().equalsIgnoreCase(productCategory.trim());
     }
 
     private void displayFilteredProducts(List<Product> filteredProducts) {
@@ -435,7 +554,8 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         gbc.fill = java.awt.GridBagConstraints.NONE;
         gbc.anchor = java.awt.GridBagConstraints.CENTER;
 
-        int numColumns = 6;
+        // Changed from 6 to 5 products per row
+        int numColumns = 5;
         int spacing = 16;
         int availableWidth = getWidth() - (spacing * (numColumns + 1));
         int cardWidth = availableWidth / numColumns;
@@ -487,7 +607,23 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         paginationPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(230, 230, 230)));
         paginationPanel.setPreferredSize(new java.awt.Dimension(getWidth(), 50));
 
+        // Add "First Page" button
+        javax.swing.JButton firstButton = new javax.swing.JButton("|<");
+        firstButton.setOpaque(true);
+        firstButton.setFocusPainted(false);
+        firstButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        firstButton.setEnabled(currentPage > 1);
+        firstButton.addActionListener(e -> {
+            currentPage = 1;
+            displayFilteredProducts(filteredProducts);
+        });
+        paginationPanel.add(firstButton);
+
+        // Previous button
         javax.swing.JButton prevButton = new javax.swing.JButton("<<");
+        prevButton.setOpaque(true);
+        prevButton.setFocusPainted(false);
+        prevButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         prevButton.setEnabled(currentPage > 1);
         prevButton.addActionListener(e -> {
             currentPage--;
@@ -503,13 +639,29 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             addPageButton(i, filteredProducts);
         }
 
+        // Next button
         javax.swing.JButton nextButton = new javax.swing.JButton(">>");
+        nextButton.setOpaque(true);
+        nextButton.setFocusPainted(false);
+        nextButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         nextButton.setEnabled(currentPage < totalPages);
         nextButton.addActionListener(e -> {
             currentPage++;
             displayFilteredProducts(filteredProducts);
         });
         paginationPanel.add(nextButton);
+
+        // Add "Last Page" button
+        javax.swing.JButton lastButton = new javax.swing.JButton(">|");
+        lastButton.setOpaque(true);
+        lastButton.setFocusPainted(false);
+        lastButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        lastButton.setEnabled(currentPage < totalPages);
+        lastButton.addActionListener(e -> {
+            currentPage = totalPages;
+            displayFilteredProducts(filteredProducts);
+        });
+        paginationPanel.add(lastButton);
 
         mainContainer.add(scrollPane, java.awt.BorderLayout.CENTER);
         mainContainer.add(paginationPanel, java.awt.BorderLayout.SOUTH);
@@ -525,6 +677,10 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     // Thêm phương thức để thêm nút trang
     private void addPageButton(int pageNum, List<Product> filteredProducts) {
         javax.swing.JButton pageButton = new javax.swing.JButton(String.valueOf(pageNum));
+        pageButton.setOpaque(true);
+        pageButton.setFocusPainted(false);
+        pageButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        
         if (pageNum == currentPage) {
             pageButton.setBackground(new java.awt.Color(46, 125, 50));
             pageButton.setForeground(java.awt.Color.WHITE);

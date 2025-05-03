@@ -43,6 +43,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.awt.GradientPaint;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -63,7 +64,7 @@ public class CashierAccount extends javax.swing.JPanel {
     private final UserController userController = new UserController();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private String selectedAvatarPath = null;
-    private int avatarSize = 200; // Giảm xuống 200x200
+    private int avatarSize = 120; // Reduced from 150 to 120 for an even smaller avatar
     private JDialog imageEditorDialog;
     private ImageIcon editingImage;
     private double zoomFactor = 1.0;
@@ -130,6 +131,13 @@ public class CashierAccount extends javax.swing.JPanel {
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         button.setFont(new Font("Segoe UI", Font.BOLD, 13));
         
+        // Make sure opacity is set correctly for the button to show its background color
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        
+        // Fix the button UI to use the system default button UI
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 button.setBackground(bgColor.darker());
@@ -189,46 +197,88 @@ public class CashierAccount extends javax.swing.JPanel {
         if (lblAvatar.getWidth() <= 0 || lblAvatar.getHeight() <= 0) return;
 
         User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-        if (loggedInUser != null && loggedInUser.getAvatar() != null) {
-            try {
+        try {
+            // Create default avatar as fallback
+            BufferedImage defaultAvatar = createDefaultAvatar(loggedInUser);
+            
+            // Try to load user's actual avatar if available
+            if (loggedInUser != null && loggedInUser.getAvatar() != null && !loggedInUser.getAvatar().isEmpty()) {
                 String avatarPath = "/img/avt/" + loggedInUser.getAvatar();
                 URL imageUrl = getClass().getResource(avatarPath);
                 if (imageUrl != null) {
                     ImageIcon originalIcon = new ImageIcon(imageUrl);
                     Image originalImage = originalIcon.getImage();
 
-                    // Scale ảnh giữ nguyên tỷ lệ và fit vào lblAvatar 
-                    int labelWidth = lblAvatar.getWidth();
-                    int labelHeight = lblAvatar.getHeight();
-                    int imageWidth = originalImage.getWidth(null);
-                    int imageHeight = originalImage.getHeight(null);
-
-                    double scale = Math.min(
-                        (double) labelWidth / imageWidth,
-                        (double) labelHeight / imageHeight
-                    );
-
-                    int scaledWidth = (int) (imageWidth * scale);
-                    int scaledHeight = (int) (imageHeight * scale);
-
+                    // Scale image to fit in label but not exceed avatarSize
+                    int labelWidth = Math.min(lblAvatar.getWidth(), avatarSize);
+                    int labelHeight = Math.min(lblAvatar.getHeight(), avatarSize);
                     Image scaledImage = originalImage.getScaledInstance(
-                        scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+                        labelWidth, labelHeight, Image.SCALE_SMOOTH);
                     
                     lblAvatar.setIcon(new ImageIcon(scaledImage));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                // Load ảnh default nếu không load được avatar
-                try {
-                    URL defaultImageUrl = getClass().getResource("/img/avt/default-avatar.png");
-                    if (defaultImageUrl != null) {
-                        lblAvatar.setIcon(new ImageIcon(defaultImageUrl));
-                    }
-                } catch (Exception ex) {
-                    lblAvatar.setIcon(null);
+                    return; // Exit if successful
                 }
             }
+            
+            // If we get here, use the default avatar
+            int labelWidth = Math.min(lblAvatar.getWidth(), avatarSize);
+            int labelHeight = Math.min(lblAvatar.getHeight(), avatarSize);
+            Image scaledDefault = defaultAvatar.getScaledInstance(
+                labelWidth, labelHeight, Image.SCALE_SMOOTH);
+            lblAvatar.setIcon(new ImageIcon(scaledDefault));
+            
+        } catch (Exception e) {
+            System.out.println("Error loading avatar: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Create and set a simple colored circle as avatar on error
+            try {
+                BufferedImage emptyImage = createDefaultAvatar(loggedInUser);
+                lblAvatar.setIcon(new ImageIcon(emptyImage));
+            } catch (Exception ex) {
+                lblAvatar.setText("Avatar");
+                lblAvatar.setIcon(null);
+            }
         }
+    }
+
+    /**
+     * Creates a default avatar image with the first initial of the user's name
+     * @param user The user for whom to create the avatar
+     * @return A BufferedImage containing the default avatar
+     */
+    private BufferedImage createDefaultAvatar(User user) {
+        BufferedImage avatar = new BufferedImage(avatarSize, avatarSize, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = avatar.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // Fill background with a gradient
+        GradientPaint gradient = new GradientPaint(
+            0, 0, new Color(100, 180, 255),
+            avatarSize, avatarSize, new Color(80, 150, 230)
+        );
+        g2d.setPaint(gradient);
+        g2d.fillOval(0, 0, avatarSize, avatarSize);
+        
+        // Add border
+        g2d.setColor(new Color(70, 130, 200));
+        g2d.setStroke(new BasicStroke(2));
+        g2d.drawOval(1, 1, avatarSize-2, avatarSize-2);
+        
+        // Add user's initial if available
+        if (user != null && user.getUsername() != null && !user.getUsername().isEmpty()) {
+            String initial = user.getUsername().substring(0, 1).toUpperCase();
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Arial", Font.BOLD, avatarSize/2));
+            FontMetrics fm = g2d.getFontMetrics();
+            int textWidth = fm.stringWidth(initial);
+            int textHeight = fm.getHeight();
+            g2d.drawString(initial, (avatarSize - textWidth) / 2, 
+                          (avatarSize + textHeight / 3) / 2);
+        }
+        
+        g2d.dispose();
+        return avatar;
     }
 
     private void showImagePicker() {
@@ -252,7 +302,7 @@ public class CashierAccount extends javax.swing.JPanel {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Panel chứa ảnh với khung crop 250x250
+        // Panel chứa ảnh với khung crop 150x150
         JPanel imagePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -277,12 +327,12 @@ public class CashierAccount extends javax.swing.JPanel {
                         newWidth, newHeight, null);
                 }
 
-                // Vẽ khung crop 250x250 ở giữa
-                int frameX = (getWidth() - 250) / 2;
-                int frameY = (getHeight() - 250) / 2;
+                // Vẽ khung crop 150x150 ở giữa
+                int frameX = (getWidth() - 150) / 2;
+                int frameY = (getHeight() - 150) / 2;
                 g2d.setColor(new Color(0, 0, 0, 100));
                 g2d.setStroke(new BasicStroke(2));
-                g2d.drawRect(frameX, frameY, 250, 250);
+                g2d.drawRect(frameX, frameY, 150, 150);
             }
         };
 
@@ -405,8 +455,8 @@ public class CashierAccount extends javax.swing.JPanel {
             if (user == null) return;
             
             // Create buffered image from editor view
-            int width = 250;
-            int height = 250;
+            int width = 150; // Reduced from 200 to 150
+            int height = 150; // Reduced from 200 to 150
             BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = result.createGraphics();
             
@@ -657,6 +707,25 @@ public class CashierAccount extends javax.swing.JPanel {
         lblStatusValue = new javax.swing.JLabel();
         lblAvatar = new javax.swing.JLabel();
 
+        lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        try {
+            URL defaultImageUrl = getClass().getResource("/img/icons/ic_default_avt.png");
+            if (defaultImageUrl != null) {
+                lblAvatar.setIcon(new ImageIcon(defaultImageUrl));
+            } else {
+                BufferedImage defaultAvatar = new BufferedImage(avatarSize, avatarSize, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = defaultAvatar.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(100, 180, 255));
+                g2d.fillOval(0, 0, avatarSize, avatarSize);
+                g2d.dispose();
+                lblAvatar.setIcon(new ImageIcon(defaultAvatar));
+            }
+        } catch (Exception e) {
+            System.out.println("Could not load default avatar: " + e.getMessage());
+            lblAvatar.setText("Avatar");
+        }
+
         javax.swing.GroupLayout ConfirmUpdateDialogLayout = new javax.swing.GroupLayout(ConfirmUpdateDialog.getContentPane());
         ConfirmUpdateDialog.getContentPane().setLayout(ConfirmUpdateDialogLayout);
         ConfirmUpdateDialogLayout.setHorizontalGroup(
@@ -866,9 +935,6 @@ public class CashierAccount extends javax.swing.JPanel {
 
         lblStatusValue.setText("Hoạt động");
 
-        lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblAvatar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/avt/N (2).jpg"))); // NOI18N
-
         javax.swing.GroupLayout UserAvatarPanelLayout = new javax.swing.GroupLayout(UserAvatarPanel);
         UserAvatarPanel.setLayout(UserAvatarPanelLayout);
         UserAvatarPanelLayout.setHorizontalGroup(
@@ -895,7 +961,7 @@ public class CashierAccount extends javax.swing.JPanel {
             UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(UserAvatarPanelLayout.createSequentialGroup()
                 .addGap(19, 19, 19)
-                .addComponent(lblAvatar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lblAvatar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE) // Fixed height to 120px
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(ActionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
