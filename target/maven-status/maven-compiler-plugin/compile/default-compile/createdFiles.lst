@@ -52,6 +52,7 @@ com\salesmate\dao\DetailDAO.class
 com\salesmate\controller\UserController.class
 com\salesmate\component\CashierAccount$6.class
 com\salesmate\model\RevenueLineChartModel.class
+com\salesmate\component\CheckoutPanel$6.class
 com\salesmate\component\CashierAccount$3.class
 com\salesmate\component\AdDashBoard.class
 com\salesmate\component\CashierHeader$2.class
@@ -100,6 +101,7 @@ com\salesmate\component\CashierAccount$8.class
 com\salesmate\view\LoginFaceID.class
 com\salesmate\component\CashierHeader$4.class
 com\salesmate\component\AdminHeader$1.class
+com\salesmate\component\CheckoutPanel$4.class
 com\salesmate\component\ProductSelectionPanel$3.class
 com\salesmate\view\CashierView.class
 com\salesmate\component\CashierAccount$2.class
@@ -122,4 +124,5 @@ com\salesmate\model\Detail.class
 com\salesmate\component\AdminSidebar$3.class
 com\salesmate\configs\WebcamConfig.class
 com\salesmate\view\LoginForm$4.class
+com\salesmate\component\CheckoutPanel$5.class
 com\salesmate\model\Supplier.class
