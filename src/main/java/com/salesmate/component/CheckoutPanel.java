@@ -1072,8 +1072,13 @@ public class CheckoutPanel extends javax.swing.JPanel {
         button.setForeground(Color.WHITE);
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setFocusPainted(false);
+        button.setOpaque(true); // Make button opaque so background color shows
+        button.setContentAreaFilled(true); // Ensure content area is filled
+        button.setBorderPainted(true); // Ensure border is painted
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI()); // Use BasicButtonUI to preserve styling
+        
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(bgColor.darker());
@@ -1306,6 +1311,10 @@ public class CheckoutPanel extends javax.swing.JPanel {
         btnPayment.setFont(new java.awt.Font("Arial", 1, 12));
         btnPayment.setForeground(new java.awt.Color(255, 255, 255));
         btnPayment.setText("Thanh toán");
+        btnPayment.setOpaque(true);
+        btnPayment.setContentAreaFilled(true);
+        btnPayment.setBorderPainted(true);
+        btnPayment.setUI(new javax.swing.plaf.basic.BasicButtonUI());
 
         lblTotal.setFont(new java.awt.Font("Segoe UI", 1, 12));
         lblTotal.setText("Tổng tiền :");
@@ -1326,6 +1335,10 @@ public class CheckoutPanel extends javax.swing.JPanel {
         btnCancel.setFont(new java.awt.Font("Arial", 1, 12));
         btnCancel.setForeground(new java.awt.Color(255, 255, 255));
         btnCancel.setText("Huỷ");
+        btnCancel.setOpaque(true);
+        btnCancel.setContentAreaFilled(true);
+        btnCancel.setBorderPainted(true);
+        btnCancel.setUI(new javax.swing.plaf.basic.BasicButtonUI());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

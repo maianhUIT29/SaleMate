@@ -1,13 +1,28 @@
 package com.salesmate.view;
 
 import java.awt.CardLayout;
+import javax.swing.UIManager;
 
 public class AdminView extends javax.swing.JFrame {
 
     public AdminView() {
         try {
-            // Set system look and feel for better integration
-            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
+            // Set system look and feel but exclude buttons
+            try {
+                // Capture existing button UI before setting look and feel
+                javax.swing.LookAndFeel oldLF = UIManager.getLookAndFeel();
+                Object buttonUI = UIManager.get("ButtonUI");
+                
+                javax.swing.UIManager.setLookAndFeel(
+                    javax.swing.UIManager.getSystemLookAndFeelClassName());
+                
+                // Preserve button UI to keep their appearance
+                if (buttonUI != null) {
+                    UIManager.put("ButtonUI", buttonUI);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             
             initComponents();
             
@@ -105,10 +120,9 @@ public class AdminView extends javax.swing.JFrame {
             javax.swing.UIManager.setLookAndFeel(
                 javax.swing.UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(AdminView.class.getName())
-                .log(java.util.logging.Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
-
+        
         // Create and display the form
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

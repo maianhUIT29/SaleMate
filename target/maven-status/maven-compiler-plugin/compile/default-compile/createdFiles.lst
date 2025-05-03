@@ -15,6 +15,7 @@ com\salesmate\component\CashierAccount$4.class
 com\salesmate\component\CashierHeader$1.class
 com\salesmate\configs\DBConnection.class
 com\salesmate\configs\OpenCVConfig.class
+com\salesmate\utils\DebugLogger.class
 com\salesmate\component\CashierInvoicesPanel.class
 com\salesmate\dao\SalaryDAO.class
 com\salesmate\model\LeaveRequest.class
@@ -78,9 +79,11 @@ com\salesmate\model\Invoice.class
 com\salesmate\model\ProductPromotion.class
 com\salesmate\component\AdAccountPopup$1.class
 com\salesmate\model\AttendanceAdjustment.class
+com\salesmate\component\ProductManagementPanel.class
 com\salesmate\component\AdminSidebar$4.class
 com\salesmate\model\EmployeeShift.class
 com\salesmate\utils\ColorPalette.class
+com\salesmate\component\ProductManagementPanel$1.class
 com\salesmate\view\LoginForm.class
 com\salesmate\configs\MailSender$1.class
 com\salesmate\model\User.class
@@ -99,6 +102,7 @@ com\salesmate\component\RevenueLineChart.class
 com\salesmate\utils\DebugUtils.class
 com\salesmate\component\CashierAccount$8.class
 com\salesmate\view\LoginFaceID.class
+com\salesmate\component\CashierHeader$4.class
 com\salesmate\component\AdminHeader$1.class
 com\salesmate\component\CheckoutPanel$4.class
 com\salesmate\component\ProductSelectionPanel$3.class

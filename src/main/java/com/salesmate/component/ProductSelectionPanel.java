@@ -487,7 +487,23 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         paginationPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(230, 230, 230)));
         paginationPanel.setPreferredSize(new java.awt.Dimension(getWidth(), 50));
 
+        // Add "First Page" button
+        javax.swing.JButton firstButton = new javax.swing.JButton("|<");
+        firstButton.setOpaque(true);
+        firstButton.setFocusPainted(false);
+        firstButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        firstButton.setEnabled(currentPage > 1);
+        firstButton.addActionListener(e -> {
+            currentPage = 1;
+            displayFilteredProducts(filteredProducts);
+        });
+        paginationPanel.add(firstButton);
+
+        // Previous button
         javax.swing.JButton prevButton = new javax.swing.JButton("<<");
+        prevButton.setOpaque(true);
+        prevButton.setFocusPainted(false);
+        prevButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         prevButton.setEnabled(currentPage > 1);
         prevButton.addActionListener(e -> {
             currentPage--;
@@ -503,13 +519,29 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
             addPageButton(i, filteredProducts);
         }
 
+        // Next button
         javax.swing.JButton nextButton = new javax.swing.JButton(">>");
+        nextButton.setOpaque(true);
+        nextButton.setFocusPainted(false);
+        nextButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         nextButton.setEnabled(currentPage < totalPages);
         nextButton.addActionListener(e -> {
             currentPage++;
             displayFilteredProducts(filteredProducts);
         });
         paginationPanel.add(nextButton);
+
+        // Add "Last Page" button
+        javax.swing.JButton lastButton = new javax.swing.JButton(">|");
+        lastButton.setOpaque(true);
+        lastButton.setFocusPainted(false);
+        lastButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        lastButton.setEnabled(currentPage < totalPages);
+        lastButton.addActionListener(e -> {
+            currentPage = totalPages;
+            displayFilteredProducts(filteredProducts);
+        });
+        paginationPanel.add(lastButton);
 
         mainContainer.add(scrollPane, java.awt.BorderLayout.CENTER);
         mainContainer.add(paginationPanel, java.awt.BorderLayout.SOUTH);
@@ -525,6 +557,10 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
     // Thêm phương thức để thêm nút trang
     private void addPageButton(int pageNum, List<Product> filteredProducts) {
         javax.swing.JButton pageButton = new javax.swing.JButton(String.valueOf(pageNum));
+        pageButton.setOpaque(true);
+        pageButton.setFocusPainted(false);
+        pageButton.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        
         if (pageNum == currentPage) {
             pageButton.setBackground(new java.awt.Color(46, 125, 50));
             pageButton.setForeground(java.awt.Color.WHITE);

@@ -164,23 +164,34 @@
         </dependency>
         
       
-        
+        <!---Apache Batik (SVG) -->
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-swing</artifactId>
             <version>1.14</version>
         </dependency>
+
+        <!-- Apache Batik (SVG) -->
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-dom</artifactId>
             <version>1.14</version>
         </dependency>
+
+        <!-- Apache Batik (SVG) -->
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-svggen</artifactId>
             <version>1.14</version>
         </dependency>
 
+        <!-- Http -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+          
 
     </dependencies>
     

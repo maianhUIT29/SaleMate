@@ -5,7 +5,9 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
@@ -15,39 +17,83 @@ public class CashierView extends javax.swing.JFrame {
     private ProductController productController;
 
     public CashierView() {
-        initComponents();
-        productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
-        
-        // Link panels
-        productSelectionPanel.setCheckoutPanel(checkoutPanel2);
-        checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
-        
-        // Add window listener to maximize window after it becomes visible
-        this.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-                setExtendedState(JFrame.MAXIMIZED_BOTH);
+        try {
+            System.out.println("Initializing CashierView...");
+            
+            // Set system look and feel but exclude buttons
+            try {
+                // Capture existing button UI before setting look and feel
+                javax.swing.LookAndFeel oldLF = UIManager.getLookAndFeel();
+                Object buttonUI = UIManager.get("ButtonUI");
+                
+                javax.swing.UIManager.setLookAndFeel(
+                    javax.swing.UIManager.getSystemLookAndFeelClassName());
+                
+                // Preserve button UI to keep their appearance
+                if (buttonUI != null) {
+                    UIManager.put("ButtonUI", buttonUI);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-        });
-        
-        // Load products after UI is set up
-        SwingUtilities.invokeLater(this::loadProductList);
+            
+            initComponents();
+            productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
+            
+            // Link panels
+            System.out.println("Linking panels...");
+            productSelectionPanel.setCheckoutPanel(checkoutPanel2);
+            checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
+            
+            // Add window listener to maximize window after it becomes visible
+            this.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    System.out.println("CashierView window opened, maximizing...");
+                    setExtendedState(JFrame.MAXIMIZED_BOTH);
+                    validate();
+                    repaint();
+                }
+            });
+            
+            // Make sure window is visible before loading products
+            setVisible(true);
+            
+            // Load products after UI is set up
+            SwingUtilities.invokeLater(this::loadProductList);
+            
+            System.out.println("CashierView initialization complete");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in CashierView constructor: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, 
+                    "Lỗi khởi tạo giao diện bán hàng: " + e.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void loadProductList() {
-        productController = new ProductController();
-        List<Product> products = productController.getAllProducts();
-        if (products != null && !products.isEmpty()) {
-            // Set products will trigger a single loading animation in ProductSelectionPanel
-            productSelectionPanel.setProducts(products);
-        } else {
-            // Show an error message if no products are found
-            javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "Không tìm thấy sản phẩm nào trong cơ sở dữ liệu.",
-                "Thông báo",
-                javax.swing.JOptionPane.INFORMATION_MESSAGE
-            );
+        try {
+            System.out.println("Loading product list...");
+            productController = new ProductController();
+            List<Product> products = productController.getAllProducts();
+            if (products != null && !products.isEmpty()) {
+                System.out.println("Found " + products.size() + " products");
+                // Set products will trigger a single loading animation in ProductSelectionPanel
+                productSelectionPanel.setProducts(products);
+            } else {
+                System.out.println("No products found");
+                // Show an error message if no products are found
+                javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "Không tìm thấy sản phẩm nào trong cơ sở dữ liệu.",
+                    "Thông báo",
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error loading products: " + e.getMessage());
         }
     }
 
@@ -71,36 +117,35 @@ public class CashierView extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(204, 255, 255));
-        getContentPane().setLayout(new java.awt.BorderLayout());
 
-        tpCashier.setBorder(javax.swing.BorderFactory.createLineBorder(null));
+        tpCashier.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         tpCashier.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         panelSaleContainer.setLayout(new java.awt.BorderLayout());
 
-        productSelectionPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null));
+        productSelectionPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        checkoutPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(null));
+        checkoutPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         javax.swing.GroupLayout PanelSaleLayout = new javax.swing.GroupLayout(PanelSale);
         PanelSale.setLayout(PanelSaleLayout);
         PanelSaleLayout.setHorizontalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 548, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
                 .addGap(8, 8, 8)
                 .addComponent(checkoutPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(12, 12, 12))
         );
         PanelSaleLayout.setVerticalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(PanelSaleLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelSaleLayout.createSequentialGroup()
                 .addGap(16, 16, 16)
-                .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(productSelectionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE))
-                .addGap(16, 16, 16))
+                    .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         panelSaleContainer.add(PanelSale, java.awt.BorderLayout.CENTER);
@@ -109,6 +154,10 @@ public class CashierView extends javax.swing.JFrame {
 
         panelAccountContainer.setLayout(new java.awt.BorderLayout());
         tpCashier.addTab("Hoá Đơn Gần Đây", panelAccountContainer);
+
+        panelSalaryContainer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+
+        cashierInvoicesPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
         javax.swing.GroupLayout panelSalaryContainerLayout = new javax.swing.GroupLayout(panelSalaryContainer);
         panelSalaryContainer.setLayout(panelSalaryContainerLayout);
@@ -135,14 +184,14 @@ public class CashierView extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 929, Short.MAX_VALUE)
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 929, Short.MAX_VALUE)
                 .addGap(20, 20, 20))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 455, Short.MAX_VALUE)
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 455, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -189,7 +238,32 @@ public class CashierView extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new RunnableImpl());
+        try {
+            System.out.println("Starting CashierView application...");
+            // Set up look and feel
+            try {
+                javax.swing.UIManager.setLookAndFeel(
+                    javax.swing.UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            
+            java.awt.EventQueue.invokeLater(() -> {
+                try {
+                    CashierView view = new CashierView();
+                    System.out.println("CashierView created successfully");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("Error creating CashierView: " + e.getMessage());
+                    JOptionPane.showMessageDialog(null, 
+                            "Lỗi khởi tạo CashierView: " + e.getMessage(),
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Unexpected error in main: " + e.getMessage());
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
