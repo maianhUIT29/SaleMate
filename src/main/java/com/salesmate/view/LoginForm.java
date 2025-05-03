@@ -230,11 +230,43 @@ public class LoginForm extends JFrame {
         if (user != null) {
             // Lưu thông tin đăng nhập vào SessionManager
             SessionManager.getInstance().setLoggedInUser(user);
-            dispose();
-            if ("Sales Staff".equals(user.getRole())) {
-                new CashierView().setVisible(true); // Ensure the view is visible
-            } else if ("Store Manager".equals(user.getRole())) {
-                new AdminView().setVisible(true); // Ensure the view is visible
+            
+            try {
+                // Close this form first
+                dispose();
+                
+                // Use SwingUtilities.invokeLater to ensure UI updates happen on EDT
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        if ("Sales Staff".equals(user.getRole())) {
+                            CashierView cashierView = new CashierView();
+                            cashierView.setLocationRelativeTo(null);  // Center on screen
+                            cashierView.setVisible(true);  // Make sure it's visible
+                            System.out.println("CashierView initialized");
+                        } else if ("Store Manager".equals(user.getRole()) || "Manager".equals(user.getRole())) {
+                            AdminView adminView = new AdminView();
+                            adminView.setLocationRelativeTo(null);  // Center on screen
+                            adminView.pack();  // Ensure proper sizing
+                            adminView.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize window
+                            adminView.setVisible(true);  // Make sure it's visible
+                            System.out.println("AdminView initialized");
+                        } else {
+                            // Handle unknown role
+                            showToast("Vai trò không được hỗ trợ: " + user.getRole());
+                            new LoginForm(); // Reopen login form if role is not recognized
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(null, 
+                                "Lỗi khi mở giao diện: " + e.getMessage(),
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        new LoginForm(); // Reopen login form if there's an error
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                showToast("Lỗi khi mở giao diện: " + e.getMessage());
+                // Don't dispose the login form if there was an error
             }
         } else {
             // Hiển thị toast thông báo lỗi trong 3 giây

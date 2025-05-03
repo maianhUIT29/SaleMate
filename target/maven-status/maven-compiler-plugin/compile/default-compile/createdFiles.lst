@@ -96,6 +96,7 @@ com\salesmate\model\Shift.class
 com\salesmate\view\ForgotPasswordForm$1$1.class
 com\salesmate\view\LoginForm$5.class
 com\salesmate\component\RevenueLineChart.class
+com\salesmate\utils\DebugUtils.class
 com\salesmate\component\CashierAccount$8.class
 com\salesmate\view\LoginFaceID.class
 com\salesmate\component\AdminHeader$1.class
