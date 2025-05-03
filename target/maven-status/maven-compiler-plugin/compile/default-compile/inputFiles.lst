@@ -17,7 +17,6 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\UserDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginForm.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\ProductPromotion.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\InvoicePanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Invoice.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\CashierView.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\ProductDAO.java
@@ -27,6 +26,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\Sessi
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginFaceID.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\AdminView.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierQRPayment.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\RevenueLineChartModel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\DetailController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Product.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductSelectionPanel.java
@@ -41,6 +41,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\C
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdminSidebar.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\InvoiceDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdDashBoard.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\RevenueLineChart.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\DBConnection.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\User.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\Toast.java

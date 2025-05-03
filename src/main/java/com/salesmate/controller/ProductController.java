@@ -4,13 +4,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.dao.ProductDAO;
 import com.salesmate.model.Product;
-import java.util.Map;
 
 public class ProductController {
 
@@ -121,6 +121,11 @@ public class ProductController {
     
  // Lấy danh sách sản phẩm bán chạy nhất với số thứ tự từ 1 đến 10
     public List<Map<String, Object>> getTopSellingProducts() {
-        return productDAO.getTopSellingProducts(); // Không cần tham số nữa
+        try {
+            return productDAO.getTopSellingProducts(); // Không cần tham số nữa
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 }

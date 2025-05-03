@@ -146,7 +146,7 @@ public class ProductDAO {
     }
 
 // Lấy top 10 sản phẩm bán chạy nhất
-public List<Map<String, Object>> getTopSellingProducts() {
+public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
     List<Map<String, Object>> products = new ArrayList<>();
     String sql = "SELECT p.product_id, " +
                  "p.product_name, " +
@@ -162,27 +162,24 @@ public List<Map<String, Object>> getTopSellingProducts() {
                  "FETCH FIRST 10 ROWS ONLY";  // Giới hạn 10 sản phẩm bán chạy nhất
 
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
-        try (ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) {
-                // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
-                Map<String, Object> product = new HashMap<>();
-                product.put("product_id", rs.getInt("product_id"));
-                product.put("product_name", rs.getString("product_name"));
-                product.put("price", rs.getBigDecimal("price"));
-                product.put("quantity", rs.getInt("quantity"));
-                product.put("barcode", rs.getString("barcode"));
-                product.put("image", rs.getString("image"));
-                product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
-                products.add(product);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+         PreparedStatement pstmt = connection.prepareStatement(sql);
+         ResultSet rs = pstmt.executeQuery()) {
+        
+        while (rs.next()) {
+            // Tạo một Map để chứa thông tin sản phẩm và tổng số lượng bán ra
+            Map<String, Object> product = new HashMap<>();
+            product.put("product_id", rs.getInt("product_id"));
+            product.put("product_name", rs.getString("product_name"));
+            product.put("price", rs.getBigDecimal("price"));
+            product.put("quantity", rs.getInt("quantity"));
+            product.put("barcode", rs.getString("barcode"));
+            product.put("image", rs.getString("image"));
+            product.put("total_sold", rs.getInt("total_sold"));  // Lưu tổng số lượng bán ra trực tiếp vào Map
+            products.add(product);
         }
-        return products;
     }
-
+    return products;
+}
     // Xóa sản phẩm
     public boolean deleteProduct(int productId) {
         String query = "DELETE FROM product WHERE product_id = ?";
