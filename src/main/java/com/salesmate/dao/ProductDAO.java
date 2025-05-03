@@ -196,4 +196,53 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         }
     }
 
+    /**
+     * Retrieves all distinct categories from products in the database
+     * @return List of category names
+     */
+    public List<String> getProductCategories() {
+        List<String> categories = new ArrayList<>();
+        categories.add("Tất cả"); // Add default "All" option first
+        
+        try (Connection conn = DBConnection.getConnection()) {
+            String query = "SELECT DISTINCT category FROM product WHERE category IS NOT NULL AND category <> '' ORDER BY category";
+            try (PreparedStatement stmt = conn.prepareStatement(query);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String category = rs.getString("category");
+                    if (category != null && !category.trim().isEmpty()) {
+                        categories.add(category.trim());
+                    }
+                }
+            }
+            
+            // If no categories found in database, add some defaults
+            if (categories.size() <= 1) { // Only "Tất cả" exists
+                String[] defaultCategories = {
+                    "Thực phẩm & Đồ uống",
+                    "Đồ điện gia dụng", 
+                    "Thời trang",
+                    "Điện tử & Công nghệ",
+                    "Hàng gia dụng"
+                };
+                
+                for (String category : defaultCategories) {
+                    categories.add(category);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching product categories: " + e.getMessage());
+            e.printStackTrace();
+            
+            // In case of error, ensure we have at least some categories
+            if (categories.size() <= 1) {
+                categories.add("Thực phẩm & Đồ uống");
+                categories.add("Đồ điện gia dụng");
+                categories.add("Thời trang");
+            }
+        }
+        
+        return categories;
+    }
+
 }

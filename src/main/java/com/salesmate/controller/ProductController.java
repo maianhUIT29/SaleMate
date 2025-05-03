@@ -123,9 +123,20 @@ public class ProductController {
     public List<Map<String, Object>> getTopSellingProducts() {
         try {
             return productDAO.getTopSellingProducts(); // Không cần tham số nữa
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
+
+    // Lấy danh mục sản phẩm
+    public List<String> getProductCategories() {
+        try {
+            return productDAO.getProductCategories();
+        } catch (Exception e) {
+            System.err.println("Error getting product categories: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
 }

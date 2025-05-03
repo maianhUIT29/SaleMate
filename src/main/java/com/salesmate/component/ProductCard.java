@@ -1,16 +1,24 @@
 package com.salesmate.component;
 
 import java.awt.Image;
+import java.awt.Color;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+import javax.swing.BorderFactory;
 
 import com.salesmate.model.Product;
 
 public class ProductCard extends javax.swing.JPanel {
 
     private Product product;
+    private BigDecimal originalPrice; // To track original price when there's a discount
+    private double discountPercent = 0; // Store discount percentage
+    private BigDecimal discountAmount = BigDecimal.ZERO; // Store discount amount
 
     public interface ProductCardListener {
         void onProductSelected(Product product);
@@ -63,6 +71,8 @@ public class ProductCard extends javax.swing.JPanel {
         lblProductQuantityValue = new javax.swing.JLabel();
         lblProductPriceKey = new javax.swing.JLabel();
         lblProductPriceValue = new javax.swing.JLabel();
+        lblProductCategory = new javax.swing.JLabel(); // New label for category
+        lblDiscountBadge = new javax.swing.JLabel(); // New label for discount badge
 
         setPreferredSize(new java.awt.Dimension(160, 220));
         setLayout(new java.awt.BorderLayout());
@@ -76,11 +86,18 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(panelImageContainerLayout.createSequentialGroup()
                 .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
+            .addGroup(panelImageContainerLayout.createSequentialGroup()
+                .addGap(5, 5, 5)
+                .addComponent(lblDiscountBadge)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelImageContainerLayout.setVerticalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelImageContainerLayout.createSequentialGroup()
-                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
+                .addGap(5, 5, 5)
+                .addComponent(lblDiscountBadge)
+                .addGap(5, 5, 5)
+                .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -101,6 +118,18 @@ public class ProductCard extends javax.swing.JPanel {
         lblProductPriceValue.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         lblProductPriceValue.setText("0");
 
+        lblProductCategory.setFont(new java.awt.Font("Segoe UI", 0, 10));
+        lblProductCategory.setText("Danh mục");
+
+        lblDiscountBadge.setFont(new java.awt.Font("Segoe UI", 1, 10));
+        lblDiscountBadge.setForeground(new Color(255, 255, 255));
+        lblDiscountBadge.setBackground(new Color(220, 53, 69));
+        lblDiscountBadge.setOpaque(true);
+        lblDiscountBadge.setHorizontalAlignment(SwingConstants.CENTER);
+        lblDiscountBadge.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+        lblDiscountBadge.setText("-10%");
+        lblDiscountBadge.setVisible(false); // Hide by default
+
         javax.swing.GroupLayout panelProductDetailLayout = new javax.swing.GroupLayout(panelProductDetail);
         panelProductDetail.setLayout(panelProductDetailLayout);
         panelProductDetailLayout.setHorizontalGroup(
@@ -114,7 +143,8 @@ public class ProductCard extends javax.swing.JPanel {
                     .addGroup(panelProductDetailLayout.createSequentialGroup()
                         .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblProductPriceKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblProductCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
@@ -127,6 +157,9 @@ public class ProductCard extends javax.swing.JPanel {
                 .addGap(0, 0, 0)
                 .addComponent(lblProductNameValue, javax.swing.GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
+                .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblProductCategory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(3, 3, 3)
                 .addGroup(panelProductDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblProductQuantityKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lblProductQuantityValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -163,7 +196,12 @@ public class ProductCard extends javax.swing.JPanel {
     public void setProductDetails(Product product) {
         this.product = product;
         this.product.setMaxQuantity(product.getQuantity()); // Lưu số lượng tối đa khi set product
-
+        this.originalPrice = product.getPrice(); // Store original price
+        
+        // Check for discount - this would come from your promotion system in real code
+        // For demo purposes, we'll randomly apply discounts to some products
+        applyDiscountIfAvailable(product);
+        
         // Kiểm tra số lượng sản phẩm
         if (product.getQuantity() <= 0) {
             this.setEnabled(false);
@@ -176,10 +214,35 @@ public class ProductCard extends javax.swing.JPanel {
         // Hiển thị tên sản phẩm
         lblProductNameValue.setText(product.getProductName());
 
+        // Hiển thị danh mục (category)
+        if (product.getCategory() != null && !product.getCategory().isEmpty()) {
+            lblProductCategory.setText(product.getCategory());
+            lblProductCategory.setVisible(true);
+        } else {
+            lblProductCategory.setVisible(false);
+        }
+
         // Hiển thị số lượng và giá
         lblProductQuantityValue.setText(String.valueOf(product.getQuantity()));
-        lblProductPriceValue.setText(product.getPrice().toString());
-
+        
+        // Display price - show discounted price if there's a discount
+        if (discountPercent > 0 || discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+            // Store original price in product before applying discount
+            product.setOriginalPrice(originalPrice);
+            
+            // Calculate and format the discounted price
+            BigDecimal discountedPrice = product.getPrice();
+            
+            // Format with strikethrough for original price and normal for discounted
+            String formattedOriginal = formatPrice(originalPrice);
+            String formattedDiscounted = formatPrice(discountedPrice);
+            lblProductPriceValue.setText("<html><strike>" + formattedOriginal + "</strike> <font color='#d9534f'>" + formattedDiscounted + "</font></html>");
+        } else {
+            // No discount, just show regular price and clear original price
+            product.setOriginalPrice(null);
+            lblProductPriceValue.setText(formatPrice(product.getPrice()));
+        }
+        
         // Tải hình ảnh sản phẩm nếu có
         if (product.getImage() != null && !product.getImage().isEmpty()) {
             try {
@@ -250,6 +313,49 @@ public class ProductCard extends javax.swing.JPanel {
         panelImageContainer.repaint(); // Vẽ lại các thay đổi trên giao diện
 
         applyModernStyle(); // Áp dụng style mới sau khi cập nhật thông tin sản phẩm
+    }
+    
+    /**
+     * Apply discount to the product if available
+     * In a real application, this would check a database or promotion service
+     */
+    private void applyDiscountIfAvailable(Product product) {
+        // For demonstration, apply random discounts to ~30% of products
+        if (Math.random() < 0.3) {
+            // Generate a random discount between 5% and 30%
+            discountPercent = 5 + Math.random() * 25;
+            discountPercent = Math.round(discountPercent); // Round to whole number
+            
+            // Save discount percent to product
+            product.setDiscountPercent(discountPercent);
+            
+            // Calculate discount amount
+            discountAmount = originalPrice.multiply(
+                BigDecimal.valueOf(discountPercent / 100.0)
+            ).setScale(2, RoundingMode.HALF_UP);
+            
+            // Apply discount to product price
+            BigDecimal discountedPrice = originalPrice.subtract(discountAmount);
+            product.setPrice(discountedPrice);
+            
+            // Show discount badge
+            lblDiscountBadge.setText("-" + (int)discountPercent + "%");
+            lblDiscountBadge.setVisible(true);
+        } else {
+            // No discount
+            discountPercent = 0;
+            discountAmount = BigDecimal.ZERO;
+            product.setDiscountPercent(0);
+            lblDiscountBadge.setVisible(false);
+        }
+    }
+    
+    /**
+     * Format price with Vietnamese currency
+     */
+    private String formatPrice(BigDecimal price) {
+        java.text.NumberFormat formatter = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+        return formatter.format(price) + "đ";
     }
 
     public void enhanceUI() {
@@ -351,6 +457,16 @@ public class ProductCard extends javax.swing.JPanel {
             // Giữ nguyên text nếu không parse được
         }
 
+        // Style for category
+        lblProductCategory.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 10));
+        lblProductCategory.setForeground(new java.awt.Color(100, 100, 100));
+        
+        // Style for discount badge
+        lblDiscountBadge.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 11));
+        lblDiscountBadge.setBackground(new java.awt.Color(220, 53, 69)); // Red background
+        lblDiscountBadge.setForeground(java.awt.Color.WHITE);
+        lblDiscountBadge.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+
         // Cập nhật các giá trị maximum size
         setMaximumSize(getPreferredSize());
         ProductCardContainer.setMaximumSize(getPreferredSize());
@@ -393,6 +509,8 @@ public class ProductCard extends javax.swing.JPanel {
     private javax.swing.JLabel lblProductPriceValue;
     private javax.swing.JLabel lblProductQuantityKey;
     private javax.swing.JLabel lblProductQuantityValue;
+    private javax.swing.JLabel lblProductCategory; // New label for category
+    private javax.swing.JLabel lblDiscountBadge; // New label for discount badge
     private javax.swing.JPanel panelImageContainer;
     private javax.swing.JPanel panelProductDetail;
     // End of variables declaration//GEN-END:variables

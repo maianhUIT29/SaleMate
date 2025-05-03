@@ -69,11 +69,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
         tableModel = new DefaultTableModel(
             new Object[][]{},
-            new String[]{"Tên sản phẩm", "Giá", "Số Lượng", "Thành tiền"}
+            new String[]{"Tên sản phẩm", "Giá gốc", "Giá giảm", "SL", "Thành tiền"}
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 2;
+                return column == 3;
             }
         
             private String formatCurrency(BigDecimal amount) {
@@ -83,7 +83,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 2) {
+                if (columnIndex == 3) {
                     return Integer.class;
                 }
                 return super.getColumnClass(columnIndex);
@@ -139,12 +139,13 @@ public class CheckoutPanel extends javax.swing.JPanel {
             Product checkoutProduct = new Product(
                 product.getProductId(),
                 product.getProductName(),
-                product.getPrice(),
+                product.getOriginalPrice() != null ? product.getOriginalPrice() : product.getPrice(),
                 1,
                 product.getBarcode(),
                 product.getImage()
             );
             checkoutProduct.setMaxQuantity(product.getQuantity());
+            checkoutProduct.setPrice(product.getPrice());
             checkoutProducts.put(product.getProductId(), checkoutProduct);
         }
         refreshCheckoutTable();
@@ -154,11 +155,16 @@ public class CheckoutPanel extends javax.swing.JPanel {
     private void refreshCheckoutTable() {
         tableModel.setRowCount(0);
         for (Product product : checkoutProducts.values()) {
+            BigDecimal originalPrice = product.getOriginalPrice() != null ? 
+                product.getOriginalPrice() : product.getPrice();
+            BigDecimal discountedPrice = product.getPrice();
+            
             tableModel.addRow(new Object[]{
                 product.getProductName(),
-                product.getPrice(),
+                originalPrice,
+                discountedPrice,
                 product.getQuantity(),
-                product.getPrice().multiply(new java.math.BigDecimal(product.getQuantity()))
+                discountedPrice.multiply(new BigDecimal(product.getQuantity()))
             });
         }
         tblProduct.revalidate();
@@ -175,13 +181,14 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
     private void adjustColumnWidths() {
         javax.swing.table.TableColumnModel columnModel = tblProduct.getColumnModel();
-        int totalParts = 10;
+        int totalParts = 12;
         int tableWidth = tblProduct.getWidth();
 
-        columnModel.getColumn(0).setPreferredWidth((tableWidth * 5) / totalParts);
+        columnModel.getColumn(0).setPreferredWidth((tableWidth * 4) / totalParts);
         columnModel.getColumn(1).setPreferredWidth((tableWidth * 2) / totalParts);
-        columnModel.getColumn(2).setPreferredWidth((tableWidth * 1) / totalParts);
-        columnModel.getColumn(3).setPreferredWidth((tableWidth * 2) / totalParts);
+        columnModel.getColumn(2).setPreferredWidth((tableWidth * 2) / totalParts);
+        columnModel.getColumn(3).setPreferredWidth((tableWidth * 1) / totalParts);
+        columnModel.getColumn(4).setPreferredWidth((tableWidth * 3) / totalParts);
     }
 
     private void clearTable() {
@@ -1072,12 +1079,12 @@ public class CheckoutPanel extends javax.swing.JPanel {
         button.setForeground(Color.WHITE);
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setFocusPainted(false);
-        button.setOpaque(true); // Make button opaque so background color shows
-        button.setContentAreaFilled(true); // Ensure content area is filled
-        button.setBorderPainted(true); // Ensure border is painted
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorderPainted(true);
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setUI(new javax.swing.plaf.basic.BasicButtonUI()); // Use BasicButtonUI to preserve styling
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -1109,8 +1116,19 @@ public class CheckoutPanel extends javax.swing.JPanel {
                     c.setForeground(java.awt.Color.BLACK);
                 }
 
-                if (column == 2) {
+                if (column == 3) {
                     ((JLabel) c).setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                }
+                
+                if (column == 1 || column == 2 || column == 4) {
+                    ((JLabel) c).setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+                    
+                    if (value instanceof BigDecimal) {
+                        BigDecimal amount = (BigDecimal) value;
+                        java.text.NumberFormat formatter = 
+                            java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("vi", "VN"));
+                        ((JLabel) c).setText(formatter.format(amount));
+                    }
                 }
                 
                 return c;
@@ -1154,12 +1172,12 @@ public class CheckoutPanel extends javax.swing.JPanel {
             int row = e.getFirstRow();
             int column = e.getColumn();
 
-            if (column == 2) {
+            if (column == 3) {
                 int productId = getProductIdFromRow(row);
                 if (productId != -1) {
                     Product product = checkoutProducts.get(productId);
                     try {
-                        int newQuantity = (int) tableModel.getValueAt(row, 2);
+                        int newQuantity = (int) tableModel.getValueAt(row, 3);
                         if (newQuantity <= 0) {
                             throw new IllegalArgumentException("Số lượng phải lớn hơn 0");
                         }
@@ -1171,7 +1189,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                         tableModel.setValueAt(
                             product.getPrice().multiply(new java.math.BigDecimal(newQuantity)),
                             row,
-                            3
+                            4
                         );
                         updateTotal();
                     } catch (Exception ex) {
@@ -1179,7 +1197,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                             "Số lượng không hợp lệ: " + ex.getMessage(),
                             "Lỗi",
                             JOptionPane.ERROR_MESSAGE);
-                        tableModel.setValueAt(product.getQuantity(), row, 2);
+                        tableModel.setValueAt(product.getQuantity(), row, 3);
                     }
                 }
             }
@@ -1203,7 +1221,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                     int row = tblProduct.getSelectedRow();
                     int col = tblProduct.getSelectedColumn();
                     
-                    if (col == 2) {
+                    if (col == 3) {
                         try {
                             String input = tblProduct.getValueAt(row, col).toString();
                             int newQuantity = Integer.parseInt(input);
@@ -1224,7 +1242,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                                 tableModel.setValueAt(
                                     product.getPrice().multiply(new java.math.BigDecimal(newQuantity)),
                                     row,
-                                    3
+                                    4
                                 );
                                 updateTotal();
                             }
@@ -1234,14 +1252,14 @@ public class CheckoutPanel extends javax.swing.JPanel {
                                 "Lỗi",
                                 JOptionPane.ERROR_MESSAGE);
                             Product product = checkoutProducts.get(getProductIdFromRow(row));
-                            tableModel.setValueAt(product.getQuantity(), row, 2);
+                            tableModel.setValueAt(product.getQuantity(), row, 3);
                         } catch (IllegalArgumentException ex) {
                             JOptionPane.showMessageDialog(CheckoutPanel.this,
                                 ex.getMessage(),
                                 "Lỗi",
                                 JOptionPane.ERROR_MESSAGE);
                             Product product = checkoutProducts.get(getProductIdFromRow(row));
-                            tableModel.setValueAt(product.getQuantity(), row, 2);
+                            tableModel.setValueAt(product.getQuantity(), row, 3);
                         }
                     }
                 }
@@ -1284,13 +1302,13 @@ public class CheckoutPanel extends javax.swing.JPanel {
         tblProduct.setAutoCreateRowSorter(true);
         tblProduct.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Tên sản phẩm", "Giá", "Số Lượng", "Thành tiền"
+                "Tên sản phẩm", "Giá gốc", "Giá giảm", "SL", "Thành tiền"
             }
         ));
         tblProduct.setToolTipText("");
@@ -1305,6 +1323,8 @@ public class CheckoutPanel extends javax.swing.JPanel {
             tblProduct.getColumnModel().getColumn(2).setPreferredWidth(10);
             tblProduct.getColumnModel().getColumn(3).setMinWidth(10);
             tblProduct.getColumnModel().getColumn(3).setPreferredWidth(10);
+            tblProduct.getColumnModel().getColumn(4).setMinWidth(10);
+            tblProduct.getColumnModel().getColumn(4).setPreferredWidth(10);
         }
 
         btnPayment.setBackground(new java.awt.Color(0, 123, 255));
