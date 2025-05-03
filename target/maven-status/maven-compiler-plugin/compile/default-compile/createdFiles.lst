@@ -10,7 +10,6 @@ com\salesmate\component\CashierAccount$7.class
 com\salesmate\controller\DetailController.class
 com\salesmate\component\CheckoutPanel.class
 com\salesmate\component\CashierHeader.class
-com\salesmate\component\CheckoutPanel$7.class
 com\salesmate\component\CashierAccount$4.class
 com\salesmate\component\CashierHeader$1.class
 com\salesmate\configs\DBConnection.class
@@ -25,7 +24,6 @@ com\salesmate\view\LoginFaceID$2.class
 com\salesmate\component\CheckoutPanel$1.class
 com\salesmate\model\Product.class
 com\salesmate\component\CashierAccount$5.class
-com\salesmate\component\CheckoutPanel$8.class
 com\salesmate\view\LoginForm$2.class
 com\salesmate\component\CashierInvoicesPanel$2.class
 com\salesmate\component\ProductCard$3.class
@@ -49,17 +47,16 @@ com\salesmate\view\ForgotPasswordForm$4.class
 com\salesmate\component\ProductCard.class
 com\salesmate\view\CashierView$1.class
 com\salesmate\utils\BarcodeScanner.class
-com\salesmate\component\ProductCard$4.class
 com\salesmate\model\Attendance.class
 com\salesmate\dao\DetailDAO.class
 com\salesmate\controller\UserController.class
 com\salesmate\component\CashierAccount$6.class
 com\salesmate\model\RevenueLineChartModel.class
-com\salesmate\component\CheckoutPanel$6.class
 com\salesmate\component\CashierAccount$3.class
 com\salesmate\component\AdDashBoard.class
 com\salesmate\component\CashierHeader$2.class
 com\salesmate\component\CheckoutPanel$3.class
+com\salesmate\model\PromotionDetail.class
 com\salesmate\component\ProductCard$2.class
 com\salesmate\view\CashierView$RunnableImpl.class
 com\salesmate\component\AdminHeader$2.class
@@ -69,14 +66,13 @@ com\salesmate\dao\ProductDAO.class
 com\salesmate\utils\SessionManager.class
 com\salesmate\view\GradientPanel.class
 com\salesmate\component\Toast.class
-com\salesmate\component\CheckoutPanel$9.class
 com\salesmate\component\AdUserPanel.class
 com\salesmate\component\Toast$1.class
 com\salesmate\view\AdminView.class
+com\salesmate\controller\PromotionController.class
 com\salesmate\view\LoginForm$6.class
 com\salesmate\component\CashierInvoicesPanel$ButtonEditor.class
 com\salesmate\model\Invoice.class
-com\salesmate\model\ProductPromotion.class
 com\salesmate\component\AdAccountPopup$1.class
 com\salesmate\model\AttendanceAdjustment.class
 com\salesmate\component\ProductManagementPanel.class
@@ -104,7 +100,6 @@ com\salesmate\component\CashierAccount$8.class
 com\salesmate\view\LoginFaceID.class
 com\salesmate\component\CashierHeader$4.class
 com\salesmate\component\AdminHeader$1.class
-com\salesmate\component\CheckoutPanel$4.class
 com\salesmate\component\ProductSelectionPanel$3.class
 com\salesmate\view\CashierView.class
 com\salesmate\component\CashierAccount$2.class
@@ -127,5 +122,4 @@ com\salesmate\model\Detail.class
 com\salesmate\component\AdminSidebar$3.class
 com\salesmate\configs\WebcamConfig.class
 com\salesmate\view\LoginForm$4.class
-com\salesmate\component\CheckoutPanel$5.class
 com\salesmate\model\Supplier.class

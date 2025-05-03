@@ -1,125 +1,131 @@
 package com.salesmate.model;
 
 import java.util.Date;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-
-/*
-Promotion Schema in oracle
-    promotion_id INT PRIMARY KEY,
-    promotion_name VARCHAR2(100) NOT NULL,
-    discount_type VARCHAR2(20) CHECK (discount_type IN ('Percentage', 'Cash')),
-    discount_value DECIMAL(10,2) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    status VARCHAR2(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Expired'))
-);
-*/
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "promotion")
+@Table(name = "PROMOTION")
 public class Promotion {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "promotion_id")
-    private int promotionId;
-
-    @Column(name = "promotion_name", nullable = false, length = 100)
+    private Integer promotionId;
+    
+    @Column(name = "promotion_name", nullable = false)
     private String promotionName;
-
-    @Column(name = "discount_type", nullable = false, length = 20)
-    private String discountType;
-
-    @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)
-    private double discountValue;
-
-    @Temporal(TemporalType.DATE)
+    
+    @Column(name = "description")
+    private String description;
+    
     @Column(name = "start_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
-
-    @Temporal(TemporalType.DATE)
+    
     @Column(name = "end_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
-
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "Active"; // Default value set to 'Active'
-
-
-    // Constructors
+    
+    @Column(name = "status", nullable = false)
+    private String status; // ACTIVE, INACTIVE, EXPIRED
+    
+    @Column(name = "created_at", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+    
+    // Default constructor
     public Promotion() {
+        this.createdAt = new Date();
+        this.status = "ACTIVE";
     }
-
-    public Promotion(int promotionId, String promotionName, String discountType, double discountValue, Date startDate, Date endDate, String status) {
+    
+    // All-args constructor
+    public Promotion(Integer promotionId, String promotionName, String description, 
+                   Date startDate, Date endDate, String status, Date createdAt) {
         this.promotionId = promotionId;
         this.promotionName = promotionName;
-        this.discountType = discountType;
-        this.discountValue = discountValue;
+        this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
+        this.createdAt = createdAt != null ? createdAt : new Date();
     }
-
+    
     // Getters and Setters
-    public int getPromotionId() {
+    public Integer getPromotionId() {
         return promotionId;
     }
-
-    public void setPromotionId(int promotionId) {
+    
+    public void setPromotionId(Integer promotionId) {
         this.promotionId = promotionId;
     }
-
+    
     public String getPromotionName() {
         return promotionName;
     }
-
+    
     public void setPromotionName(String promotionName) {
         this.promotionName = promotionName;
     }
-
-    public String getDiscountType() {
-        return discountType;
+    
+    public String getDescription() {
+        return description;
     }
-
-    public void setDiscountType(String discountType) {
-        this.discountType = discountType;
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
-
-    public double getDiscountValue() {
-        return discountValue;
-    }
-
-    public void setDiscountValue(double discountValue) {
-        this.discountValue = discountValue;
-    }
-
+    
     public Date getStartDate() {
         return startDate;
     }
-
+    
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
-
+    
     public Date getEndDate() {
         return endDate;
     }
-
+    
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
-
+    
     public String getStatus() {
         return status;
     }
-
+    
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    // Check if promotion is active
+    public boolean isActive() {
+        Date now = new Date();
+        return "ACTIVE".equals(status) && 
+               startDate.before(now) && 
+               endDate.after(now);
+    }
+    
+    @Override
+    public String toString() {
+        return "Promotion{" +
+                "promotionId=" + promotionId +
+                ", promotionName='" + promotionName + '\'' +
+                ", description='" + description + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", status='" + status + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

@@ -43,7 +43,6 @@ public class CashierView extends javax.swing.JFrame {
             // Link panels
             System.out.println("Linking panels...");
             productSelectionPanel.setCheckoutPanel(checkoutPanel2);
-            checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
             
             // Add window listener to maximize window after it becomes visible
             this.addWindowListener(new WindowAdapter() {
@@ -132,11 +131,9 @@ public class CashierView extends javax.swing.JFrame {
         PanelSaleLayout.setHorizontalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSaleLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
-                .addGap(8, 8, 8)
-                .addComponent(checkoutPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12))
+                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 554, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(checkoutPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         PanelSaleLayout.setVerticalGroup(
             PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -144,7 +141,7 @@ public class CashierView extends javax.swing.JFrame {
                 .addGap(16, 16, 16)
                 .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(productSelectionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE))
+                    .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -191,7 +188,7 @@ public class CashierView extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 455, Short.MAX_VALUE)
+                .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 455, Short.MAX_VALUE)
                 .addContainerGap())
         );
 

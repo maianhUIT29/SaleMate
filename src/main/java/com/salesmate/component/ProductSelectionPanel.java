@@ -549,7 +549,8 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         gbc.fill = java.awt.GridBagConstraints.NONE;
         gbc.anchor = java.awt.GridBagConstraints.CENTER;
 
-        int numColumns = 6;
+        // Changed from 6 to 5 products per row
+        int numColumns = 5;
         int spacing = 16;
         int availableWidth = getWidth() - (spacing * (numColumns + 1));
         int cardWidth = availableWidth / numColumns;

@@ -12,6 +12,9 @@ import javax.swing.SwingConstants;
 import javax.swing.BorderFactory;
 
 import com.salesmate.model.Product;
+import com.salesmate.model.Promotion;
+import com.salesmate.model.PromotionDetail;
+import com.salesmate.controller.PromotionController;
 
 public class ProductCard extends javax.swing.JPanel {
 
@@ -19,6 +22,8 @@ public class ProductCard extends javax.swing.JPanel {
     private BigDecimal originalPrice; // To track original price when there's a discount
     private double discountPercent = 0; // Store discount percentage
     private BigDecimal discountAmount = BigDecimal.ZERO; // Store discount amount
+    private String discountType = ""; // "PERCENT" or "AMOUNT"
+    private PromotionDetail promotionDetail; // Store associated promotion detail
 
     public interface ProductCardListener {
         void onProductSelected(Product product);
@@ -72,12 +77,31 @@ public class ProductCard extends javax.swing.JPanel {
         lblProductPriceKey = new javax.swing.JLabel();
         lblProductPriceValue = new javax.swing.JLabel();
         lblProductCategory = new javax.swing.JLabel(); // New label for category
-        lblDiscountBadge = new javax.swing.JLabel(); // New label for discount badge
+        lblDiscountBadge = new javax.swing.JLabel(); // Discount badge for left corner
+        lblDiscountedPrice = new javax.swing.JLabel(); // Discounted price for right corner
 
         setPreferredSize(new java.awt.Dimension(160, 220));
         setLayout(new java.awt.BorderLayout());
 
         ProductCardContainer.setPreferredSize(new java.awt.Dimension(160, 220));
+
+        lblDiscountBadge.setFont(new java.awt.Font("Segoe UI", 1, 10));
+        lblDiscountBadge.setForeground(new Color(255, 255, 255));
+        lblDiscountBadge.setBackground(new Color(220, 53, 69));
+        lblDiscountBadge.setOpaque(true);
+        lblDiscountBadge.setHorizontalAlignment(SwingConstants.CENTER);
+        lblDiscountBadge.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+        lblDiscountBadge.setText("-10%");
+        lblDiscountBadge.setVisible(false); // Hide by default
+
+        lblDiscountedPrice.setFont(new java.awt.Font("Segoe UI", 1, 10));
+        lblDiscountedPrice.setForeground(new Color(255, 255, 255));
+        lblDiscountedPrice.setBackground(new Color(46, 125, 50)); // Green background
+        lblDiscountedPrice.setOpaque(true);
+        lblDiscountedPrice.setHorizontalAlignment(SwingConstants.CENTER);
+        lblDiscountedPrice.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+        lblDiscountedPrice.setText("-10,000đ");
+        lblDiscountedPrice.setVisible(false); // Hide by default
 
         javax.swing.GroupLayout panelImageContainerLayout = new javax.swing.GroupLayout(panelImageContainer);
         panelImageContainer.setLayout(panelImageContainerLayout);
@@ -89,13 +113,17 @@ public class ProductCard extends javax.swing.JPanel {
             .addGroup(panelImageContainerLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addComponent(lblDiscountBadge)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lblDiscountedPrice)
+                .addGap(5, 5, 5))
         );
         panelImageContainerLayout.setVerticalGroup(
             panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelImageContainerLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addComponent(lblDiscountBadge)
+                .addGroup(panelImageContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblDiscountBadge)
+                    .addComponent(lblDiscountedPrice))
                 .addGap(5, 5, 5)
                 .addComponent(lblProductImage, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
                 .addContainerGap())
@@ -120,15 +148,6 @@ public class ProductCard extends javax.swing.JPanel {
 
         lblProductCategory.setFont(new java.awt.Font("Segoe UI", 0, 10));
         lblProductCategory.setText("Danh mục");
-
-        lblDiscountBadge.setFont(new java.awt.Font("Segoe UI", 1, 10));
-        lblDiscountBadge.setForeground(new Color(255, 255, 255));
-        lblDiscountBadge.setBackground(new Color(220, 53, 69));
-        lblDiscountBadge.setOpaque(true);
-        lblDiscountBadge.setHorizontalAlignment(SwingConstants.CENTER);
-        lblDiscountBadge.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
-        lblDiscountBadge.setText("-10%");
-        lblDiscountBadge.setVisible(false); // Hide by default
 
         javax.swing.GroupLayout panelProductDetailLayout = new javax.swing.GroupLayout(panelProductDetail);
         panelProductDetail.setLayout(panelProductDetailLayout);
@@ -195,26 +214,25 @@ public class ProductCard extends javax.swing.JPanel {
 
     public void setProductDetails(Product product) {
         this.product = product;
-        this.product.setMaxQuantity(product.getQuantity()); // Lưu số lượng tối đa khi set product
+        this.product.setMaxQuantity(product.getQuantity()); // Save max quantity when setting product
         this.originalPrice = product.getPrice(); // Store original price
         
-        // Check for discount - this would come from your promotion system in real code
-        // For demo purposes, we'll randomly apply discounts to some products
+        // Check for discount - this would check the promotion database in real code
         applyDiscountIfAvailable(product);
         
-        // Kiểm tra số lượng sản phẩm
+        // Check product quantity
         if (product.getQuantity() <= 0) {
             this.setEnabled(false);
             this.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-            // Có thể thêm style để hiển thị sản phẩm hết hàng
+            // Style to show out of stock
             lblProductQuantityValue.setForeground(new java.awt.Color(255, 0, 0));
             lblProductQuantityValue.setText("Hết hàng");
         }
 
-        // Hiển thị tên sản phẩm
+        // Display product name
         lblProductNameValue.setText(product.getProductName());
 
-        // Hiển thị danh mục (category)
+        // Display category
         if (product.getCategory() != null && !product.getCategory().isEmpty()) {
             lblProductCategory.setText(product.getCategory());
             lblProductCategory.setVisible(true);
@@ -222,140 +240,211 @@ public class ProductCard extends javax.swing.JPanel {
             lblProductCategory.setVisible(false);
         }
 
-        // Hiển thị số lượng và giá
+        // Display quantity and price
         lblProductQuantityValue.setText(String.valueOf(product.getQuantity()));
         
-        // Display price - show discounted price if there's a discount
-        if (discountPercent > 0 || discountAmount.compareTo(BigDecimal.ZERO) > 0) {
-            // Store original price in product before applying discount
-            product.setOriginalPrice(originalPrice);
-            
-            // Calculate and format the discounted price
-            BigDecimal discountedPrice = product.getPrice();
-            
-            // Format with strikethrough for original price and normal for discounted
-            String formattedOriginal = formatPrice(originalPrice);
-            String formattedDiscounted = formatPrice(discountedPrice);
-            lblProductPriceValue.setText("<html><strike>" + formattedOriginal + "</strike> <font color='#d9534f'>" + formattedDiscounted + "</font></html>");
-        } else {
-            // No discount, just show regular price and clear original price
-            product.setOriginalPrice(null);
-            lblProductPriceValue.setText(formatPrice(product.getPrice()));
-        }
+        // Display price - always show original price (not the discounted one)
+        lblProductPriceValue.setText(formatPrice(originalPrice));
         
-        // Tải hình ảnh sản phẩm nếu có
+        // Load product image if available
         if (product.getImage() != null && !product.getImage().isEmpty()) {
             try {
-                String imagePath = "/img/product/" + product.getImage();
-                URL imageUrl = getClass().getResource(imagePath);
-
+                URL imageUrl = getClass().getResource("/img/product/" + product.getImage());
                 if (imageUrl != null) {
-                    ImageIcon originalIcon = new ImageIcon(imageUrl);
-                    Image originalImage = originalIcon.getImage();
-                    
-                    // Tạo ImageIcon mới với kích thước tự động điều chỉnh
-                    ImageIcon scaledIcon = new ImageIcon(originalImage) {
-                        @Override
-                        public int getIconWidth() {
-                            return panelImageContainer.getWidth() - 10;
-                        }
-                        
-                        @Override
-                        public int getIconHeight() {
-                            return panelImageContainer.getHeight() - 10;
-                        }
-                        
-                        @Override
-                        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
-                            java.awt.Graphics2D g2d = (java.awt.Graphics2D) g.create();
-                            g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, 
-                                               java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                            
-                            int width = getIconWidth();
-                            int height = getIconHeight();
-                            
-                            // Tính toán tỷ lệ khung hình
-                            double imageRatio = (double) originalImage.getWidth(c) / originalImage.getHeight(c);
-                            double containerRatio = (double) width / height;
-                            
-                            int finalWidth, finalHeight;
-                            if (imageRatio > containerRatio) {
-                                finalWidth = width;
-                                finalHeight = (int) (width / imageRatio);
-                            } else {
-                                finalHeight = height;
-                                finalWidth = (int) (height * imageRatio);
-                            }
-                            
-                            // Vẽ ảnh với kích thước đã tính toán và căn giữa
-                            int dx = (width - finalWidth) / 2;
-                            int dy = (height - finalHeight) / 2;
-                            g2d.drawImage(originalImage, dx, dy, finalWidth, finalHeight, c);
-                            g2d.dispose();
-                        }
-                    };
-                    
-                    lblProductImage.setIcon(scaledIcon);
+                    ImageIcon icon = new ImageIcon(imageUrl);
+                    Image img = icon.getImage();
+                    Image newImg = img.getScaledInstance(
+                            lblProductImage.getWidth(), 
+                            lblProductImage.getHeight(), 
+                            Image.SCALE_SMOOTH);
+                    lblProductImage.setIcon(new ImageIcon(newImg));
                 } else {
                     lblProductImage.setIcon(null);
-                    lblProductImage.setText("No Image Available");
+                    lblProductImage.setText("No Image");
                 }
             } catch (Exception e) {
+                System.err.println("Error loading product image: " + e.getMessage());
                 lblProductImage.setIcon(null);
-                lblProductImage.setText("Error Loading Image");
+                lblProductImage.setText("Error");
             }
         } else {
             lblProductImage.setIcon(null);
             lblProductImage.setText("No Image");
         }
 
-        panelImageContainer.revalidate();  // Cập nhật lại UI của panel
-        panelImageContainer.repaint(); // Vẽ lại các thay đổi trên giao diện
+        panelImageContainer.revalidate();  // Update UI of the panel
+        panelImageContainer.repaint();     // Redraw the interface changes
 
-        applyModernStyle(); // Áp dụng style mới sau khi cập nhật thông tin sản phẩm
+        applyModernStyle(); // Apply style after updating product info
     }
-    
-    /**
-     * Apply discount to the product if available
-     * In a real application, this would check a database or promotion service
-     */
+
     private void applyDiscountIfAvailable(Product product) {
-        // For demonstration, apply random discounts to ~30% of products
-        if (Math.random() < 0.3) {
-            // Generate a random discount between 5% and 30%
-            discountPercent = 5 + Math.random() * 25;
-            discountPercent = Math.round(discountPercent); // Round to whole number
+        // First check if we have a real promotion in the database
+        PromotionController promotionController = new PromotionController();
+        promotionDetail = promotionController.getActivePromotionForProduct(product.getProductId());
+        
+        if (promotionDetail != null) {
+            // We have a real promotion from database
+            originalPrice = product.getPrice(); // Store original price before discount
+            discountType = promotionDetail.getDiscountType();
             
-            // Save discount percent to product
-            product.setDiscountPercent(discountPercent);
-            
-            // Calculate discount amount
-            discountAmount = originalPrice.multiply(
-                BigDecimal.valueOf(discountPercent / 100.0)
-            ).setScale(2, RoundingMode.HALF_UP);
-            
-            // Apply discount to product price
-            BigDecimal discountedPrice = originalPrice.subtract(discountAmount);
-            product.setPrice(discountedPrice);
-            
-            // Show discount badge
-            lblDiscountBadge.setText("-" + (int)discountPercent + "%");
-            lblDiscountBadge.setVisible(true);
+            if ("PERCENT".equals(discountType)) {
+                // Percentage discount
+                discountPercent = promotionDetail.getDiscountValue().doubleValue();
+                
+                // Calculate discount amount based on percentage
+                discountAmount = originalPrice.multiply(
+                    BigDecimal.valueOf(discountPercent / 100.0)
+                ).setScale(2, RoundingMode.HALF_UP);
+                
+                // Check if there's a maximum discount amount
+                if (promotionDetail.getMaxDiscountAmount() != null && 
+                    discountAmount.compareTo(promotionDetail.getMaxDiscountAmount()) > 0) {
+                    discountAmount = promotionDetail.getMaxDiscountAmount();
+                    // Recalculate effective percentage for display
+                    discountPercent = discountAmount.multiply(new BigDecimal("100"))
+                        .divide(originalPrice, 2, RoundingMode.HALF_UP)
+                        .doubleValue();
+                }
+                
+                // Update product price with the discounted price
+                BigDecimal discountedPrice = originalPrice.subtract(discountAmount);
+                product.setPrice(discountedPrice);
+                product.setOriginalPrice(originalPrice);
+                product.setDiscountPercent(discountPercent);
+                
+                // Show discount badge with percentage
+                lblDiscountBadge.setText("-" + (int)discountPercent + "%");
+                lblDiscountBadge.setVisible(true);
+                
+            } else if ("AMOUNT".equals(discountType)) {
+                // Fixed amount discount
+                discountAmount = promotionDetail.getDiscountValue();
+                
+                // Make sure discount doesn't exceed the product's price
+                if (discountAmount.compareTo(originalPrice) >= 0) {
+                    discountAmount = originalPrice.multiply(new BigDecimal("0.9")); // Maximum 90% discount
+                }
+                
+                // Calculate effective discount percentage for internal use
+                discountPercent = discountAmount.multiply(new BigDecimal("100"))
+                    .divide(originalPrice, 2, RoundingMode.HALF_UP)
+                    .doubleValue();
+                
+                // Update product price with the discounted price
+                BigDecimal discountedPrice = originalPrice.subtract(discountAmount);
+                product.setPrice(discountedPrice);
+                product.setOriginalPrice(originalPrice);
+                product.setDiscountPercent(discountPercent);
+                
+                // Format the discount amount as Vietnamese currency
+                java.text.NumberFormat formatter = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+                String formattedDiscount = "-" + formatter.format(discountAmount) + "đ";
+                
+                // Show discount badge with amount
+                lblDiscountBadge.setText(formattedDiscount);
+                lblDiscountBadge.setVisible(true);
+            }
         } else {
-            // No discount
-            discountPercent = 0;
-            discountAmount = BigDecimal.ZERO;
-            product.setDiscountPercent(0);
-            lblDiscountBadge.setVisible(false);
+            // For demo purposes only - when no database promotions found
+            // In production, you might want to remove this to only show real promotions
+            if (Math.random() < 0.3) {
+                // Randomly choose between percentage discount and fixed amount discount for demo
+                boolean isPercentageDiscount = Math.random() < 0.7; // 70% chance of percentage discount
+                
+                if (isPercentageDiscount) {
+                    discountType = "PERCENT";
+                    // Generate a random discount between 5% and 30%
+                    discountPercent = 5 + Math.random() * 25;
+                    discountPercent = Math.round(discountPercent); // Round to whole number
+                    
+                    // Store original price in product before applying discount
+                    originalPrice = product.getPrice();
+                    product.setOriginalPrice(originalPrice);
+                    
+                    // Calculate discount amount
+                    discountAmount = originalPrice.multiply(
+                        BigDecimal.valueOf(discountPercent / 100.0)
+                    ).setScale(2, RoundingMode.HALF_UP);
+                    
+                    // Apply discount to product price
+                    BigDecimal discountedPrice = originalPrice.subtract(discountAmount);
+                    product.setPrice(discountedPrice);
+                    
+                    // Save discount percent to product
+                    product.setDiscountPercent(discountPercent);
+                    
+                    // Show discount badge on left with percentage
+                    lblDiscountBadge.setText("-" + (int)discountPercent + "%");
+                    lblDiscountBadge.setVisible(true);
+                } else {
+                    discountType = "AMOUNT";
+                    // Fixed amount discount - between 5,000đ and 50,000đ (in steps of 1,000đ)
+                    int discountValue = (int)(5000 + Math.random() * 45000);
+                    discountValue = Math.round(discountValue / 1000) * 1000; // Round to nearest 1000đ
+                    
+                    discountAmount = new BigDecimal(discountValue);
+                    originalPrice = product.getPrice();
+                    product.setOriginalPrice(originalPrice);
+                    
+                    // Make sure discount doesn't exceed 50% of the price
+                    if (discountAmount.compareTo(originalPrice.multiply(new BigDecimal("0.5"))) > 0) {
+                        discountAmount = originalPrice.multiply(new BigDecimal("0.5"));
+                    }
+                    
+                    // Apply discount to product price
+                    BigDecimal discountedPrice = originalPrice.subtract(discountAmount);
+                    product.setPrice(discountedPrice);
+                    
+                    // Calculate percent for internal use
+                    discountPercent = discountAmount.multiply(new BigDecimal("100"))
+                        .divide(originalPrice, 2, RoundingMode.HALF_UP)
+                        .doubleValue();
+                    product.setDiscountPercent(discountPercent);
+                    
+                    // Format the discount amount as Vietnamese currency (simplified)
+                    java.text.NumberFormat formatter = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+                    String formattedDiscount = "-" + formatter.format(discountAmount) + "đ";
+                    
+                    // Show fixed discount badge
+                    lblDiscountBadge.setText(formattedDiscount);
+                    lblDiscountBadge.setVisible(true);
+                }
+            } else {
+                // No discount
+                discountPercent = 0;
+                discountAmount = BigDecimal.ZERO;
+                discountType = "";
+                product.setDiscountPercent(0);
+                product.setOriginalPrice(null);
+                lblDiscountBadge.setVisible(false);
+            }
         }
     }
-    
+
     /**
      * Format price with Vietnamese currency
      */
     private String formatPrice(BigDecimal price) {
         java.text.NumberFormat formatter = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
         return formatter.format(price) + "đ";
+    }
+
+    /**
+     * Format price with Vietnamese currency in a shorter format
+     */
+    private String formatShortPrice(BigDecimal price) {
+        if (price.compareTo(new BigDecimal(1000000)) >= 0) {
+            // Convert to millions
+            BigDecimal millions = price.divide(new BigDecimal(1000000), 1, RoundingMode.HALF_UP);
+            return millions + "tr";
+        } else if (price.compareTo(new BigDecimal(1000)) >= 0) {
+            // Convert to thousands
+            BigDecimal thousands = price.divide(new BigDecimal(1000), 0, RoundingMode.HALF_UP);
+            return thousands + "k";
+        } else {
+            return price.intValue() + "đ";
+        }
     }
 
     public void enhanceUI() {
@@ -438,8 +527,8 @@ public class ProductCard extends javax.swing.JPanel {
         // Giới hạn và xử lý tên sản phẩm
         String name = lblProductNameValue.getText();
         if (name.length() > 25) {
-            lblProductNameValue.setText("<html>" + name + "</html>"); // Cho phép wrap text
-            lblProductNameValue.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+            // Truncate and add ellipsis
+            lblProductNameValue.setText(name.substring(0, 22) + "...");
         }
 
         // Style cho các label khác
@@ -448,24 +537,25 @@ public class ProductCard extends javax.swing.JPanel {
         styleLabel(lblProductPriceKey, "Segoe UI", java.awt.Font.PLAIN, 11);
         lblProductPriceValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
         lblProductPriceValue.setForeground(PRICE_COLOR);
-        
-        // Format giá tiền với đơn vị VNĐ
-        try {
-            double price = Double.parseDouble(lblProductPriceValue.getText());
-            lblProductPriceValue.setText(String.format("%,dđ", (int)price));
-        } catch (NumberFormatException e) {
-            // Giữ nguyên text nếu không parse được
-        }
 
-        // Style for category
-        lblProductCategory.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 10));
-        lblProductCategory.setForeground(new java.awt.Color(100, 100, 100));
-        
-        // Style for discount badge
+        // Style for discount badges
+        // Left side percentage badge
         lblDiscountBadge.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 11));
         lblDiscountBadge.setBackground(new java.awt.Color(220, 53, 69)); // Red background
         lblDiscountBadge.setForeground(java.awt.Color.WHITE);
-        lblDiscountBadge.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+        lblDiscountBadge.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(2, 5, 2, 5),
+            BorderFactory.createLineBorder(new Color(180, 30, 45), 1)
+        ));
+        
+        // Right side fixed discount badge
+        lblDiscountedPrice.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 11));
+        lblDiscountedPrice.setBackground(new java.awt.Color(46, 125, 50)); // Green background
+        lblDiscountedPrice.setForeground(java.awt.Color.WHITE);
+        lblDiscountedPrice.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(2, 5, 2, 5),
+            BorderFactory.createLineBorder(new Color(25, 100, 30), 1)
+        ));
 
         // Cập nhật các giá trị maximum size
         setMaximumSize(getPreferredSize());
@@ -509,8 +599,9 @@ public class ProductCard extends javax.swing.JPanel {
     private javax.swing.JLabel lblProductPriceValue;
     private javax.swing.JLabel lblProductQuantityKey;
     private javax.swing.JLabel lblProductQuantityValue;
-    private javax.swing.JLabel lblProductCategory; // New label for category
-    private javax.swing.JLabel lblDiscountBadge; // New label for discount badge
+    private javax.swing.JLabel lblProductCategory; 
+    private javax.swing.JLabel lblDiscountBadge;
+    private javax.swing.JLabel lblDiscountedPrice; // Label for discounted price in right corner
     private javax.swing.JPanel panelImageContainer;
     private javax.swing.JPanel panelProductDetail;
     // End of variables declaration//GEN-END:variables
