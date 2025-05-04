@@ -540,7 +540,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 {null, null, null, null, null}
             },
             new String [] {
-                "Tên sản phẩm", "Giá gốc", "Giá giảm", "SL", "Thành tiền"
+                "Tên sản phẩm", "Giá gốc", "Giá bán", "SL", "Thành tiền"
             }
         ));
         tblProduct.setToolTipText("");

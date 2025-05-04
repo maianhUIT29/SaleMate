@@ -100,19 +100,17 @@ public class CashierView extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel2 = new javax.swing.JPanel();
+        CashierViewContainer = new javax.swing.JPanel();
         cashierHeader = new com.salesmate.component.CashierHeader();
         tpCashier = new javax.swing.JTabbedPane();
         panelSaleContainer = new javax.swing.JPanel();
         PanelSale = new javax.swing.JPanel();
         productSelectionPanel = new com.salesmate.component.ProductSelectionPanel();
         checkoutPanel2 = new com.salesmate.component.CheckoutPanel();
-        panelAccountContainer = new javax.swing.JPanel();
-        panelSalaryContainer = new javax.swing.JPanel();
+        panelInvoicesContainer = new javax.swing.JPanel();
         cashierInvoicesPanel2 = new com.salesmate.component.CashierInvoicesPanel();
-        jPanel3 = new javax.swing.JPanel();
+        panelAccountContainer = new javax.swing.JPanel();
         cashierAccount3 = new com.salesmate.component.CashierAccount();
-        jPanel4 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(204, 255, 255));
@@ -149,84 +147,68 @@ public class CashierView extends javax.swing.JFrame {
 
         tpCashier.addTab("Bán hàng", panelSaleContainer);
 
-        panelAccountContainer.setLayout(new java.awt.BorderLayout());
-        tpCashier.addTab("Hoá Đơn Gần Đây", panelAccountContainer);
-
-        panelSalaryContainer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        panelInvoicesContainer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
         cashierInvoicesPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
-        javax.swing.GroupLayout panelSalaryContainerLayout = new javax.swing.GroupLayout(panelSalaryContainer);
-        panelSalaryContainer.setLayout(panelSalaryContainerLayout);
-        panelSalaryContainerLayout.setHorizontalGroup(
-            panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelSalaryContainerLayout.createSequentialGroup()
+        javax.swing.GroupLayout panelInvoicesContainerLayout = new javax.swing.GroupLayout(panelInvoicesContainer);
+        panelInvoicesContainer.setLayout(panelInvoicesContainerLayout);
+        panelInvoicesContainerLayout.setHorizontalGroup(
+            panelInvoicesContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelInvoicesContainerLayout.createSequentialGroup()
                 .addGap(37, 37, 37)
                 .addComponent(cashierInvoicesPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 903, Short.MAX_VALUE)
                 .addGap(27, 27, 27))
         );
-        panelSalaryContainerLayout.setVerticalGroup(
-            panelSalaryContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelSalaryContainerLayout.createSequentialGroup()
+        panelInvoicesContainerLayout.setVerticalGroup(
+            panelInvoicesContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelInvoicesContainerLayout.createSequentialGroup()
                 .addGap(38, 38, 38)
                 .addComponent(cashierInvoicesPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
                 .addGap(41, 41, 41))
         );
 
-        tpCashier.addTab("Lịch sử bán hàng", panelSalaryContainer);
+        tpCashier.addTab("Lịch sử bán hàng", panelInvoicesContainer);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+        javax.swing.GroupLayout panelAccountContainerLayout = new javax.swing.GroupLayout(panelAccountContainer);
+        panelAccountContainer.setLayout(panelAccountContainerLayout);
+        panelAccountContainerLayout.setHorizontalGroup(
+            panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelAccountContainerLayout.createSequentialGroup()
                 .addGap(20, 20, 20)
                 .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 929, Short.MAX_VALUE)
                 .addGap(20, 20, 20))
         );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+        panelAccountContainerLayout.setVerticalGroup(
+            panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelAccountContainerLayout.createSequentialGroup()
                 .addGap(20, 20, 20)
                 .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 455, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        tpCashier.addTab("Tài Khoản", jPanel3);
+        tpCashier.addTab("Tài Khoản", panelAccountContainer);
 
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 969, Short.MAX_VALUE)
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 481, Short.MAX_VALUE)
-        );
-
-        tpCashier.addTab("Lương", jPanel4);
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout CashierViewContainerLayout = new javax.swing.GroupLayout(CashierViewContainer);
+        CashierViewContainer.setLayout(CashierViewContainerLayout);
+        CashierViewContainerLayout.setHorizontalGroup(
+            CashierViewContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CashierViewContainerLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cashierHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
             .addComponent(tpCashier)
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        CashierViewContainerLayout.setVerticalGroup(
+            CashierViewContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CashierViewContainerLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cashierHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tpCashier))
         );
 
-        getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
+        getContentPane().add(CashierViewContainer, java.awt.BorderLayout.CENTER);
 
         setBounds(0, 0, 985, 589);
     }// </editor-fold>//GEN-END:initComponents
@@ -264,16 +246,14 @@ public class CashierView extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel CashierViewContainer;
     private javax.swing.JPanel PanelSale;
     private com.salesmate.component.CashierAccount cashierAccount3;
     private com.salesmate.component.CashierHeader cashierHeader;
     private com.salesmate.component.CashierInvoicesPanel cashierInvoicesPanel2;
     private com.salesmate.component.CheckoutPanel checkoutPanel2;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel panelAccountContainer;
-    private javax.swing.JPanel panelSalaryContainer;
+    private javax.swing.JPanel panelInvoicesContainer;
     private javax.swing.JPanel panelSaleContainer;
     private com.salesmate.component.ProductSelectionPanel productSelectionPanel;
     private javax.swing.JTabbedPane tpCashier;
