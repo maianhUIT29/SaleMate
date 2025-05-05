@@ -21,7 +21,7 @@ public class InvoiceDAO {
         try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, invoice.getUsersId());
             pstmt.setBigDecimal(2, invoice.getTotal());
-            pstmt.setString(3, invoice.getPaymentStatus()); // Fixed: paymentStatus instead of status
+            pstmt.setString(3, invoice.getPaymentStatus());
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -40,7 +40,7 @@ public class InvoiceDAO {
                 invoice.setUsersId(rs.getInt("users_id"));
                 invoice.setTotal(rs.getBigDecimal("total_amount"));
                 invoice.setCreatedAt(rs.getDate("created_at"));
-                invoice.setPaymentStatus(rs.getString("payment_status")); // Fixed: payment_status instead of status
+                invoice.setPaymentStatus(rs.getString("payment_status"));
                 invoices.add(invoice);
             }
         } catch (SQLException e) {
@@ -76,7 +76,7 @@ public class InvoiceDAO {
         try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, invoice.getUsersId());
             pstmt.setBigDecimal(2, invoice.getTotal());
-            pstmt.setString(3, invoice.getPaymentStatus()); // Fixed: paymentStatus instead of status
+            pstmt.setString(3, invoice.getPaymentStatus());
             pstmt.setInt(4, invoice.getInvoiceId());
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -110,7 +110,7 @@ public class InvoiceDAO {
                 invoice.setUsersId(rs.getInt("users_id"));
                 invoice.setTotal(rs.getBigDecimal("total_amount"));
                 invoice.setCreatedAt(rs.getDate("created_at"));
-                invoice.setPaymentStatus(rs.getString("payment_status")); // Fixed: payment_status instead of status
+                invoice.setPaymentStatus(rs.getString("payment_status"));
                 invoices.add(invoice);
             }
         } catch (SQLException e) {
@@ -122,7 +122,7 @@ public class InvoiceDAO {
     // Get invoices from the last 7 days
     public List<Invoice> getInvoicesLast7Days() {
         List<Invoice> invoices = new ArrayList<>();
-        String sql = "SELECT * FROM invoice WHERE created_at >= CURRENT_DATE - 7"; // Fixed: Using CURRENT_DATE for consistency with Oracle
+        String sql = "SELECT * FROM invoice WHERE created_at >= CURRENT_DATE - 7";
         try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 Invoice invoice = new Invoice();
@@ -130,7 +130,7 @@ public class InvoiceDAO {
                 invoice.setUsersId(rs.getInt("users_id"));
                 invoice.setTotal(rs.getBigDecimal("total_amount"));
                 invoice.setCreatedAt(rs.getDate("created_at"));
-                invoice.setPaymentStatus(rs.getString("payment_status")); // Fixed: payment_status instead of status
+                invoice.setPaymentStatus(rs.getString("payment_status"));
                 invoices.add(invoice);
             }
         } catch (SQLException e) {
@@ -139,12 +139,8 @@ public class InvoiceDAO {
         return invoices;
     }
 
-    /**
-     * Gets invoices from the last N days
-     * 
-     * @param days Number of days to look back
-     * @return List of invoices from the last N days
-     */
+    /* Gets invoices from the last N days */
+     
     public List<Invoice> getInvoicesLastNDays(int days) {
         List<Invoice> invoices = new ArrayList<>();
         String query = "SELECT invoice_id, users_id, total_amount, created_at FROM invoice " +
@@ -161,7 +157,7 @@ public class InvoiceDAO {
                     Invoice invoice = new Invoice();
                     invoice.setInvoiceId(rs.getInt("invoice_id"));
                     invoice.setUsersId(rs.getInt("users_id"));
-                    invoice.setTotal(rs.getBigDecimal("total_amount")); // Using setTotal which maps to totalAmount
+                    invoice.setTotal(rs.getBigDecimal("total_amount"));
                     invoice.setCreatedAt(rs.getTimestamp("created_at"));
                     invoices.add(invoice);
                 }
@@ -260,9 +256,7 @@ public class InvoiceDAO {
         return list;
     }
 
-    /**
-     * Tổng doanh thu tháng hiện tại.
-     */
+    /* Tổng doanh thu tháng hiện tại.z */
     public BigDecimal getRevenueForCurrentMonth() {
         String sql =
             "SELECT NVL(SUM(total_amount),0) AS total_revenue " +
@@ -274,6 +268,91 @@ public class InvoiceDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+
+    /*Tính doanh thu theo tháng*/
+    public BigDecimal getRevenueForMonth(int month) {
+        String sql =
+            "SELECT NVL(SUM(total_amount),0) AS total_revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND EXTRACT(MONTH FROM created_at) = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, month);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /*Tính doanh thu theo năm*/
+    public BigDecimal getRevenueForYear(int year) {
+        String sql =
+            "SELECT NVL(SUM(total_amount),0) AS total_revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND EXTRACT(YEAR FROM created_at) = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /*Tính doanh thu theo quý*/
+    public BigDecimal getRevenueForQuarter(int quarter) {
+        String sql =
+            "SELECT NVL(SUM(total_amount),0) AS total_revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND EXTRACT(QUARTER FROM created_at) = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quarter);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /*Tính doanh thu theo tuần*/
+    public BigDecimal getRevenueForWeek(int week) {
+        String sql =
+            "SELECT NVL(SUM(total_amount),0) AS total_revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND EXTRACT(WEEK FROM created_at) = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, week);
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getBigDecimal("total_revenue");
             }

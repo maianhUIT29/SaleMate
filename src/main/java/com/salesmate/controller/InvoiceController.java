@@ -131,11 +131,7 @@ public class InvoiceController {
         return invoiceDAO.getDailyRevenue();
     }
 
-    /**
-     * Gets invoices from the last N days
-     * @param days Number of days to look back
-     * @return List of invoices from the last N days
-     */
+    /* Gets invoices from the last N days */
     public List<Invoice> getInvoicesLastNDays(int days) {
         try {
             return invoiceDAO.getInvoicesLastNDays(days);
@@ -144,4 +140,6 @@ public class InvoiceController {
             return new ArrayList<>();
         }
     }
+
+
 }

@@ -408,9 +408,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
     }
 
     private void processPayment() {
-        System.out.println("Bat dau xu ly thanh toan...");
         if (checkoutProducts.isEmpty()) {
-            System.out.println("Khong co san pham nao trong gio de thanh toan.");
             JOptionPane.showMessageDialog(this, 
                 "Không có sản phẩm nào để thanh toán!", 
                 "Lỗi", 
@@ -421,7 +419,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
         try {
             Invoice invoice = new Invoice();
             invoice.setUsersId(SessionManager.getInstance().getLoggedInUser().getUsersId());
-            invoice.setTotal(new BigDecimal(totalPrice));
+            invoice.setTotalAmount(new BigDecimal(totalPrice));
             invoice.setCreatedAt(new Date());
             invoice.setPaymentStatus("Paid");
             
@@ -469,6 +467,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
                         productSelectionPanel.updateProductQuantities(soldQuantities);
                     }
                     
+                    // Show modern success dialog with printing options
                     showSuccessDialog(invoiceId);
                     clearTable();
                     
@@ -497,6 +496,345 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 "Lỗi thanh toán",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void showSuccessDialog(int invoiceId) {
+        JDialog successDialog = new JDialog();
+        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        
+        successDialog.setTitle("Thanh toán thành công");
+        successDialog.setModal(true);
+        successDialog.setSize(480, 400);
+        successDialog.setLocationRelativeTo(parentFrame);
+        successDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        JPanel mainPanel = new JPanel() {
+            @Override 
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                int w = getWidth(), h = getHeight();
+                GradientPaint gp = new GradientPaint(
+                    0, 0, new Color(240, 248, 255),
+                    0, h, new Color(255, 255, 255)
+                );
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
+        mainPanel.setLayout(new BorderLayout(0, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+
+        // Top panel with success icon and title
+        JPanel topPanel = new JPanel(new BorderLayout(15, 10));
+        topPanel.setOpaque(false);
+        
+        // Custom checkmark icon
+        JLabel iconLabel = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setStroke(new BasicStroke(3));
+                g2d.setColor(new Color(46, 125, 50));
+                g2d.drawArc(5, 5, 40, 40, 0, 360);
+                g2d.drawPolyline(
+                    new int[]{15, 25, 35},
+                    new int[]{25, 35, 15},
+                    3
+                );
+            }
+            
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(50, 50);
+            }
+        };
+
+        JLabel titleLabel = new JLabel("Thanh toán thành công!");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titleLabel.setForeground(new Color(33, 33, 33));
+
+        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        topPanel.add(iconLabel, BorderLayout.WEST);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
+
+        // Details panel with invoice information
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+        detailsPanel.setOpaque(false);
+        detailsPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 1, 0, new Color(230, 230, 230)),
+            BorderFactory.createEmptyBorder(20, 0, 20, 0)
+        ));
+
+        String invoiceNumber = generateInvoiceNumber(invoiceId);
+        String[][] details = {
+            {"Mã hoá đơn:", invoiceNumber},
+            {"Tổng tiền:", String.format("%,.0f VNĐ", totalPrice)},
+            {"Phương thức:", paymentMethodComboBox.getSelectedItem().toString()},
+            {"Thời gian:", new java.text.SimpleDateFormat("HH:mm:ss dd/MM/yyyy").format(new Date())},
+            {"Nhân viên:", SessionManager.getInstance().getLoggedInUser().getUsername()}
+        };
+
+        Font labelFont = new Font("Segoe UI", Font.PLAIN, 14);
+        Font valueFont = new Font("Segoe UI", Font.BOLD, 14);
+        Color textColor = new Color(51, 51, 51);
+
+        for (String[] detail : details) {
+            JPanel rowPanel = new JPanel(new BorderLayout(10, 0));
+            rowPanel.setOpaque(false);
+            
+            JLabel label = new JLabel(detail[0]);
+            label.setFont(labelFont);
+            label.setForeground(textColor);
+            
+            JLabel value = new JLabel(detail[1]);
+            value.setFont(valueFont);
+            value.setForeground(textColor);
+            
+            rowPanel.add(label, BorderLayout.WEST);
+            rowPanel.add(value, BorderLayout.EAST);
+            rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+            detailsPanel.add(rowPanel);
+            detailsPanel.add(Box.createVerticalStrut(10));
+        }
+
+        // Prepare resources directory path for PDF
+        String resourcesDir = System.getProperty("user.dir") + "/src/main/resources";
+        String invoicesDir = resourcesDir + "/invoices";
+        new File(invoicesDir).mkdirs();
+        
+        String fileName = "Invoice_" + invoiceId + ".pdf";
+        String outputPath = invoicesDir + File.separator + fileName;
+
+        // Button panel with 3 buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonPanel.setOpaque(false);
+
+        // Print button - Shows print dialog directly
+        JButton printButton = createStyledButton("In hoá đơn", new Color(0, 123, 255));
+        printButton.addActionListener(e -> {
+            try {
+                // Generate JasperPrint for preview and print
+                JasperPrint jasperPrint = createInvoiceReport(invoiceId);
+                
+                // Show print preview dialog
+                showPrintPreview(jasperPrint);
+                
+                successDialog.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    successDialog,
+                    "Lỗi khi chuẩn bị hoá đơn: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        // Save button - Saves PDF and shows confirmation
+        JButton saveButton = createStyledButton("Lưu hoá đơn", new Color(40, 167, 69));
+        saveButton.addActionListener(e -> {
+            try {
+                // Generate and save PDF
+                JasperPrint jasperPrint = createInvoiceReport(invoiceId);
+                JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
+                
+                successDialog.dispose();
+                
+                // Show save success dialog with options to open file
+                showSaveSuccessDialog(outputPath, jasperPrint, invoiceId);
+                
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    successDialog,
+                    "Lỗi khi lưu hoá đơn: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        // Close button - Simply closes the dialog
+        JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
+        closeButton.addActionListener(e -> successDialog.dispose());
+
+        buttonPanel.add(printButton);
+        buttonPanel.add(saveButton);
+        buttonPanel.add(closeButton);
+
+        // Add all panels to main panel
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(detailsPanel, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        successDialog.add(mainPanel);
+        successDialog.setVisible(true);
+    }
+
+    private void showSaveSuccessDialog(String filePath, JasperPrint jasperPrint, int invoiceId) {
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Hoá đơn đã lưu");
+        dialog.setModal(true);
+        dialog.setSize(450, 200);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel messageLabel = new JLabel("<html><body><p style='font-size: 14px;'>Hoá đơn #" + invoiceId + " đã được lưu thành công tại:</p><p style='font-size: 12px; color: #666;'>" + filePath + "</p></body></html>");
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        
+        JButton openButton = createStyledButton("Mở file", new Color(33, 150, 243));
+        JButton openFolderButton = createStyledButton("Mở thư mục", new Color(76, 175, 80));
+        JButton printButton = createStyledButton("In hoá đơn", new Color(255, 152, 0));
+        JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
+        
+        openButton.addActionListener(e -> {
+            try {
+                File file = new File(filePath);
+                if (file.exists()) {
+                    Desktop.getDesktop().open(file);
+                } else {
+                    JOptionPane.showMessageDialog(
+                        dialog,
+                        "Không tìm thấy file: " + filePath,
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    dialog,
+                    "Không thể mở file: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+        
+        openFolderButton.addActionListener(e -> {
+            try {
+                File folder = new File(filePath).getParentFile();
+                Desktop.getDesktop().open(folder);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    dialog,
+                    "Không thể mở thư mục: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+        
+        printButton.addActionListener(e -> {
+            try {
+                JasperPrintManager.printReport(jasperPrint, true);
+            } catch (JRException ex) {
+                JOptionPane.showMessageDialog(
+                    dialog,
+                    "Lỗi khi in: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+        
+        closeButton.addActionListener(e -> dialog.dispose());
+        
+        buttonPanel.add(openButton);
+        buttonPanel.add(openFolderButton);
+        buttonPanel.add(printButton);
+        buttonPanel.add(closeButton);
+        
+        panel.add(messageLabel, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+
+    private void showPrintPreview(JasperPrint jasperPrint) {
+        JDialog previewDialog = new JDialog();
+        previewDialog.setTitle("Xem trước khi in");
+        previewDialog.setModal(true);
+        previewDialog.setSize(800, 600);
+        previewDialog.setLocationRelativeTo(this);
+        
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        
+        // Create JasperReports viewer component
+        net.sf.jasperreports.swing.JRViewer viewer = new net.sf.jasperreports.swing.JRViewer(jasperPrint);
+        mainPanel.add(viewer, BorderLayout.CENTER);
+        
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        
+        // Print button
+        JButton printButton = createStyledButton("In", new Color(0, 123, 255));
+        printButton.addActionListener(e -> {
+            try {
+                JasperPrintManager.printReport(jasperPrint, true); // Show system print dialog
+            } catch (JRException ex) {
+                JOptionPane.showMessageDialog(
+                    previewDialog,
+                    "Lỗi khi in: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+        
+        // Save PDF button
+        JButton saveButton = createStyledButton("Lưu PDF", new Color(40, 167, 69));
+        saveButton.addActionListener(e -> {
+            try {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Lưu hoá đơn");
+                fileChooser.setSelectedFile(new File("Invoice_" + jasperPrint.getName() + ".pdf"));
+                
+                if (fileChooser.showSaveDialog(previewDialog) == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    if (!file.getName().toLowerCase().endsWith(".pdf")) {
+                        file = new File(file.getAbsolutePath() + ".pdf");
+                    }
+                    
+                    JasperExportManager.exportReportToPdfFile(jasperPrint, file.getAbsolutePath());
+                    
+                    JOptionPane.showMessageDialog(
+                        previewDialog,
+                        "Hoá đơn đã được lưu thành công tại:\n" + file.getAbsolutePath(),
+                        "Thành công",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                }
+            } catch (JRException ex) {
+                JOptionPane.showMessageDialog(
+                    previewDialog,
+                    "Lỗi khi lưu PDF: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+        
+        // Close button
+        JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
+        closeButton.addActionListener(e -> previewDialog.dispose());
+        
+        buttonPanel.add(printButton);
+        buttonPanel.add(saveButton);
+        buttonPanel.add(closeButton);
+        
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        previewDialog.add(mainPanel);
+        
+        previewDialog.setVisible(true);
     }
 
     @SuppressWarnings("unchecked")
@@ -646,30 +984,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
     private void paymentMethodComboBoxActionPerformed(java.awt.event.ActionEvent evt) {
     }
 
-    private void showSuccessDialog(int invoiceId) {
-        String message = "Thanh toán thành công!\nMã hóa đơn: " + generateInvoiceNumber(invoiceId);
-        int option = JOptionPane.showConfirmDialog(
-            this,
-            message + "\nBạn có muốn xuất hóa đơn PDF không?",
-            "Thành công",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.INFORMATION_MESSAGE
-        );
-        
-        if (option == JOptionPane.YES_OPTION) {
-            try {
-                exportToPDF(invoiceId);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Lỗi khi xuất PDF: " + e.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-                );
-            }
-        }
-    }
-
     private javax.swing.JScrollPane ProductListContainer;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnPayment;
@@ -680,6 +994,49 @@ public class CheckoutPanel extends javax.swing.JPanel {
     private javax.swing.JDialog paymentDialog;
     private javax.swing.JComboBox<String> paymentMethodComboBox;
     private javax.swing.JTable tblProduct;
+
+    private JButton createStyledButton(String text, Color backgroundColor) {
+        JButton button = new JButton(text);
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(100, 30));
+        
+        // Add rounded corners with hover effect
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                AbstractButton button = (AbstractButton) c;
+                ButtonModel model = button.getModel();
+                
+                // Adjust color on hover or press
+                Color fillColor = backgroundColor;
+                if (model.isPressed()) {
+                    fillColor = backgroundColor.darker();
+                } else if (model.isRollover()) {
+                    fillColor = new Color(
+                        Math.min(backgroundColor.getRed() + 15, 255),
+                        Math.min(backgroundColor.getGreen() + 15, 255),
+                        Math.min(backgroundColor.getBlue() + 15, 255)
+                    );
+                }
+                
+                g2.setColor(fillColor);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                
+                super.paint(g2, c);
+                g2.dispose();
+            }
+        });
+        
+        return button;
+    }
 
     private JasperReport createDynamicReport() throws JRException {
         JasperDesign jasperDesign = new JasperDesign();
