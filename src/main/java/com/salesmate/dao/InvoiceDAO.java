@@ -12,7 +12,6 @@ import java.util.List;
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Invoice;
 import com.salesmate.model.RevenueLineChartModel;
-import java.util.Date;
 
 public class InvoiceDAO {
 
@@ -140,6 +139,41 @@ public class InvoiceDAO {
         return invoices;
     }
 
+    /**
+     * Gets invoices from the last N days
+     * 
+     * @param days Number of days to look back
+     * @return List of invoices from the last N days
+     */
+    public List<Invoice> getInvoicesLastNDays(int days) {
+        List<Invoice> invoices = new ArrayList<>();
+        String query = "SELECT invoice_id, users_id, total_amount, created_at FROM invoice " +
+                       "WHERE created_at >= SYSDATE - ? " +
+                       "ORDER BY created_at DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, days);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Invoice invoice = new Invoice();
+                    invoice.setInvoiceId(rs.getInt("invoice_id"));
+                    invoice.setUsersId(rs.getInt("users_id"));
+                    invoice.setTotal(rs.getBigDecimal("total_amount")); // Using setTotal which maps to totalAmount
+                    invoice.setCreatedAt(rs.getTimestamp("created_at"));
+                    invoices.add(invoice);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching invoices from last " + days + " days: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return invoices;
+    }
+
     public int saveInvoice(Invoice invoice) {
         // Validate payment status
         if (invoice.getPaymentStatus() == null
@@ -185,19 +219,21 @@ public class InvoiceDAO {
             throw new RuntimeException("Failed to save invoice: " + e.getMessage());
         }
     }
-// Đếm số lượng hóa đơn
-public int countInvoices() {
-    String sql = "SELECT COUNT(*) FROM invoice";
-    try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
-        if (rs.next()) {
-            return rs.getInt(1); // Trả về số lượng hóa đơn
+
+    // Đếm số lượng hóa đơn
+    public int countInvoices() {
+        String sql = "SELECT COUNT(*) FROM invoice";
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1); // Trả về số lượng hóa đơn
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
     }
-    return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
-}
- public List<RevenueLineChartModel> getDailyRevenue() {
+
+    public List<RevenueLineChartModel> getDailyRevenue() {
         String sql =
             "SELECT TO_CHAR(created_at, 'DD') AS day_label, " +
             "       NVL(SUM(total_amount),0) AS total_revenue " +

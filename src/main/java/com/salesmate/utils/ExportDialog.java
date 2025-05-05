@@ -188,6 +188,31 @@ public class ExportDialog extends JDialog {
         button.setFocusPainted(false);
         button.setFont(new Font("Segoe UI", Font.BOLD, 12));
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        
+        // Fix for button appearance - ensure these properties are set correctly
+        button.setContentAreaFilled(true);
+        button.setOpaque(true);
+        button.setBorderPainted(false);
+        
+        // Add mouse listener to maintain color during hover with better contrast
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                // Make darker but preserve color
+                Color darker = new Color(
+                    Math.max((int)(backgroundColor.getRed() * 0.85), 0),
+                    Math.max((int)(backgroundColor.getGreen() * 0.85), 0),
+                    Math.max((int)(backgroundColor.getBlue() * 0.85), 0)
+                );
+                button.setBackground(darker);
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(backgroundColor);
+            }
+        });
+        
         return button;
     }
 

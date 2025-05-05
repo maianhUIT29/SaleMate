@@ -59,6 +59,7 @@ com\salesmate\component\CheckoutPanel$3.class
 com\salesmate\model\PromotionDetail.class
 com\salesmate\component\ProductCard$2.class
 com\salesmate\view\CashierView$RunnableImpl.class
+com\salesmate\component\CashierInvoicesPanel$7.class
 com\salesmate\component\AdminHeader$2.class
 com\salesmate\utils\BarcodeGenerator.class
 com\salesmate\view\LoginForm$3.class
@@ -116,6 +117,7 @@ com\salesmate\component\CashierHeader$3.class
 com\salesmate\component\AdProductPanel.class
 com\salesmate\dao\UserDAO.class
 com\salesmate\model\Purchase.class
+com\salesmate\component\CashierInvoicesPanel$6.class
 com\salesmate\component\CashierQRPayment.class
 com\salesmate\model\PurchaseDetail.class
 com\salesmate\model\Detail.class

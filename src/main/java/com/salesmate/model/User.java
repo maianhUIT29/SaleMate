@@ -15,11 +15,15 @@ import jakarta.persistence.TemporalType;
 User Schema in oracle
     users_id INT PRIMARY KEY,
     username VARCHAR2(50) NOT NULL,
-    role VARCHAR2(20) CHECK (role IN ('Store Manager', 'Warehouse Manager', 'Sales Staff')) NOT NULL,
+    role VARCHAR2(20) CHECK (role IN ('Manager', 'Warehouse', 'Sales')) NOT NULL,
     created_at DATE DEFAULT SYSDATE,
     avatar VARCHAR2(255),
     email VARCHAR2(255),
-    status VARCHAR2(20)
+    password VARCHAR2(255),
+    status VARCHAR2(20),
+    employee_id INT,
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
+    CONSTRAINT users_role_check CHECK (role IN ('Manager', 'Warehouse', 'Sales')),
 );
 */
 
@@ -53,6 +57,9 @@ public class User {
     @Column(name = "password", length = 255)
     private String password;
 
+    @Column(name = "employee_id")
+    private int employeeId;
+
     // Constructors
     public User() {
     }
@@ -65,6 +72,19 @@ public class User {
         this.avatar = avatar;
         this.email = email;
         this.status = status;
+    }
+
+    // Constructor with all fields
+    public User(int usersId, String username, String role, Date createdAt, String avatar, String email, String status, String password, int employeeId) {
+        this.usersId = usersId;
+        this.username = username;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.avatar = avatar;
+        this.email = email;
+        this.status = status;
+        this.password = password;
+        this.employeeId = employeeId;
     }
 
     // Getters and Setters
@@ -130,5 +150,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(int employeeId) {
+        this.employeeId = employeeId;
     }
 }
