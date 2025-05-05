@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -11,13 +12,10 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
@@ -439,7 +437,9 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         });
 
         resetButton.addActionListener(e -> {
-            resetFilters();
+            // Enhanced reset button functionality - load fresh data from database
+            System.out.println("Reset button clicked, reloading fresh product data");
+            loadProductData(); // Use the dedicated method that shows animation
         });
 
         add(filterPanel, java.awt.BorderLayout.NORTH);
@@ -708,31 +708,231 @@ public class ProductSelectionPanel extends javax.swing.JPanel {
         quantityFilter.setSelectedIndex(0);
         currentPage = 1;
 
-        // Simulate loading delay
-        Timer timer = new Timer(3000, e -> {
-            if (products != null) {
-                displayFilteredProducts(products);
-            }
-        });
-        timer.setRepeats(false);
-        timer.start();
+        // Load fresh data from database instead of showing the old list
+        loadProductData();
     }
 
-    // Thêm phương thức để cập nhật sản phẩm
+    /**
+     * Updates product quantities after a sale and refreshes the UI
+     * @param soldQuantities Map of product IDs to quantities sold
+     */
     public void updateProductQuantities(Map<Integer, Integer> soldQuantities) {
         if (products == null) {
+            System.out.println("ProductSelectionPanel: Cannot update quantities - products list is null");
             return;
         }
 
+        System.out.println("ProductSelectionPanel: Updating quantities for " + soldQuantities.size() + " products");
+        
+        boolean anyUpdated = false;
+        
+        // Update quantities in the local product list
         for (Product product : products) {
             if (soldQuantities.containsKey(product.getProductId())) {
                 int soldQty = soldQuantities.get(product.getProductId());
-                product.setQuantity(product.getQuantity() - soldQty);
+                int newQuantity = product.getQuantity() - soldQty;
+                System.out.println("Updating product ID: " + product.getProductId() + 
+                                   " from quantity " + product.getQuantity() + 
+                                   " to " + newQuantity);
+                product.setQuantity(newQuantity);
+                anyUpdated = true;
             }
         }
+        
+        // Also update filtered products if they exist
+        if (filteredProducts != null) {
+            for (Product product : filteredProducts) {
+                if (soldQuantities.containsKey(product.getProductId())) {
+                    int soldQty = soldQuantities.get(product.getProductId());
+                    int newQuantity = product.getQuantity() - soldQty;
+                    product.setQuantity(newQuantity);
+                }
+            }
+        }
+        
+        // If any products were updated, refresh the display
+        if (anyUpdated) {
+            System.out.println("ProductSelectionPanel: Products updated, refreshing display");
+            refreshProducts();
+        }
+    }
 
-        // Làm mới hiển thị
-        displayFilteredProducts(filteredProducts != null ? filteredProducts : products);
+    /**
+     * Updates a specific product card with the new quantity
+     * @param productId ID of the product to update
+     * @param newQuantity New quantity to display
+     * @return true if the card was found and updated, false otherwise
+     */
+    public boolean updateSpecificProductCard(int productId, int newQuantity) {
+        System.out.println("ProductSelectionPanel: Updating card for product ID " + productId + 
+                         " with new quantity " + newQuantity);
+        
+        // First update the product in our data models
+        boolean productUpdated = false;
+        
+        // Update in main products list
+        if (products != null) {
+            for (Product p : products) {
+                if (p.getProductId() == productId) {
+                    System.out.println("Found product in main list, updating quantity from " + 
+                                     p.getQuantity() + " to " + newQuantity);
+                    p.setQuantity(newQuantity);
+                    productUpdated = true;
+                    break;
+                }
+            }
+        }
+        
+        // Update in filtered products list if exists
+        if (filteredProducts != null) {
+            for (Product p : filteredProducts) {
+                if (p.getProductId() == productId) {
+                    System.out.println("Found product in filtered list, updating quantity from " + 
+                                     p.getQuantity() + " to " + newQuantity);
+                    p.setQuantity(newQuantity);
+                    break;
+                }
+            }
+        }
+        
+        // Now find and update the visual card component
+        try {
+            // Find the container that holds all product cards
+            Component mainContainer = null;
+            for (int i = 0; i < getComponentCount(); i++) {
+                Component comp = getComponent(i);
+                if (comp instanceof JScrollPane) {
+                    JScrollPane scrollPane = (JScrollPane) comp;
+                    if (scrollPane.getViewport().getView() instanceof JPanel) {
+                        mainContainer = scrollPane.getViewport().getView();
+                        break;
+                    }
+                } else if (comp instanceof JPanel && 
+                          (comp.getName() != null && comp.getName().contains("main"))) {
+                    mainContainer = comp;
+                    break;
+                }
+            }
+            
+            if (mainContainer == null) {
+                System.out.println("Could not find main container for product cards");
+                return refreshProducts(); // Fall back to full refresh
+            }
+            
+            // Search for the ProductCard with matching ID
+            boolean cardFound = false;
+            if (mainContainer instanceof JPanel) {
+                JPanel container = (JPanel) mainContainer;
+                for (int i = 0; i < container.getComponentCount(); i++) {
+                    Component comp = container.getComponent(i);
+                    if (comp instanceof ProductCard) {
+                        ProductCard card = (ProductCard) comp;
+                        Product cardProduct = card.getProduct();
+                        
+                        if (cardProduct != null && cardProduct.getProductId() == productId) {
+                            // Update the card UI
+                            System.out.println("Found card for product ID " + productId + 
+                                             ", updating quantity to " + newQuantity);
+                            card.updateQuantity(newQuantity);
+                            cardFound = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (!cardFound) {
+                System.out.println("Product card for ID " + productId + " not found in view");
+            }
+            
+            return productUpdated || cardFound;
+            
+        } catch (Exception e) {
+            System.err.println("Error updating product card: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Refreshes the product display with the latest data
+     * This method can be called after updateProductQuantities to show quantity changes
+     * @return true if refresh succeeded, false otherwise
+     */
+    public boolean refreshProducts() {
+        System.out.println("ProductSelectionPanel: Performing full refresh of product display");
+        
+        try {
+            if (filteredProducts != null) {
+                System.out.println("ProductSelectionPanel: Refreshing filtered products view with " + 
+                                  filteredProducts.size() + " products");
+                // Refresh the current filtered view
+                displayFilteredProducts(filteredProducts);
+                return true;
+            } else if (products != null) {
+                System.out.println("ProductSelectionPanel: Refreshing with all products view with " + 
+                                 products.size() + " products");
+                // If no filtered products, refresh with all products
+                displayFilteredProducts(products);
+                return true;
+            } else {
+                System.out.println("ProductSelectionPanel: Cannot refresh - no product data available");
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("Error during refresh: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Loads product data from the database and refreshes the UI
+     * This method can be called after a successful checkout to reload products
+     */
+    public void loadProductData() {
+        try {
+            System.out.println("ProductSelectionPanel: Loading fresh product data from database");
+            // Show loading animation
+            isLoading = true;
+            showLoadingAnimation();
+            
+            // Load products in a background thread to avoid UI freezing
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    if (productController == null) {
+                        productController = new ProductController();
+                    }
+                    
+                    List<Product> freshProducts = productController.getAllProducts();
+                    System.out.println("ProductSelectionPanel: Successfully loaded " + 
+                                     (freshProducts != null ? freshProducts.size() : 0) + " products");
+                    
+                    // Update the product lists
+                    products = freshProducts;
+                    
+                    // Reset filtered products to show all products
+                    filteredProducts = new ArrayList<>(products);
+                    
+                    // If filters were applied, reapply them to the new data
+                    if (searchField != null && !searchField.getText().isEmpty()) {
+                        applyFilters(); // Apply existing filters to new data
+                    } else {
+                        // The loading animation callback will display products when ready
+                        currentPage = 1; // Reset to first page
+                    }
+                    
+                    System.out.println("ProductSelectionPanel: UI will be refreshed with new data");
+                } catch (Exception e) {
+                    System.err.println("Error reloading products: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("Error in loadProductData: " + e.getMessage());
+            e.printStackTrace();
+            isLoading = false;
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -561,7 +561,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         if (!prevButton.isEnabled()) {
             prevButton.setBackground(new Color(200, 200, 200)); // Lighter gray when disabled
             prevButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-            prevButton.setForeground(Color.WHITE); // Keep text white for disabled state
+            prevButton.setForeground(Color.WHITE); // Keep text white for consistency
         } else {
             prevButton.setBackground(new Color(0, 123, 255)); // Restore color when enabled
             prevButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -571,7 +571,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         if (!nextButton.isEnabled()) {
             nextButton.setBackground(new Color(200, 200, 200)); // Lighter gray when disabled
             nextButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-            nextButton.setForeground(Color.WHITE); // Keep text white for disabled state
+            nextButton.setForeground(Color.WHITE); // Keep text white for consistency
         } else {
             nextButton.setBackground(new Color(0, 123, 255)); // Restore color when enabled
             nextButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -965,45 +965,53 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                // Create a slightly darker shade (85% of original brightness)
-                Color darker = new Color(
-                    Math.max((int)(bgColor.getRed() * 0.85), 0),
-                    Math.max((int)(bgColor.getGreen() * 0.85), 0),
-                    Math.max((int)(bgColor.getBlue() * 0.85), 0)
-                );
-                button.setBackground(darker);
-                button.setForeground(Color.WHITE); // Keep text white on hover
+                if (button.isEnabled()) {
+                    // Create a slightly darker shade (85% of original brightness)
+                    Color darker = new Color(
+                        Math.max((int)(bgColor.getRed() * 0.85), 0),
+                        Math.max((int)(bgColor.getGreen() * 0.85), 0),
+                        Math.max((int)(bgColor.getBlue() * 0.85), 0)
+                    );
+                    button.setBackground(darker);
+                    button.setForeground(Color.WHITE); // Always white text
+                }
             }
             
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(bgColor);
-                button.setForeground(Color.WHITE); // Reset to white
+                if (button.isEnabled()) {
+                    button.setBackground(bgColor);
+                    button.setForeground(Color.WHITE); // Always white text
+                }
             }
             
             // Enhanced look when pressed
             @Override
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                // Even darker when pressed (70% of original)
-                Color darker = new Color(
-                    Math.max((int)(bgColor.getRed() * 0.7), 0),
-                    Math.max((int)(bgColor.getGreen() * 0.7), 0),
-                    Math.max((int)(bgColor.getBlue() * 0.7), 0)
-                );
-                button.setBackground(darker);
-                button.setForeground(Color.WHITE); // Maintain white text
+                if (button.isEnabled()) {
+                    // Even darker when pressed (70% of original)
+                    Color darker = new Color(
+                        Math.max((int)(bgColor.getRed() * 0.7), 0),
+                        Math.max((int)(bgColor.getGreen() * 0.7), 0),
+                        Math.max((int)(bgColor.getBlue() * 0.7), 0)
+                    );
+                    button.setBackground(darker);
+                    button.setForeground(Color.WHITE); // Always white text
+                }
             }
             
             @Override
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                // Go back to hover state
-                Color darker = new Color(
-                    Math.max((int)(bgColor.getRed() * 0.85), 0),
-                    Math.max((int)(bgColor.getGreen() * 0.85), 0),
-                    Math.max((int)(bgColor.getBlue() * 0.85), 0)
-                );
-                button.setBackground(darker);
-                button.setForeground(Color.WHITE); // Maintain white text
+                if (button.isEnabled()) {
+                    // Go back to hover state
+                    Color darker = new Color(
+                        Math.max((int)(bgColor.getRed() * 0.85), 0),
+                        Math.max((int)(bgColor.getGreen() * 0.85), 0),
+                        Math.max((int)(bgColor.getBlue() * 0.85), 0)
+                    );
+                    button.setBackground(darker);
+                    button.setForeground(Color.WHITE); // Always white text
+                }
             }
         });
         
@@ -1014,7 +1022,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setBackground(bgColor);
-        button.setForeground(Color.WHITE); // Ensure text is white for better contrast
+        button.setForeground(Color.WHITE); // Always white for best contrast
         button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
@@ -1026,19 +1034,23 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                // Create a slightly darker shade (85% of original brightness)
-                Color darker = new Color(
-                    Math.max((int)(bgColor.getRed() * 0.85), 0), 
-                    Math.max((int)(bgColor.getGreen() * 0.85), 0), 
-                    Math.max((int)(bgColor.getBlue() * 0.85), 0)
-                );
-                button.setBackground(darker);
-                button.setForeground(Color.WHITE); // Keep text white on hover
+                if (button.isEnabled()) {
+                    // Create a slightly darker shade (85% of original brightness)
+                    Color darker = new Color(
+                        Math.max((int)(bgColor.getRed() * 0.85), 0), 
+                        Math.max((int)(bgColor.getGreen() * 0.85), 0), 
+                        Math.max((int)(bgColor.getBlue() * 0.85), 0)
+                    );
+                    button.setBackground(darker);
+                    button.setForeground(Color.WHITE); // Always maintain white text
+                }
             }
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(bgColor);
-                button.setForeground(Color.WHITE); // Reset to white
+                if (button.isEnabled()) {
+                    button.setBackground(bgColor);
+                    button.setForeground(Color.WHITE); // Always white text
+                }
             }
         });
         
@@ -1108,6 +1120,19 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
             setText("Chi tiết");
+            
+            // Ensure text is always white for better visibility
+            setForeground(Color.WHITE);
+            
+            // This ensures that the button background always has contrast with the text
+            if (!isEnabled()) {
+                // If disabled, use a slightly lighter blue but still keep white text
+                setBackground(new Color(125, 189, 201));
+            } else {
+                // For enabled buttons, use the standard blue
+                setBackground(new Color(23, 162, 184));
+            }
+            
             return this;
         }
     }
@@ -1134,20 +1159,24 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
             button.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    Color baseColor = new Color(23, 162, 184);
-                    // Create a slightly darker shade (85% of original brightness)
-                    Color darker = new Color(
-                        Math.max((int)(baseColor.getRed() * 0.85), 0),
-                        Math.max((int)(baseColor.getGreen() * 0.85), 0),
-                        Math.max((int)(baseColor.getBlue() * 0.85), 0)
-                    );
-                    button.setBackground(darker);
-                    button.setForeground(Color.WHITE); // Maintain text color
+                    if (button.isEnabled()) {
+                        Color baseColor = new Color(23, 162, 184);
+                        // Create a slightly darker shade (85% of original brightness)
+                        Color darker = new Color(
+                            Math.max((int)(baseColor.getRed() * 0.85), 0),
+                            Math.max((int)(baseColor.getGreen() * 0.85), 0),
+                            Math.max((int)(baseColor.getBlue() * 0.85), 0)
+                        );
+                        button.setBackground(darker);
+                        button.setForeground(Color.WHITE); // Always keep text white
+                    }
                 }
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    button.setBackground(new Color(23, 162, 184));
-                    button.setForeground(Color.WHITE); // Reset text color
+                    if (button.isEnabled()) {
+                        button.setBackground(new Color(23, 162, 184));
+                        button.setForeground(Color.WHITE); // Always keep text white
+                    }
                 }
             });
             button.addActionListener(e -> fireEditingStopped());
@@ -1158,6 +1187,7 @@ public class CashierInvoicesPanel extends javax.swing.JPanel {
                 boolean isSelected, int row, int column) {
             label = value.toString();
             button.setText(label);
+            button.setForeground(Color.WHITE); // Ensure text is always white
             isPushed = true;
             return button;
         }

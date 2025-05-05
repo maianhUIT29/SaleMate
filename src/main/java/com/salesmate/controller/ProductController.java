@@ -70,8 +70,17 @@ public class ProductController {
      */
     public boolean updateProductQuantity(int productId, int soldQuantity) {
         try {
-            return productDAO.updateProductQuantity(productId, soldQuantity);
+            System.out.println("ProductController: Updating product " + productId + 
+                               " quantity by -" + soldQuantity);
+            boolean result = productDAO.updateProductQuantity(productId, soldQuantity);
+            if (result) {
+                System.out.println("ProductController: Successfully updated product quantity");
+            } else {
+                System.err.println("ProductController: Failed to update product quantity");
+            }
+            return result;
         } catch (Exception e) {
+            System.err.println("ProductController: Error updating product quantity: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

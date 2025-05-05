@@ -134,6 +134,11 @@ public class CheckoutPanel extends javax.swing.JPanel {
         btnPayment.addActionListener(e -> processPayment());
     }
 
+    public void setProductSelectionPanel(ProductSelectionPanel productSelectionPanel) {
+        this.productSelectionPanel = productSelectionPanel;
+        System.out.println("CheckoutPanel: ProductSelectionPanel reference set");
+    }
+
     private int getProductIdFromRow(int row) {
         String productName = (String) tableModel.getValueAt(row, 0);
         for (Product product : checkoutProducts.values()) {
@@ -566,19 +571,25 @@ public class CheckoutPanel extends javax.swing.JPanel {
         }
 
         try {
+            // Create the invoice
             Invoice invoice = new Invoice();
             invoice.setUsersId(SessionManager.getInstance().getLoggedInUser().getUsersId());
             invoice.setTotalAmount(new BigDecimal(totalPrice));
             invoice.setCreatedAt(new Date());
             invoice.setPaymentStatus("Paid");
             
+            // Begin transaction (conceptually - don't have actual transaction management)
+            boolean allSuccess = true;
+            
             try {
+                // Save invoice first
                 invoiceController.saveInvoice(invoice);
                 int invoiceId = invoice.getInvoiceId();
                 boolean detailsSuccess = true;
                 
                 Map<Integer, Integer> soldQuantities = new HashMap<>();
                 
+                // Add invoice details
                 for (Product product : checkoutProducts.values()) {
                     Detail detail = new Detail();
                     detail.setInvoiceId(invoiceId);
@@ -592,49 +603,111 @@ public class CheckoutPanel extends javax.swing.JPanel {
                         break;
                     }
                     
+                    // Track quantities to update
                     soldQuantities.put(product.getProductId(), product.getQuantity());
                 }
                 
+                // If details were successfully added, update product quantities
                 if (detailsSuccess) {
                     ProductController productController = new ProductController();
                     boolean allUpdatesSuccessful = true;
                     
+                    // Process each product update separately for better error tracking
                     for (Map.Entry<Integer, Integer> entry : soldQuantities.entrySet()) {
                         int productId = entry.getKey();
                         int soldQuantity = entry.getValue();
-                        if (!productController.updateProductQuantity(productId, soldQuantity)) {
+                        
+                        System.out.println("Updating product ID: " + productId + ", quantity: -" + soldQuantity);
+                        boolean updateSuccess = productController.updateProductQuantity(productId, soldQuantity);
+                        
+                        if (!updateSuccess) {
                             allUpdatesSuccessful = false;
-                            System.out.println("Failed to update quantity for product ID: " + productId);
+                            System.err.println("Failed to update quantity for product ID: " + productId);
                         }
                     }
                     
                     if (!allUpdatesSuccessful) {
-                        System.out.println("Some product quantities were not updated successfully");
+                        System.err.println("WARNING: Some product quantities were not updated successfully");
+                    } else {
+                        System.out.println("All product quantities updated successfully");
                     }
                     
+                    // Update the product selection panel if it exists
                     if (productSelectionPanel != null) {
-                        productSelectionPanel.updateProductQuantities(soldQuantities);
+                        try {
+                            System.out.println("Updating product display after checkout");
+                            
+                            // First try updating individual product cards
+                            boolean allCardsUpdated = true;
+                            for (Map.Entry<Integer, Integer> entry : soldQuantities.entrySet()) {
+                                int productId = entry.getKey();
+                                
+                                // Get current quantity from database to ensure accuracy
+                                Product updatedProduct = productController.getProductById(productId);
+                                if (updatedProduct != null) {
+                                    int newQuantity = updatedProduct.getQuantity();
+                                    System.out.println("Product " + productId + " new quantity from DB: " + newQuantity);
+                                    
+                                    if (!productSelectionPanel.updateSpecificProductCard(productId, newQuantity)) {
+                                        allCardsUpdated = false;
+                                        System.out.println("Failed to update card for product " + productId);
+                                    }
+                                } else {
+                                    allCardsUpdated = false;
+                                    System.err.println("Could not retrieve updated product " + productId);
+                                }
+                            }
+                            
+                            // If any individual updates failed, do a full refresh as backup
+                            if (!allCardsUpdated) {
+                                System.out.println("Some cards failed to update individually, performing full refresh");
+                                SwingUtilities.invokeLater(() -> {
+                                    productSelectionPanel.refreshProducts();
+                                });
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("Error updating product display: " + ex.getMessage());
+                            ex.printStackTrace();
+                            
+                            // Final fallback - try a fresh reload
+                            try {
+                                SwingUtilities.invokeLater(() -> {
+                                    productSelectionPanel.loadProductData();
+                                });
+                            } catch (Exception e) {
+                                System.err.println("Even reload failed: " + e.getMessage());
+                            }
+                        }
+                    } else {
+                        System.out.println("ProductSelectionPanel reference is null, cannot update UI");
                     }
                     
+                    // Show the success dialog and clear the cart
                     showSuccessDialog(invoiceId);
                     clearTable();
                     
                 } else {
+                    allSuccess = false;
                     throw new Exception("Failed to save invoice details");
                 }
 
             } catch (IllegalArgumentException e) {
+                allSuccess = false;
                 JOptionPane.showMessageDialog(this,
                     "Validation error: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
-                return;
             } catch (Exception e) {
+                allSuccess = false;
                 JOptionPane.showMessageDialog(this,
                     "Error saving invoice: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
-                return;
+            }
+            
+            // If anything failed, we could implement compensating actions here
+            if (!allSuccess) {
+                System.err.println("Transaction failed. Manual intervention may be required.");
             }
 
         } catch (Exception e) {

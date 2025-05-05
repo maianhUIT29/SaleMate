@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SalesMate_Invoice" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="4eedbb89-b4f6-4469-9ab6-f642a1688cf7">
+<jasperReport 
+	xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+	name="SalesMate_Invoice" 
+	pageWidth="595" 
+	pageHeight="842" 
+	columnWidth="535" 
+	leftMargin="30" 
+	rightMargin="30" 
+	topMargin="20" 
+	bottomMargin="20" 
+	uuid="4eedbb89-b4f6-4469-9ab6-f642a1688cf7">
+	
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-	<style name="Title" forecolor="#000000" fontName="Arial" fontSize="26" isBold="true"/>
-	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
-	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
-	<style name="Detail" fontName="Arial" fontSize="12"/>
-	<style name="Row" mode="Transparent" fontName="Arial">
+	
+	<!-- Styles -->
+	<style name="Title" forecolor="#000000" fontName="DejaVu Sans" fontSize="26" isBold="true" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="SubTitle" forecolor="#666666" fontName="DejaVu Sans" fontSize="18" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Column header" forecolor="#666666" fontName="DejaVu Sans" fontSize="12" isBold="true" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Detail" fontName="DejaVu Sans" fontSize="12" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans" pdfEncoding="Identity-H" isPdfEmbedded="true">
 		<conditionalStyle>
 			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
 			<style backcolor="#F0F0F0"/>
 		</conditionalStyle>
 	</style>
+	
+	<!-- Parameters -->
 	<parameter name="invoiceNo" class="java.lang.String"/>
 	<parameter name="date" class="java.lang.String"/>
 	<parameter name="cashierName" class="java.lang.String"/>
@@ -24,13 +41,15 @@
 	<parameter name="companyPhone" class="java.lang.String"/>
 	<parameter name="companyEmail" class="java.lang.String"/>
 	<parameter name="thankYouMessage" class="java.lang.String"/>
-	<!-- Changed field type from Integer to String to match Java implementation -->
+	
+	<!-- Fields -->
 	<field name="no" class="java.lang.String"/>
 	<field name="productName" class="java.lang.String"/>
 	<field name="price" class="java.lang.String"/>
-	<!-- Changed field type from Integer to String to match Java implementation -->
 	<field name="quantity" class="java.lang.String"/>
 	<field name="total" class="java.lang.String"/>
+	
+	<!-- Title Section -->
 	<title>
 		<band height="180" splitType="Stretch">
 			<image hAlign="Center">
@@ -51,13 +70,15 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$P{companyName}]]></textFieldExpression>
 			</textField>
-            <textField>
+			<textField>
 				<reportElement style="SubTitle" x="0" y="80" width="535" height="25" uuid="88d4231e-f014-4b0d-b871-1737ba63a1af"/>
 				<textElement textAlignment="Center">
 					<font size="16" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{invoiceNo}]]></textFieldExpression>
 			</textField>
+			
+			<!-- Company Information -->
 			<staticText>
 				<reportElement style="Column header" x="0" y="110" width="100" height="20" uuid="8cce7374-78e0-4262-b836-5e45976a7bb0"/>
 				<text><![CDATA[Địa chỉ:]]></text>
@@ -87,6 +108,8 @@
 			</line>
 		</band>
 	</title>
+	
+	<!-- Page Header -->
 	<pageHeader>
 		<band height="90" splitType="Stretch">
 			<staticText>
@@ -122,16 +145,14 @@
 			</staticText>
 		</band>
 	</pageHeader>
+	
+	<!-- Column Headers -->
 	<columnHeader>
 		<band height="20" splitType="Stretch">
 			<staticText>
 				<reportElement style="Column header" x="0" y="0" width="40" height="20" uuid="6e6f54fa-9869-4a44-8e7a-cd281c925bfc"/>
 				<box>
 					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
 				<text><![CDATA[STT]]></text>
@@ -140,10 +161,6 @@
 				<reportElement style="Column header" x="40" y="0" width="230" height="20" uuid="72751601-5381-44ea-91e5-fd9517b5f11d"/>
 				<box>
 					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
 				<text><![CDATA[Sản phẩm]]></text>
@@ -152,10 +169,6 @@
 				<reportElement style="Column header" x="270" y="0" width="100" height="20" uuid="1a5a3126-804f-4d42-8e6f-00d7dc86126c"/>
 				<box>
 					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
 				<text><![CDATA[Đơn giá]]></text>
@@ -164,10 +177,6 @@
 				<reportElement style="Column header" x="370" y="0" width="50" height="20" uuid="b824cb1d-08ad-4161-98bc-0d95e4eef647"/>
 				<box>
 					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
 				<text><![CDATA[SL]]></text>
@@ -176,22 +185,18 @@
 				<reportElement style="Column header" x="420" y="0" width="115" height="20" uuid="f27e5e9e-2217-4ca5-a6dc-984404626604"/>
 				<box>
 					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
 				<text><![CDATA[Thành tiền]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
+	
+	<!-- Detail Section -->
 	<detail>
 		<band height="20" splitType="Stretch">
 			<textField>
-				<reportElement style="Detail" x="0" y="0" width="40" height="20" uuid="e6612b53-5d44-4bdc-8d82-6a4a977147db">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="2944303b-dc7f-459d-a818-9fbf45cc97da"/>
-				</reportElement>
+				<reportElement style="Detail" x="0" y="0" width="40" height="20" uuid="e6612b53-5d44-4bdc-8d82-6a4a977147db"/>
 				<box>
 					<pen lineWidth="0.5"/>
 				</box>
@@ -199,9 +204,7 @@
 				<textFieldExpression><![CDATA[$F{no}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Detail" x="40" y="0" width="230" height="20" uuid="72cd8359-58cb-46ae-826f-7e141496f1e9">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="ef8f665f-6a2e-45d7-95c1-c645df3642a3"/>
-				</reportElement>
+				<reportElement style="Detail" x="40" y="0" width="230" height="20" uuid="72cd8359-58cb-46ae-826f-7e141496f1e9"/>
 				<box leftPadding="5">
 					<pen lineWidth="0.5"/>
 				</box>
@@ -209,9 +212,7 @@
 				<textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Detail" x="270" y="0" width="100" height="20" uuid="1bd021e1-3dd2-4466-9a2b-d92fdf8943ec">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b348b97a-c50d-444b-88d5-65e626112775"/>
-				</reportElement>
+				<reportElement style="Detail" x="270" y="0" width="100" height="20" uuid="1bd021e1-3dd2-4466-9a2b-d92fdf8943ec"/>
 				<box rightPadding="5">
 					<pen lineWidth="0.5"/>
 				</box>
@@ -219,9 +220,7 @@
 				<textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Detail" x="370" y="0" width="50" height="20" uuid="7e9e10e8-2382-4691-b778-a41cd3b32c92">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1926713f-bfee-49a5-b833-8d505a4bb47c"/>
-				</reportElement>
+				<reportElement style="Detail" x="370" y="0" width="50" height="20" uuid="7e9e10e8-2382-4691-b778-a41cd3b32c92"/>
 				<box>
 					<pen lineWidth="0.5"/>
 				</box>
@@ -229,9 +228,7 @@
 				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Detail" x="420" y="0" width="115" height="20" uuid="f8b774e5-9c15-4680-b4e9-0025411e26d8">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1226fc2e-e909-451c-8dab-80f13478a01c"/>
-				</reportElement>
+				<reportElement style="Detail" x="420" y="0" width="115" height="20" uuid="f8b774e5-9c15-4680-b4e9-0025411e26d8"/>
 				<box rightPadding="5">
 					<pen lineWidth="0.5"/>
 				</box>
@@ -240,6 +237,8 @@
 			</textField>
 		</band>
 	</detail>
+	
+	<!-- Column Footer - Totals Section -->
 	<columnFooter>
 		<band height="110" splitType="Stretch">
 			<staticText>
@@ -288,6 +287,8 @@
 			</textField>
 		</band>
 	</columnFooter>
+	
+	<!-- Page Footer -->
 	<pageFooter>
 		<band height="20" splitType="Stretch">
 			<textField>
