@@ -18,7 +18,6 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Leave
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\UserController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\UserDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginForm.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\ProductPromotion.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Invoice.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\CashierView.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\ProductDAO.java
@@ -30,6 +29,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\AdminV
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierQRPayment.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\RevenueLineChartModel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\DetailController.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\PromotionDetail.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Product.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductSelectionPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Report.java
@@ -46,6 +46,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\Invoice
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdDashBoard.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\RevenueLineChart.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\DBConnection.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\PromotionController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\User.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\Toast.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Promotion.java

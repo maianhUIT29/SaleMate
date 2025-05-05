@@ -325,86 +325,235 @@ public class CheckoutPanel extends javax.swing.JPanel {
     }
 
     private JasperPrint createInvoiceReport(int invoiceId) throws JRException {
-        String invoiceNumber = generateInvoiceNumber(invoiceId);
-        
-        List<Map<String, Object>> data = new ArrayList<>();
-        int index = 1;
-        BigDecimal subtotal = BigDecimal.ZERO;
-        BigDecimal totalDiscounts = BigDecimal.ZERO;
-        
-        for (Product product : checkoutProducts.values()) {
-            Map<String, Object> row = new HashMap<>();
-            row.put("no", index++);
-            row.put("productName", product.getProductName());
+        try {
+            String invoiceNumber = generateInvoiceNumber(invoiceId);
             
-            boolean hasDiscount = product.getOriginalPrice() != null && 
-                                product.getDiscountPercent() > 0;
+            List<Map<String, Object>> data = new ArrayList<>();
+            int index = 1;
+            BigDecimal subtotal = BigDecimal.ZERO;
+            BigDecimal totalDiscounts = BigDecimal.ZERO;
             
-            if (hasDiscount) {
-                row.put("price", formatCurrency(product.getPrice()) + " (giảm " + 
-                       (int)product.getDiscountPercent() + "%)");
+            for (Product product : checkoutProducts.values()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("no", String.valueOf(index++));
+                row.put("productName", product.getProductName());
                 
-                BigDecimal singleItemDiscount = product.getOriginalPrice().subtract(product.getPrice());
-                BigDecimal totalItemDiscount = singleItemDiscount.multiply(new BigDecimal(product.getQuantity()));
-                totalDiscounts = totalDiscounts.add(totalItemDiscount);
+                boolean hasDiscount = product.getOriginalPrice() != null && 
+                                    product.getDiscountPercent() > 0;
+                
+                if (hasDiscount) {
+                    row.put("price", formatCurrency(product.getPrice()) + " (giảm " + 
+                           (int)product.getDiscountPercent() + "%)");
+                    
+                    BigDecimal singleItemDiscount = product.getOriginalPrice().subtract(product.getPrice());
+                    BigDecimal totalItemDiscount = singleItemDiscount.multiply(new BigDecimal(product.getQuantity()));
+                    totalDiscounts = totalDiscounts.add(totalItemDiscount);
+                } else {
+                    row.put("price", formatCurrency(product.getPrice()));
+                }
+                
+                row.put("quantity", String.valueOf(product.getQuantity()));
+                BigDecimal itemTotal = product.getPrice().multiply(new BigDecimal(product.getQuantity()));
+                row.put("total", formatCurrency(itemTotal));
+                subtotal = subtotal.add(itemTotal);
+                data.add(row);
+            }
+
+            BigDecimal taxRate = new BigDecimal("0.1");
+            BigDecimal taxAmount = subtotal.multiply(taxRate);
+            BigDecimal grandTotal = subtotal.add(taxAmount);
+            
+            String cashierName = SessionManager.getInstance().getLoggedInUser().getUsername();
+            
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put("invoiceNo", invoiceNumber);
+            parameters.put("date", new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
+            parameters.put("cashierName", cashierName);
+            parameters.put("subtotal", formatCurrency(subtotal));
+            parameters.put("tax", formatCurrency(taxAmount));
+            parameters.put("totalAmount", formatCurrency(grandTotal));
+            parameters.put("paymentMethod", paymentMethodComboBox.getSelectedItem().toString());
+            parameters.put("companyName", "SalesMate - Phần mềm quản lý bán hàng");
+            parameters.put("companyAddress", "Trường Đại học Công nghệ Thông tin TP.HCM");
+            parameters.put("companyPhone", "(+84) 28 1234 5678");
+            parameters.put("companyEmail", "contact@salesmate.vn");
+            parameters.put("thankYouMessage", "Cảm ơn quý khách đã mua hàng! Hẹn gặp lại.");
+            
+            if (totalDiscounts.compareTo(BigDecimal.ZERO) > 0) {
+                parameters.put("totalDiscount", formatCurrency(totalDiscounts));
             } else {
-                row.put("price", formatCurrency(product.getPrice()));
+                parameters.put("totalDiscount", "0đ");
             }
             
-            row.put("quantity", product.getQuantity());
-            BigDecimal itemTotal = product.getPrice().multiply(new BigDecimal(product.getQuantity()));
-            row.put("total", formatCurrency(itemTotal));
-            subtotal = subtotal.add(itemTotal);
-            data.add(row);
-        }
-
-        BigDecimal taxRate = new BigDecimal("0.1");
-        BigDecimal taxAmount = subtotal.multiply(taxRate);
-        BigDecimal grandTotal = subtotal.add(taxAmount);
-        
-        String cashierName = SessionManager.getInstance().getLoggedInUser().getUsername();
-        
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("invoiceNo", invoiceNumber);
-        parameters.put("date", new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
-        parameters.put("cashierName", cashierName);
-        parameters.put("subtotal", formatCurrency(subtotal));
-        parameters.put("tax", formatCurrency(taxAmount));
-        parameters.put("totalAmount", formatCurrency(grandTotal));
-        parameters.put("paymentMethod", paymentMethodComboBox.getSelectedItem().toString());
-        parameters.put("companyName", "SalesMate - Phần mềm quản lý bán hàng");
-        parameters.put("companyAddress", "Trường Đại học Công nghệ Thông tin TP.HCM");
-        parameters.put("companyPhone", "(+84) 28 1234 5678");
-        parameters.put("companyEmail", "contact@salesmate.vn");
-        parameters.put("thankYouMessage", "Cảm ơn quý khách đã mua hàng! Hẹn gặp lại.");
-        
-        if (totalDiscounts.compareTo(BigDecimal.ZERO) > 0) {
-            parameters.put("totalDiscount", formatCurrency(totalDiscounts));
-        } else {
-            parameters.put("totalDiscount", "0đ");
-        }
-        
-        JasperReport jasperReport;
-        try {
-            try (InputStream reportStream = getClass().getResourceAsStream("/reports/invoice_template.jrxml")) {
+            JasperReport jasperReport = null;
+            
+            try {
+                InputStream reportStream = getClass().getResourceAsStream("/reports/invoice_template.jrxml");
                 if (reportStream != null) {
                     jasperReport = JasperCompileManager.compileReport(reportStream);
+                    reportStream.close();
                 } else {
-                    String templatePath = System.getProperty("user.dir") + "/src/main/resources/reports/invoice_template.jrxml";
+                    String projectDir = System.getProperty("user.dir");
+                    String templatePath = projectDir + "/src/main/resources/reports/invoice_template.jrxml";
                     File templateFile = new File(templatePath);
                     
                     if (templateFile.exists()) {
                         jasperReport = JasperCompileManager.compileReport(templatePath);
                     } else {
-                        jasperReport = createDynamicReport();
+                        templatePath = projectDir + "/src/main/resources/templates/invoice_template.jrxml";
+                        templateFile = new File(templatePath);
+                        
+                        if (templateFile.exists()) {
+                            jasperReport = JasperCompileManager.compileReport(templatePath);
+                        } else {
+                            jasperReport = createDynamicReport();
+                        }
                     }
                 }
+            } catch (Exception e) {
+                jasperReport = createDynamicReport();
             }
+            
+            if (jasperReport == null) {
+                throw new JRException("Could not create or load report template");
+            }
+            
+            JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(data);
+            
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+            jasperPrint.setName("Invoice_" + invoiceId);
+            
+            return jasperPrint;
         } catch (Exception e) {
-            jasperReport = createDynamicReport();
+            throw new JRException("Failed to create invoice report: " + e.getMessage(), e);
+        }
+    }
+
+    private JasperReport createDynamicReport() throws JRException {
+        JasperDesign jasperDesign = new JasperDesign();
+        jasperDesign.setName("DynamicInvoice");
+        jasperDesign.setPageWidth(595);
+        jasperDesign.setPageHeight(842);
+        jasperDesign.setColumnWidth(555);
+        jasperDesign.setColumnSpacing(0);
+        jasperDesign.setLeftMargin(20);
+        jasperDesign.setRightMargin(20);
+        jasperDesign.setTopMargin(20);
+        jasperDesign.setBottomMargin(20);
+
+        String[] fieldNames = {"no", "productName", "price", "quantity", "total"};
+        for (String fieldName : fieldNames) {
+            JRDesignField field = new JRDesignField();
+            field.setName(fieldName);
+            field.setValueClass(java.lang.String.class);
+            jasperDesign.addField(field);
+        }
+
+        String[] paramNames = {"invoiceNo", "date", "cashierName", "subtotal", "tax", 
+                              "totalAmount", "paymentMethod", "companyName", 
+                              "companyAddress", "companyPhone", "companyEmail", 
+                              "thankYouMessage", "totalDiscount"};
+                              
+        for (String paramName : paramNames) {
+            JRDesignParameter parameter = new JRDesignParameter();
+            parameter.setName(paramName);
+            parameter.setValueClass(java.lang.String.class);
+            try {
+                jasperDesign.addParameter(parameter);
+            } catch (Exception e) {
+                System.err.println("Could not add parameter '" + paramName + "': " + e.getMessage());
+            }
+        }
+
+        JRDesignBand titleBand = new JRDesignBand();
+        titleBand.setHeight(50);
+        
+        JRDesignStaticText titleText = new JRDesignStaticText();
+        titleText.setX(0);
+        titleText.setY(10);
+        titleText.setWidth(555);
+        titleText.setHeight(30);
+        titleText.setText("HÓA ĐƠN BÁN HÀNG");
+        titleText.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        titleText.setFontSize(16f);
+        titleText.setBold(true);
+        
+        titleBand.addElement(titleText);
+        jasperDesign.setTitle(titleBand);
+
+        JRDesignBand columnHeader = new JRDesignBand();
+        columnHeader.setHeight(30);
+        
+        String[] headers = {"STT", "Tên sản phẩm", "Đơn giá", "SL", "Thành tiền"};
+        int[] widths = {50, 200, 100, 50, 155};
+        int xPos = 0;
+        
+        for (int i = 0; i < headers.length; i++) {
+            JRDesignStaticText header = new JRDesignStaticText();
+            header.setX(xPos);
+            header.setY(0);
+            header.setWidth(widths[i]);
+            header.setHeight(30);
+            header.setText(headers[i]);
+            header.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+            header.setBold(true);
+            columnHeader.addElement(header);
+            xPos += widths[i];
         }
         
-        return JasperFillManager.fillReport(jasperReport, parameters, new JRBeanCollectionDataSource(data));
+        jasperDesign.setColumnHeader(columnHeader);
+
+        JRDesignBand detailBand = new JRDesignBand();
+        detailBand.setHeight(30);
+        
+        xPos = 0;
+        String[] fields = {"no", "productName", "price", "quantity", "total"};
+        
+        for (int i = 0; i < fields.length; i++) {
+            JRDesignTextField textField = new JRDesignTextField();
+            textField.setX(xPos);
+            textField.setY(0);
+            textField.setWidth(widths[i]);
+            textField.setHeight(30);
+            
+            JRDesignExpression expression = new JRDesignExpression();
+            expression.setText("$F{" + fields[i] + "}");
+            textField.setExpression(expression);
+            
+            textField.setHorizontalTextAlign(i == 1 ? HorizontalTextAlignEnum.LEFT : HorizontalTextAlignEnum.CENTER);
+            
+            detailBand.addElement(textField);
+            xPos += widths[i];
+        }
+        
+        ((JRDesignSection)jasperDesign.getDetailSection()).addBand(detailBand);
+
+        JRDesignBand summaryBand = new JRDesignBand();
+        summaryBand.setHeight(100);
+        
+        JRDesignStaticText subtotalLabel = new JRDesignStaticText();
+        subtotalLabel.setX(350);
+        subtotalLabel.setY(10);
+        subtotalLabel.setWidth(100);
+        subtotalLabel.setHeight(20);
+        subtotalLabel.setText("Tạm tính:");
+        subtotalLabel.setHorizontalTextAlign(HorizontalTextAlignEnum.RIGHT);
+        summaryBand.addElement(subtotalLabel);
+        
+        JRDesignTextField subtotalField = new JRDesignTextField();
+        subtotalField.setX(455);
+        subtotalField.setY(10);
+        subtotalField.setWidth(100);
+        subtotalField.setHeight(20);
+        JRDesignExpression subtotalExpr = new JRDesignExpression();
+        subtotalExpr.setText("$P{subtotal}");
+        subtotalField.setExpression(subtotalExpr);
+        subtotalField.setHorizontalTextAlign(HorizontalTextAlignEnum.RIGHT);
+        summaryBand.addElement(subtotalField);
+        
+        jasperDesign.setSummary(summaryBand);
+
+        return JasperCompileManager.compileReport(jasperDesign);
     }
 
     private void processPayment() {
@@ -467,7 +616,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
                         productSelectionPanel.updateProductQuantities(soldQuantities);
                     }
                     
-                    // Show modern success dialog with printing options
                     showSuccessDialog(invoiceId);
                     clearTable();
                     
@@ -526,11 +674,9 @@ public class CheckoutPanel extends javax.swing.JPanel {
         mainPanel.setLayout(new BorderLayout(0, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        // Top panel with success icon and title
         JPanel topPanel = new JPanel(new BorderLayout(15, 10));
         topPanel.setOpaque(false);
         
-        // Custom checkmark icon
         JLabel iconLabel = new JLabel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -561,7 +707,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         topPanel.add(iconLabel, BorderLayout.WEST);
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Details panel with invoice information
         JPanel detailsPanel = new JPanel();
         detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
         detailsPanel.setOpaque(false);
@@ -602,7 +747,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
             detailsPanel.add(Box.createVerticalStrut(10));
         }
 
-        // Prepare resources directory path for PDF
         String resourcesDir = System.getProperty("user.dir") + "/src/main/resources";
         String invoicesDir = resourcesDir + "/invoices";
         new File(invoicesDir).mkdirs();
@@ -610,20 +754,14 @@ public class CheckoutPanel extends javax.swing.JPanel {
         String fileName = "Invoice_" + invoiceId + ".pdf";
         String outputPath = invoicesDir + File.separator + fileName;
 
-        // Button panel with 3 buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         buttonPanel.setOpaque(false);
 
-        // Print button - Shows print dialog directly
         JButton printButton = createStyledButton("In hoá đơn", new Color(0, 123, 255));
         printButton.addActionListener(e -> {
             try {
-                // Generate JasperPrint for preview and print
                 JasperPrint jasperPrint = createInvoiceReport(invoiceId);
-                
-                // Show print preview dialog
                 showPrintPreview(jasperPrint);
-                
                 successDialog.dispose();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -635,17 +773,14 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
 
-        // Save button - Saves PDF and shows confirmation
         JButton saveButton = createStyledButton("Lưu hoá đơn", new Color(40, 167, 69));
         saveButton.addActionListener(e -> {
             try {
-                // Generate and save PDF
                 JasperPrint jasperPrint = createInvoiceReport(invoiceId);
                 JasperExportManager.exportReportToPdfFile(jasperPrint, outputPath);
                 
                 successDialog.dispose();
                 
-                // Show save success dialog with options to open file
                 showSaveSuccessDialog(outputPath, jasperPrint, invoiceId);
                 
             } catch (Exception ex) {
@@ -658,7 +793,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
 
-        // Close button - Simply closes the dialog
         JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
         closeButton.addActionListener(e -> successDialog.dispose());
 
@@ -666,7 +800,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         buttonPanel.add(saveButton);
         buttonPanel.add(closeButton);
 
-        // Add all panels to main panel
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(detailsPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -767,19 +900,16 @@ public class CheckoutPanel extends javax.swing.JPanel {
         
         JPanel mainPanel = new JPanel(new BorderLayout());
         
-        // Create JasperReports viewer component
         net.sf.jasperreports.swing.JRViewer viewer = new net.sf.jasperreports.swing.JRViewer(jasperPrint);
         mainPanel.add(viewer, BorderLayout.CENTER);
         
-        // Create button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
-        // Print button
         JButton printButton = createStyledButton("In", new Color(0, 123, 255));
         printButton.addActionListener(e -> {
             try {
-                JasperPrintManager.printReport(jasperPrint, true); // Show system print dialog
+                JasperPrintManager.printReport(jasperPrint, true);
             } catch (JRException ex) {
                 JOptionPane.showMessageDialog(
                     previewDialog,
@@ -790,7 +920,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
         
-        // Save PDF button
         JButton saveButton = createStyledButton("Lưu PDF", new Color(40, 167, 69));
         saveButton.addActionListener(e -> {
             try {
@@ -823,7 +952,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
             }
         });
         
-        // Close button
         JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
         closeButton.addActionListener(e -> previewDialog.dispose());
         
@@ -1005,7 +1133,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setPreferredSize(new Dimension(100, 30));
         
-        // Add rounded corners with hover effect
         button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
             public void paint(Graphics g, JComponent c) {
@@ -1015,7 +1142,6 @@ public class CheckoutPanel extends javax.swing.JPanel {
                 AbstractButton button = (AbstractButton) c;
                 ButtonModel model = button.getModel();
                 
-                // Adjust color on hover or press
                 Color fillColor = backgroundColor;
                 if (model.isPressed()) {
                     fillColor = backgroundColor.darker();
@@ -1036,95 +1162,5 @@ public class CheckoutPanel extends javax.swing.JPanel {
         });
         
         return button;
-    }
-
-    private JasperReport createDynamicReport() throws JRException {
-        JasperDesign jasperDesign = new JasperDesign();
-        jasperDesign.setName("DynamicInvoice");
-        jasperDesign.setPageWidth(595);
-        jasperDesign.setPageHeight(842);
-        jasperDesign.setColumnWidth(555);
-        jasperDesign.setColumnSpacing(0);
-        jasperDesign.setLeftMargin(20);
-        jasperDesign.setRightMargin(20);
-        jasperDesign.setTopMargin(20);
-        jasperDesign.setBottomMargin(20);
-
-        // Create fields
-        String[] fieldNames = {"no", "productName", "price", "quantity", "total"};
-        for (String fieldName : fieldNames) {
-            JRDesignField field = new JRDesignField();
-            field.setName(fieldName);
-            field.setValueClass(String.class);
-            jasperDesign.addField(field);
-        }
-
-        // Create title band
-        JRDesignBand titleBand = new JRDesignBand();
-        titleBand.setHeight(50);
-        
-        JRDesignStaticText titleText = new JRDesignStaticText();
-        titleText.setX(0);
-        titleText.setY(10);
-        titleText.setWidth(555);
-        titleText.setHeight(30);
-        titleText.setText("HÓA ĐƠN BÁN HÀNG");
-        titleText.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        titleText.setFontSize(16f);
-        titleText.setBold(true);
-        
-        titleBand.addElement(titleText);
-        jasperDesign.setTitle(titleBand);
-
-        // Create column header band
-        JRDesignBand columnHeader = new JRDesignBand();
-        columnHeader.setHeight(30);
-        
-        String[] headers = {"STT", "Tên sản phẩm", "Đơn giá", "SL", "Thành tiền"};
-        int[] widths = {50, 200, 100, 50, 155};
-        int xPos = 0;
-        
-        for (int i = 0; i < headers.length; i++) {
-            JRDesignStaticText header = new JRDesignStaticText();
-            header.setX(xPos);
-            header.setY(0);
-            header.setWidth(widths[i]);
-            header.setHeight(30);
-            header.setText(headers[i]);
-            header.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-            header.setBold(true);
-            columnHeader.addElement(header);
-            xPos += widths[i];
-        }
-        
-        jasperDesign.setColumnHeader(columnHeader);
-
-        // Create detail band
-        JRDesignBand detailBand = new JRDesignBand();
-        detailBand.setHeight(30);
-        
-        xPos = 0;
-        String[] fields = {"no", "productName", "price", "quantity", "total"};
-        
-        for (int i = 0; i < fields.length; i++) {
-            JRDesignTextField textField = new JRDesignTextField();
-            textField.setX(xPos);
-            textField.setY(0);
-            textField.setWidth(widths[i]);
-            textField.setHeight(30);
-            
-            JRDesignExpression expression = new JRDesignExpression();
-            expression.setText("$F{" + fields[i] + "}");
-            textField.setExpression(expression);
-            
-            textField.setHorizontalTextAlign(i == 1 ? HorizontalTextAlignEnum.LEFT : HorizontalTextAlignEnum.CENTER);
-            
-            detailBand.addElement(textField);
-            xPos += widths[i];
-        }
-        
-        ((JRDesignSection)jasperDesign.getDetailSection()).addBand(detailBand);
-
-        return JasperCompileManager.compileReport(jasperDesign);
     }
 }

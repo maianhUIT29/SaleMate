@@ -24,10 +24,12 @@
 	<parameter name="companyPhone" class="java.lang.String"/>
 	<parameter name="companyEmail" class="java.lang.String"/>
 	<parameter name="thankYouMessage" class="java.lang.String"/>
-	<field name="no" class="java.lang.Integer"/>
+	<!-- Changed field type from Integer to String to match Java implementation -->
+	<field name="no" class="java.lang.String"/>
 	<field name="productName" class="java.lang.String"/>
 	<field name="price" class="java.lang.String"/>
-	<field name="quantity" class="java.lang.Integer"/>
+	<!-- Changed field type from Integer to String to match Java implementation -->
+	<field name="quantity" class="java.lang.String"/>
 	<field name="total" class="java.lang.String"/>
 	<title>
 		<band height="180" splitType="Stretch">
