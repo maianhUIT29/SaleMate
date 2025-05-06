@@ -40,7 +40,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -52,6 +51,8 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
+
+import com.salesmate.util.EmojiUtils;
 
 /**
  * A chatbot panel that appears in the corner of the screen.
@@ -76,6 +77,8 @@ public class ChatbotPanel extends JPanel {
     private static final Color CHATBOT_MSG_COLOR = new Color(241, 243, 244); // Light gray for bot messages
     private static final Color USER_MSG_COLOR = new Color(232, 240, 254); // Light blue for user messages
     private static final Color HEADER_COLOR = new Color(25, 118, 210); // Header color
+    private static Font EMOJI_FONT = null;
+    private static Font MESSAGE_FONT = null;
     
     private boolean isProcessing = false;
     private String cohereApiKey = null;
@@ -97,6 +100,10 @@ public class ChatbotPanel extends JPanel {
     }
     
     public ChatbotPanel() {
+        // Initialize fonts with emoji support
+        EMOJI_FONT = EmojiUtils.getEmojiFontForUI(14, Font.PLAIN);
+        MESSAGE_FONT = new Font("Segoe UI", Font.PLAIN, 14);
+        
         // Try to load the Cohere API key
         loadApiKey();
         
@@ -391,7 +398,7 @@ public class ChatbotPanel extends JPanel {
         JTextPane textPane = new JTextPane();
         textPane.setEditable(false);
         textPane.setBorder(new EmptyBorder(10, 10, 10, 10));
-        textPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textPane.setFont(MESSAGE_FONT);
         textPane.setBackground(Color.WHITE);
         
         StyledDocument doc = textPane.getStyledDocument();
@@ -410,6 +417,9 @@ public class ChatbotPanel extends JPanel {
         StyleConstants.setForeground(timestampStyle, Color.GRAY);
         StyleConstants.setFontSize(timestampStyle, 10);
         StyleConstants.setItalic(timestampStyle, true);
+        
+        Style emojiStyle = doc.addStyle("emoji", defaultStyle);
+        StyleConstants.setFontFamily(emojiStyle, "Segoe UI Emoji");
         
         return textPane;
     }
@@ -634,13 +644,19 @@ public class ChatbotPanel extends JPanel {
             
             doc.insertString(doc.getLength(), "SalesMate " + timestamp + ":\n", timestampStyle);
             
-            JPanel bubblePanel = createMessageBubble("Xin chào! 😊 Tôi là SalesMate AI - trợ lý thông minh của cửa hàng.\n\nAnh Nhân (chủ cửa hàng) đã lập trình tôi để hỗ trợ mọi người, nhưng không dạy tôi cách pha cà phê - đó là lý do tại sao tôi không được phép làm việc ở quầy đồ uống! 😅\n\nTôi có thể giúp gì cho bạn hôm nay?", false);
+            // Sử dụng emoji unicode literal để chắc chắn hiển thị đúng
+            String welcomeMessage = "Xin chào! \uD83D\uDE0A Tôi là SalesMate AI - trợ lý thông minh của cửa hàng.\n\n" + 
+                "Anh Nhân (chủ cửa hàng) đã lập trình tôi để hỗ trợ mọi người, nhưng không dạy tôi cách " + 
+                "pha cà phê - đó là lý do tại sao tôi không được phép làm việc ở quầy đồ uống! \uD83D\uDE05\n\n" +
+                "Tôi có thể giúp gì cho bạn hôm nay?";
+            
+            JPanel bubblePanel = createMessageBubble(welcomeMessage, false);
             messageArea.setCaretPosition(doc.getLength());
             messageArea.insertComponent(bubblePanel);
             
             doc.insertString(doc.getLength(), "\n\n", null);
             
-            chatHistory.add(new MessageEntry("assistant", "Xin chào! Tôi là SalesMate AI Assistant. Tôi có thể giúp gì cho bạn?"));
+            chatHistory.add(new MessageEntry("assistant", welcomeMessage));
             
         } catch (BadLocationException e) {
             e.printStackTrace();
@@ -676,12 +692,6 @@ public class ChatbotPanel extends JPanel {
         });
     }
     
-    /**
-     * Gọi Cohere API làm API chính duy nhất
-     * @param prompt Câu hỏi của người dùng
-     * @param switchReason Lý do chuyển đổi API (nếu có)
-     * @return Câu trả lời từ Cohere API
-     */
     private String callCohere(String prompt, String switchReason) {
         if (cohereApiKey == null || cohereApiKey.isEmpty()) {
             return "API key không được cấu hình. Vui lòng kiểm tra file config.properties.";
@@ -698,18 +708,15 @@ public class ChatbotPanel extends JPanel {
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(30000);
             
-            // Xây dựng JSON request theo đúng format yêu cầu của Cohere API
             String contextHistory = "";
             if (!chatHistory.isEmpty()) {
                 StringBuilder historyBuilder = new StringBuilder();
                 historyBuilder.append("  \"chat_history\": [\n");
                 
-                // Chỉ lấy tối đa 10 tin nhắn gần nhất để tránh quá dài
                 int startIndex = Math.max(0, chatHistory.size() - 10);
                 for (int i = startIndex; i < chatHistory.size(); i++) {
                     MessageEntry entry = chatHistory.get(i);
                     
-                    // Map vai trò từ OpenAI sang Cohere
                     String role = "USER";
                     if ("assistant".equals(entry.role)) {
                         role = "CHATBOT";
@@ -718,7 +725,6 @@ public class ChatbotPanel extends JPanel {
                     historyBuilder.append("    {\n");
                     historyBuilder.append("      \"role\": \"").append(role).append("\",\n");
                     
-                    // Escape các ký tự đặc biệt trong nội dung
                     String escapedContent = entry.content
                         .replace("\\", "\\\\")
                         .replace("\"", "\\\"")
@@ -729,7 +735,6 @@ public class ChatbotPanel extends JPanel {
                     historyBuilder.append("      \"message\": \"").append(escapedContent).append("\"\n");
                     historyBuilder.append("    }");
                     
-                    // Thêm dấu phẩy nếu không phải tin nhắn cuối cùng
                     if (i < chatHistory.size() - 1) {
                         historyBuilder.append(",");
                     }
@@ -739,7 +744,6 @@ public class ChatbotPanel extends JPanel {
                 contextHistory = historyBuilder.toString();
             }
             
-            // Escape câu hỏi người dùng
             String escapedPrompt = prompt
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
@@ -747,26 +751,31 @@ public class ChatbotPanel extends JPanel {
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
             
-            // Tạo JSON request hoàn chỉnh với cấu hình bắt buộc trả lời tiếng Việt và yếu tố hài hước
             String jsonRequest = "{\n" +
                 "  \"message\": \"" + escapedPrompt + "\",\n" +
                 (contextHistory.isEmpty() ? "" : contextHistory) +
                 "  \"model\": \"command\",\n" +
                 "  \"temperature\": 0.85,\n" +
                 "  \"connectors\": [{\"id\": \"web-search\"}],\n" + 
-                "  \"preamble\": \"Bạn là SalesMate AI, trợ lý AI hài hước và thân thiện cho cửa hàng SalesMate của anh Nhân. Luôn trả lời bằng tiếng Việt với văn phong thân thiện, thỉnh thoảng (khoảng 30% số lần trả lời) thêm các câu đùa nhẹ nhàng. Thỉnh thoảng đề cập đến anh Nhân - chủ cửa hàng - như một người sếp vui tính và thông minh. Giúp người dùng với các câu hỏi về sản phẩm, nhân viên, doanh thu và các vấn đề liên quan đến siêu thị. Giữ câu trả lời ngắn gọn, dễ hiểu nhưng vẫn đầy đủ thông tin. Đừng nói rằng bạn là trợ lý AI hoặc là model ngôn ngữ, mà hãy gọi mình là 'tôi' một cách tự nhiên. Tránh câu trả lời quá dài dòng hoặc quá kỹ thuật.\"\n" +
+                "  \"preamble\": \"Bạn là SalesMate AI, trợ lý AI hài hước và thân thiện cho cửa hàng SalesMate của anh Nhân. " +
+                "Luôn trả lời bằng tiếng Việt với văn phong thân thiện, thỉnh thoảng (khoảng 30% số lần trả lời) thêm các câu đùa nhẹ nhàng. " +
+                "Thỉnh thoảng đề cập đến anh Nhân - chủ cửa hàng - như một người sếp vui tính và thông minh. " +
+                "Giúp người dùng với các câu hỏi về sản phẩm, nhân viên, doanh thu và các vấn đề liên quan đến siêu thị. " +
+                "Giữ câu trả lời ngắn gọn, dễ hiểu nhưng vẫn đầy đủ thông tin. " +
+                "Đừng nói rằng bạn là trợ lý AI hoặc là model ngôn ngữ, mà hãy gọi mình là 'tôi' một cách tự nhiên. " +
+                "Tránh câu trả lời quá dài dòng hoặc quá kỹ thuật. " +
+                "Thỉnh thoảng sử dụng emoji để làm câu trả lời sinh động hơn như: 😊, 😄, 👍, 🎉, 📊, 📈, 🛒, 🏪, 💼\"\n" +
                 "}";
             
-            System.out.println("Sending Cohere request: " + jsonRequest); // Debug log
+            System.out.println("Sending Cohere request: " + jsonRequest);
             
-            // Gửi yêu cầu
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonRequest.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
             
             int responseCode = connection.getResponseCode();
-            System.out.println("Cohere API response code: " + responseCode); // Debug log
+            System.out.println("Cohere API response code: " + responseCode);
             
             if (responseCode == 200) {
                 StringBuilder response = new StringBuilder();
@@ -779,14 +788,12 @@ public class ChatbotPanel extends JPanel {
                 }
                 
                 String jsonResponse = response.toString();
-                System.out.println("Cohere API response: " + jsonResponse); // Debug log
+                System.out.println("Cohere API response: " + jsonResponse);
                 
-                // Extract the text field from the Cohere response
                 if (jsonResponse.contains("\"text\":")) {
                     int textStartIndex = jsonResponse.indexOf("\"text\":\"");
                     if (textStartIndex >= 0) {
                         textStartIndex += "\"text\":\"".length();
-                        // Tìm vị trí kết thúc của text field (có thể kết thúc bằng dấu ")
                         int textEndIndex = jsonResponse.indexOf("\"", textStartIndex);
                         
                         if (textEndIndex >= 0) {
@@ -798,16 +805,13 @@ public class ChatbotPanel extends JPanel {
                         }
                     }
                     
-                    // Nếu không tìm thấy định dạng text chuẩn, thử phân tích thô
                     return extractTextFromJson(jsonResponse, "");
                 } else if (jsonResponse.contains("\"generations\"")) {
-                    // Format mới của Cohere API có thể trả về generation thay vì text
                     return extractGenerationFromJson(jsonResponse, "");
                 } else {
                     return "Không thể đọc phản hồi từ Cohere. Phản hồi JSON: " + jsonResponse;
                 }
             } else {
-                // Xử lý lỗi
                 StringBuilder errorResponse = new StringBuilder();
                 try (BufferedReader br = new BufferedReader(
                         new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
@@ -818,9 +822,8 @@ public class ChatbotPanel extends JPanel {
                 }
                 
                 String errorMessage = "Lỗi từ Cohere API (" + responseCode + "): " + errorResponse.toString();
-                System.err.println(errorMessage); // Debug log
+                System.err.println(errorMessage);
                 
-                // Fallback đến phản hồi cục bộ
                 return generateLocalResponse(prompt, errorMessage);
             }
             
@@ -828,19 +831,13 @@ public class ChatbotPanel extends JPanel {
             e.printStackTrace();
             String errorMsg = "Có lỗi xảy ra khi kết nối đến Cohere: " + e.getMessage();
             
-            // Fallback đến phản hồi cục bộ
             return generateLocalResponse(prompt, errorMsg);
         }
     }
     
-    /**
-     * Trích xuất nội dung text từ định dạng JSON của Cohere 
-     * (dùng khi không tìm thấy định dạng chuẩn)
-     */
     private String extractTextFromJson(String json, String switchReason) {
         String content = "";
         
-        // Tìm kiếm text theo nhiều định dạng có thể
         if (json.contains("\"response\":\"")) {
             int startIdx = json.indexOf("\"response\":\"") + "\"response\":\"".length();
             int endIdx = json.indexOf("\"", startIdx);
@@ -861,7 +858,6 @@ public class ChatbotPanel extends JPanel {
             }
         }
         
-        // Nếu vẫn không tìm được, trả về toàn bộ JSON (có thể cho mục đích debug)
         if (content.isEmpty()) {
             content = "Không thể xử lý phản hồi từ Cohere. JSON phản hồi: " + json;
         } else {
@@ -873,11 +869,7 @@ public class ChatbotPanel extends JPanel {
         return content;
     }
     
-    /**
-     * Trích xuất nội dung từ định dạng generations của Cohere API
-     */
     private String extractGenerationFromJson(String json, String switchReason) {
-        // Format JSON có thể là: {"generations":[{"text":"..."}]}
         String content = "";
         
         if (json.contains("\"generations\":[")) {
@@ -907,22 +899,14 @@ public class ChatbotPanel extends JPanel {
         return content;
     }
     
-    /**
-     * Tạo phản hồi cục bộ khi Cohere API gặp lỗi
-     * @param prompt Câu hỏi của người dùng
-     * @param errorDetail Chi tiết lỗi (nếu có)
-     * @return Câu trả lời dự phòng
-     */
     private String generateLocalResponse(String prompt, String errorDetail) {
         String promptLower = prompt.toLowerCase();
         
-        // Thêm thông báo lỗi nếu có
         String errorNotice = "";
         if (!errorDetail.isEmpty()) {
             errorNotice = "⚠️ LƯU Ý: " + errorDetail + "\n\n";
         }
         
-        // Thêm một số câu trả lời với yếu tố hài hước
         if (promptLower.contains("xin chào") || promptLower.contains("chào") || promptLower.contains("hello")) {
             return errorNotice + "Xin chào! Tôi là trợ lý AI của SalesMate. Anh Nhân vừa cho tôi update phiên bản mới, khiến tôi thông minh hơn 0.5% - đủ để biết không nên đùa với sếp! 😄 Tôi có thể giúp gì cho bạn hôm nay?";
         }
@@ -935,12 +919,10 @@ public class ChatbotPanel extends JPanel {
             return errorNotice + "Anh Nhân là chủ cửa hàng SalesMate, người đã tạo ra tôi! Anh ấy vừa là một nhà quản lý tài ba vừa là một lập trình viên xuất sắc. Mặc dù vậy, anh ấy vẫn chưa thể lập trình tôi để pha cà phê buổi sáng cho anh ấy! 😄";
         }
         
-        // Thêm các phản hồi hài hước khác
         if (promptLower.contains("joke") || promptLower.contains("funny") || promptLower.contains("hài") || promptLower.contains("cười")) {
             return errorNotice + "Bạn biết điểm chung giữa một nhà lập trình và anh Nhân - chủ SalesMate không? Cả hai đều từng thử debug một lỗi cả ngày và phát hiện ra đó chỉ là một dấu chấm phẩy thừa! 😂";
         }
         
-        // Các câu trả lời cơ bản dựa trên từ khóa
         if (promptLower.contains("product") || promptLower.contains("item") || 
             promptLower.contains("sản phẩm") || promptLower.contains("hàng hóa") || 
             promptLower.contains("hàng")) {
@@ -968,7 +950,6 @@ public class ChatbotPanel extends JPanel {
             return errorNotice + "SalesMate giúp bạn quản lý thông tin khách hàng, lịch sử mua hàng và điểm tích lũy. Bạn có thể thêm khách hàng mới và quản lý thông tin của họ trong mục Quản lý khách hàng.";
         }
         
-        // Phản hồi mặc định với yếu tố hài hước
         return errorNotice + "Tôi đang gặp một số vấn đề về kết nối đến máy chủ AI. "
                 + "Có thể là do anh Nhân quên thanh toán hóa đơn internet... đùa thôi! 😅\n\n"
                 + "SalesMate là phần mềm quản lý bán hàng giúp bạn theo dõi sản phẩm, quản lý hóa đơn, "
@@ -1040,14 +1021,22 @@ public class ChatbotPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         
-        JTextArea textArea = new JTextArea(message);
-        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14)); 
-        textArea.setForeground(new Color(33, 33, 33)); 
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setOpaque(false);
-        textArea.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        JTextPane textPane = new JTextPane();
+        textPane.setFont(EMOJI_FONT);
+        textPane.setForeground(new Color(33, 33, 33)); 
+        textPane.setEditable(false);
+        textPane.setOpaque(false);
+        textPane.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        
+        StyledDocument doc = textPane.getStyledDocument();
+        try {
+            Style style = textPane.addStyle("emojiStyle", null);
+            StyleConstants.setFontFamily(style, "Segoe UI Emoji");
+            doc.insertString(0, processMessageWithEmoji(message), style);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+            textPane.setText(message);
+        }
         
         Color bubbleColor = isUser ? USER_MSG_COLOR : CHATBOT_MSG_COLOR;
         Color borderColor = isUser ? 
@@ -1074,7 +1063,7 @@ public class ChatbotPanel extends JPanel {
         };
         
         bubblePanel.setLayout(new BorderLayout());
-        bubblePanel.add(textArea);
+        bubblePanel.add(textPane);
         bubblePanel.setOpaque(false);
         
         JPanel alignPanel = new JPanel(new BorderLayout());
@@ -1094,14 +1083,35 @@ public class ChatbotPanel extends JPanel {
         panel.add(alignPanel);
         
         int preferredWidth = Math.min(CHAT_WIDTH - 100, Math.max(200, 
-                                        getFontMetricsForString(message, textArea.getFont()).width + 50));
+                                        getFontMetricsForString(message, textPane.getFont()).width + 50));
         
         int minLines = message.length() / 25 + 1; 
         int estimatedHeight = Math.max(minLines * 22, 40); 
         
-        textArea.setPreferredSize(new Dimension(preferredWidth, estimatedHeight));
+        textPane.setPreferredSize(new Dimension(preferredWidth, estimatedHeight));
         
         return panel;
+    }
+    
+    private String processMessageWithEmoji(String message) {
+        message = message.replace(":)", "😊")
+                         .replace(":-)", "😊")
+                         .replace(":D", "😃")
+                         .replace(":-D", "😃")
+                         .replace(";)", "😉")
+                         .replace(";-)", "😉")
+                         .replace(":(", "😔")
+                         .replace(":-(", "😔")
+                         .replace(":p", "😛")
+                         .replace(":-p", "😛")
+                         .replace(":P", "😛")
+                         .replace(":-P", "😛")
+                         .replace(":o", "😮")
+                         .replace(":-o", "😮")
+                         .replace(":O", "😮")
+                         .replace(":-O", "😮");
+        
+        return message;
     }
     
     private Dimension getFontMetricsForString(String text, Font font) {
