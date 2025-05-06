@@ -6,12 +6,12 @@ import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import com.salesmate.component.AdminChatbot; // Add import for AdminChatbot
 
-import com.salesmate.component.ChatbotPanel;
 
 public class AdminView extends javax.swing.JFrame {
 
-    private ChatbotPanel chatbotPanel;
+    private AdminChatbot adminChatbot; // Add field for chatbot
 
     public AdminView() {
         try {
@@ -65,6 +65,14 @@ public class AdminView extends javax.swing.JFrame {
             validate();
             repaint();
             
+            // Add a component listener to handle window resize events
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    repositionChatbot();
+                }
+            });
+            
             System.out.println("AdminView constructor completed successfully");
         } catch (Exception e) {
             System.err.println("Error initializing AdminView: " + e.getMessage());
@@ -77,31 +85,14 @@ public class AdminView extends javax.swing.JFrame {
      */
     private void setupChatbot() {
         try {
-            // Create an overlay glass pane to hold the chatbot
-            JPanel glassPane = new JPanel();
-            glassPane.setLayout(null);  // Use absolute positioning
-            glassPane.setOpaque(false); // Make it transparent
+            // Create the chatbot instance
+            adminChatbot = new AdminChatbot();
             
-            // Create chatbot panel
-            chatbotPanel = new ChatbotPanel();
-            glassPane.add(chatbotPanel);
+            // Add it to the layered pane to make it float over other components
+            getLayeredPane().add(adminChatbot, new Integer(100)); // High layer number to be on top
             
-            // Replace the glass pane
-            setGlassPane(glassPane);
-            glassPane.setVisible(true);
-            
-            // Add resize listener to adjust chatbot position when window resizes
-            addComponentListener(new ComponentAdapter() {
-                @Override
-                public void componentResized(ComponentEvent e) {
-                    repositionChatbot();
-                }
-            });
-            
-            // Initial positioning
+            // Position it properly
             repositionChatbot();
-            
-            System.out.println("Chatbot initialized successfully");
         } catch (Exception e) {
             System.err.println("Error setting up chatbot: " + e.getMessage());
             e.printStackTrace();
@@ -112,24 +103,8 @@ public class AdminView extends javax.swing.JFrame {
      * Repositions the chatbot to the bottom right corner of the window
      */
     private void repositionChatbot() {
-        if (chatbotPanel != null) {
-            Dimension chatSize = chatbotPanel.getPreferredSize();
-            int width = getWidth();
-            int height = getHeight();
-            
-            // Position chatbot at the bottom right corner with better padding
-            // Move it higher and a bit inward from the right edge
-            chatbotPanel.setBounds(
-                width - chatSize.width - 20, 
-                height - chatSize.height - 50,
-                chatSize.width,
-                chatSize.height
-            );
-            
-            // Debug log
-            System.out.println("Chatbot repositioned to: " + 
-                (width - chatSize.width - 20) + ", " + (height - chatSize.height - 50) + 
-                " with size " + chatSize.width + "x" + chatSize.height);
+        if (adminChatbot != null && isVisible()) {
+            adminChatbot.positionInBottomRight();
         }
     }
 

@@ -8,7 +8,6 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\Ope
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdRevenuePanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Employee.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Purchase.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\util\EmojiUtils.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdminHeader.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ExcelExporter.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Supplier.java
@@ -16,7 +15,6 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Salar
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdUserPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\PurchaseDetail.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\LeaveRequest.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\util\JokeProvider.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\UserController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\UserDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginForm.java
@@ -29,6 +27,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\Sessi
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginFaceID.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\AdminView.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierQRPayment.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ConfigLoader.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\RevenueLineChartModel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\DetailController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\PromotionDetail.java
@@ -36,7 +35,6 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Produ
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductSelectionPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Report.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdProductPanel.java
-C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ChatbotPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CashierAccount.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Detail.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Payment.java
@@ -58,6 +56,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\Color
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\DebugLogger.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\CheckoutPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ExportDialog.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdminChatbot.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdAccountPopup.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\ProductManagementPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\DebugUtils.java
