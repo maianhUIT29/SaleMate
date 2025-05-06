@@ -7,11 +7,13 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -26,14 +28,9 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
-import javax.swing.ButtonModel;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -166,6 +163,17 @@ public class AdminChatbot extends JPanel {
         setBorder(null);
         setOpaque(false);
         setSize(COLLAPSED_WIDTH, COLLAPSED_HEIGHT);
+
+        // Initialize typingTimer first to avoid NullPointerException
+        typingTimer = new Timer(500, e -> {
+            dotCount = (dotCount + 1) % 4;
+            StringBuilder dots = new StringBuilder();
+            for (int i = 0; i < dotCount; i++) {
+                dots.append(".");
+            }
+            statusLabel.setText("Bot đang trả lời" + dots.toString());
+        });
+        typingTimer.setRepeats(true);
 
         // Create chat panel with rounded corners
         chatPanel = new JPanel(new BorderLayout()) {
@@ -340,14 +348,20 @@ public class AdminChatbot extends JPanel {
         inputPanel.setOpaque(false);
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-        // Rounded text field
+        // Rounded text field with proper boundaries and transparency
         inputField = new JTextField() {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(getBackground());
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                if (!isOpaque()) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    // Fill with background color first
+                    g2d.setColor(getBackground());
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                    
+                    g2d.dispose();
+                }
                 super.paintComponent(g);
             }
         };
@@ -359,70 +373,85 @@ public class AdminChatbot extends JPanel {
         inputField.addActionListener(e -> sendMessage());
 
         // Create a wrapper panel for the input field to handle rounded corners
-        JPanel textFieldPanel = new JPanel(new BorderLayout());
+        JPanel textFieldPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw border with rounded corners
+                g2d.setColor(new Color(220, 220, 220));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                
+                // Fill inside area with background color
+                g2d.setColor(LIGHT_COLOR);
+                g2d.fillRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                
+                g2d.dispose();
+            }
+        };
         textFieldPanel.setOpaque(false);
-        textFieldPanel.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true));
-        textFieldPanel.setBackground(LIGHT_COLOR);
+        textFieldPanel.setBorder(null);
         textFieldPanel.add(inputField, BorderLayout.CENTER);
 
-        // Modern send button with hover effect
-        sendButton = new JButton();
+        // Modern send button with "Send" text and proper rounded corners
+        sendButton = new JButton("Gửi") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Fill the button with its background color
+                g2d.setColor(getBackground());
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                
+                // Draw the text
+                FontMetrics fm = g2d.getFontMetrics();
+                String text = getText();
+                int x = (getWidth() - fm.stringWidth(text)) / 2;
+                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                
+                g2d.setColor(getForeground());
+                g2d.drawString(text, x, y);
+                
+                g2d.dispose();
+            }
+        };
+        
+        sendButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        sendButton.setForeground(Color.WHITE);
+        sendButton.setBackground(PRIMARY_COLOR);
         sendButton.setBorderPainted(false);
         sendButton.setContentAreaFilled(false);
         sendButton.setFocusPainted(false);
         sendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        sendButton.setPreferredSize(new Dimension(40, 40));
+        sendButton.setPreferredSize(new Dimension(60, 40));
 
-        // Try to load send icon
-        try {
-            URL sendIconUrl = getClass().getResource("/img/icons/send-icon.png");
-            if (sendIconUrl != null) {
-                final ImageIcon normalIcon = new ImageIcon(ImageIO.read(sendIconUrl)
-                        .getScaledInstance(24, 24, Image.SCALE_SMOOTH));
-                sendButton.setIcon(normalIcon);
-
-                // Try to load hover icon if available
-                URL sendHoverIconUrl = getClass().getResource("/img/icons/send-icon-hover.png");
-                final ImageIcon hoverIcon = sendHoverIconUrl != null ?
-                        new ImageIcon(ImageIO.read(sendHoverIconUrl)
-                                .getScaledInstance(24, 24, Image.SCALE_SMOOTH)) : 
-                        normalIcon;
-
-                sendButton.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        sendButton.setIcon(hoverIcon);
-                    }
-
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        sendButton.setIcon(normalIcon);
-                    }
-                });
-            } else {
-                // Fallback to text if icon not found
-                sendButton.setText("→");
-                sendButton.setForeground(PRIMARY_COLOR);
-                sendButton.setFont(new Font("Arial", Font.BOLD, 20));
+        // Add hover effect to send button
+        sendButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                sendButton.setBackground(PRIMARY_COLOR.darker());
+                sendButton.repaint();
             }
-        } catch (Exception e) {
-            // Fallback to text on error
-            sendButton.setText("→");
-            sendButton.setForeground(PRIMARY_COLOR);
-            sendButton.setFont(new Font("Arial", Font.BOLD, 20));
-            System.err.println("Could not load send icon: " + e.getMessage());
-        }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                sendButton.setBackground(PRIMARY_COLOR);
+                sendButton.repaint();
+            }
+        });
 
         sendButton.addActionListener(e -> sendMessage());
+
+        inputPanel.add(textFieldPanel, BorderLayout.CENTER);
+        inputPanel.add(sendButton, BorderLayout.EAST);
 
         // Status label for typing indicator
         statusLabel = new JLabel();
         statusLabel.setForeground(new Color(150, 150, 150));
         statusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
-
-        inputPanel.add(textFieldPanel, BorderLayout.CENTER);
-        inputPanel.add(sendButton, BorderLayout.EAST);
 
         // Add components to chat panel
         JPanel contentPanel = new JPanel(new BorderLayout());
@@ -438,35 +467,45 @@ public class AdminChatbot extends JPanel {
         chatPanel.add(contentPanel, BorderLayout.CENTER);
         chatPanel.add(bottomPanel, BorderLayout.SOUTH);
 
-        // Create toggle button (chat icon)
-        toggleButton = new JButton();
+        // Create toggle button with "AI" text and ensure it's properly rounded
+        toggleButton = new JButton("AI") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Draw shadow
+                g2d.setColor(new Color(0, 0, 0, 40));
+                g2d.fillOval(2, 2, getWidth() - 4, getHeight() - 4);
+
+                // Fill button background
+                g2d.setColor(getBackground());
+                g2d.fillOval(0, 0, getWidth() - 4, getHeight() - 4);
+
+                // Draw text centered
+                FontMetrics fm = g2d.getFontMetrics(getFont());
+                Rectangle textRect = new Rectangle(0, 0, getWidth(), getHeight());
+                String text = getText();
+                
+                int x = (getWidth() - fm.stringWidth(text)) / 2;
+                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                
+                g2d.setColor(getForeground());
+                g2d.setFont(getFont());
+                g2d.drawString(text, x, y);
+                
+                g2d.dispose();
+            }
+        };
+        
+        toggleButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        toggleButton.setForeground(Color.WHITE);
         toggleButton.setBounds(0, 0, COLLAPSED_WIDTH, COLLAPSED_HEIGHT);
         toggleButton.setBackground(PRIMARY_COLOR);
         toggleButton.setBorderPainted(false);
+        toggleButton.setContentAreaFilled(false);
         toggleButton.setFocusPainted(false);
         toggleButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Try to load chat icon
-        try {
-            URL chatIconUrl = getClass().getResource("/img/icons/chat-icon.png");
-            if (chatIconUrl != null) {
-                ImageIcon icon = new ImageIcon(chatIconUrl);
-                Image img = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-                toggleButton.setIcon(new ImageIcon(img));
-            } else {
-                // Fallback to text if icon not found
-                toggleButton.setText("💬");
-                toggleButton.setForeground(Color.WHITE);
-                toggleButton.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-            }
-        } catch (Exception e) {
-            // Fallback to text on error
-            toggleButton.setText("💬");
-            toggleButton.setForeground(Color.WHITE);
-            toggleButton.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-            System.err.println("Could not load chat icon: " + e.getMessage());
-        }
-
         toggleButton.addActionListener(e -> toggleChatPanel());
 
         // Button hover effect
@@ -474,54 +513,18 @@ public class AdminChatbot extends JPanel {
             @Override
             public void mouseEntered(MouseEvent e) {
                 toggleButton.setBackground(PRIMARY_COLOR.darker());
+                toggleButton.repaint();
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 toggleButton.setBackground(PRIMARY_COLOR);
+                toggleButton.repaint();
             }
         });
 
-        // Make the toggle button round
-        toggleButton.setUI(new BasicButtonUI() {
-            @Override
-            public void paint(Graphics g, JComponent c) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                AbstractButton button = (AbstractButton) c;
-                ButtonModel model = button.getModel();
-
-                // Shadow
-                g2d.setColor(new Color(0, 0, 0, 40));
-                g2d.fillOval(2, 2, c.getWidth() - 4, c.getHeight() - 4);
-
-                // Button face
-                g2d.setColor(button.getBackground());
-                g2d.fillOval(0, 0, c.getWidth() - 4, c.getHeight() - 4);
-
-                // Button icon
-                Icon icon = button.getIcon();
-                if (icon != null) {
-                    int x = (c.getWidth() - icon.getIconWidth()) / 2;
-                    int y = (c.getHeight() - icon.getIconHeight()) / 2;
-                    icon.paintIcon(c, g2d, x, y);
-                }
-
-                g2d.dispose();
-            }
-        });
-
-        // Set up typing timer
-        typingTimer = new Timer(500, e -> {
-            dotCount = (dotCount + 1) % 4;
-            StringBuilder dots = new StringBuilder();
-            for (int i = 0; i < dotCount; i++) {
-                dots.append(".");
-            }
-            statusLabel.setText("Bot đang trả lời" + dots.toString());
-        });
-        typingTimer.setRepeats(true);
+        // Remove the BasicButtonUI since we're overriding paintComponent
+        toggleButton.setUI(new BasicButtonUI());
 
         // Add components to main panel
         add(chatPanel);
@@ -541,6 +544,7 @@ public class AdminChatbot extends JPanel {
         StyleConstants.setBackground(userStyle, USER_BUBBLE_COLOR);
         StyleConstants.setFontFamily(userStyle, "Segoe UI");
         StyleConstants.setFontSize(userStyle, 14);
+        StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
 
         // Bot message style
         Style botStyle = chatArea.addStyle("botStyle", null);
@@ -548,6 +552,7 @@ public class AdminChatbot extends JPanel {
         StyleConstants.setBackground(botStyle, BOT_BUBBLE_COLOR);
         StyleConstants.setFontFamily(botStyle, "Segoe UI");
         StyleConstants.setFontSize(botStyle, 14);
+        StyleConstants.setAlignment(botStyle, StyleConstants.ALIGN_LEFT);
 
         // Time style
         Style timeStyle = chatArea.addStyle("timeStyle", null);
@@ -610,7 +615,7 @@ public class AdminChatbot extends JPanel {
     private void initChatbot() {
         // Add initial welcome message
         SwingUtilities.invokeLater(() -> {
-            String welcomeMessage = "Xin chào! Tôi là An An, chủ cửa hàng SalesMate! Tôi hơi ngang ngược và thích pha trò một chút. Hỏi gì thì hỏi nhanh đi, tôi còn phải đi bán hàng nữa đấy! 😒";
+            String welcomeMessage = "Xin chào! Tôi là Anthuhai, trợ lý ảo chủ cửa hàng SalesMate! Tôi hơi ngang ngược và thích pha trò một chút. Hỏi gì thì hỏi nhanh đi, tôi còn phải đi bán hàng nữa đấy! 😒";
             
             try {
                 // Try to load from config first
@@ -772,9 +777,15 @@ public class AdminChatbot extends JPanel {
     private void setTypingStatus(boolean isTyping) {
         if (isTyping) {
             statusLabel.setText("Bot đang trả lời...");
-            typingTimer.start();
+            // Safety check to avoid NullPointerException
+            if (typingTimer != null) {
+                typingTimer.start();
+            }
         } else {
-            typingTimer.stop();
+            // Safety check to avoid NullPointerException
+            if (typingTimer != null) {
+                typingTimer.stop();
+            }
             statusLabel.setText("");
         }
     }
@@ -792,14 +803,18 @@ public class AdminChatbot extends JPanel {
                     doc.insertString(doc.getLength(), "\n\n", null);
                 }
 
-                // Add time with center alignment
-                doc.insertString(doc.getLength(), time + " - You\n", chatArea.getStyle("timeStyle"));
+                // Add time with right alignment
+                Style timeStyle = chatArea.getStyle("timeStyle");
+                StyleConstants.setAlignment(timeStyle, StyleConstants.ALIGN_RIGHT);
+                doc.insertString(doc.getLength(), time + " - You\n", timeStyle);
 
                 // Create a bubble-like effect by padding the message
                 String paddedMessage = " " + message + " ";
 
-                // Insert the user message with styling
-                doc.insertString(doc.getLength(), paddedMessage, chatArea.getStyle("userStyle"));
+                // Insert the user message with styling and right alignment
+                Style userStyle = chatArea.getStyle("userStyle");
+                StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
+                doc.insertString(doc.getLength(), paddedMessage, userStyle);
 
                 // Scroll to bottom
                 chatArea.setCaretPosition(doc.getLength());
@@ -825,14 +840,18 @@ public class AdminChatbot extends JPanel {
                     doc.insertString(doc.getLength(), "\n\n", null);
                 }
 
-                // Add time with center alignment
-                doc.insertString(doc.getLength(), time + " - " + BOT_NAME + "\n", chatArea.getStyle("timeStyle"));
+                // Add time with left alignment
+                Style timeStyle = chatArea.getStyle("timeStyle");
+                StyleConstants.setAlignment(timeStyle, StyleConstants.ALIGN_LEFT);
+                doc.insertString(doc.getLength(), time + " - " + BOT_NAME + "\n", timeStyle);
 
                 // Create a bubble-like effect by padding the message
                 String paddedMessage = " " + message + " ";
 
-                // Insert the bot message with styling
-                doc.insertString(doc.getLength(), paddedMessage, chatArea.getStyle("botStyle"));
+                // Insert the bot message with styling and left alignment
+                Style botStyle = chatArea.getStyle("botStyle");
+                StyleConstants.setAlignment(botStyle, StyleConstants.ALIGN_LEFT);
+                doc.insertString(doc.getLength(), paddedMessage, botStyle);
 
                 // Scroll to bottom
                 chatArea.setCaretPosition(doc.getLength());
@@ -865,13 +884,15 @@ public class AdminChatbot extends JPanel {
         // Add system message for personality
         JSONObject systemMessage = new JSONObject();
         systemMessage.put("role", "system");
-        systemMessage.put("content", "Bạn là An An, chủ của cửa hàng SalesMate, một người phụ nữ cọc tính, ngang ngược và thích pha trò. " +
+        systemMessage.put("content", "Bạn là Anthuhai, trợ lý của chủ của cửa hàng SalesMate, một người phụ nữ cọc tính, ngang ngược và thích pha trò. " +
             "Bạn luôn khó chịu khi được hỏi, nhưng vẫn trả lời chính xác và đầy đủ. " + 
             "Bạn thường xuyên than vãn về việc phải trả lời câu hỏi của khách hàng khi bạn còn nhiều việc khác phải làm. " +
             "Bạn tự nhận mình là người thông minh nhất nhưng lại ghét phải giải thích những điều hiển nhiên. " +
             "Bạn thích nói đùa và châm biếm, đôi khi còn trêu chọc người hỏi, nhưng luôn đảm bảo câu trả lời cuối cùng đúng và hữu ích. " +
-            "Bạn thích nhắc đến việc bạn là chủ cửa hàng và có quyền lực. " +
-            "Trả lời ngắn gọn và hài hước, luôn thể hiện cá tính khó chịu nhưng vẫn duyên dáng của An An.");
+            "Bạn thích nhắc đến việc bạn là trợ lý của chủ cửa hàng và có quyền lực. " +
+            "Trả lời ngắn gọn ngang ngược, luôn thể hiện cá tính khó chịu nhưng vẫn duyên dáng của An An."+
+            "Luôn có một câu ngang ngược ở cuối câu trả lời"+
+            "Luôn luôn trả lời bằng tiếng Việt và không bao giờ hỏi lại câu hỏi của người dùng.");
 
         messages.put(systemMessage);
 
