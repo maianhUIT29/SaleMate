@@ -146,18 +146,29 @@ public class ChatbotPanel extends JPanel {
     }
     
     private javax.swing.ImageIcon createChatbotIcon() {
+        // Tạo biểu tượng chatbot đẹp hơn với cờ Việt Nam
         BufferedImage image = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        g2d.setColor(Color.WHITE);
-        g2d.fillRoundRect(2, 2, 20, 18, 5, 5);
-        
+        // Vẽ nền tròn
         g2d.setColor(PRIMARY_COLOR);
-        g2d.fillOval(7, 8, 4, 4);
-        g2d.fillOval(15, 8, 4, 4);
+        g2d.fillOval(0, 0, 24, 24);
         
-        g2d.drawLine(9, 16, 15, 16);
+        // Vẽ cờ Việt Nam thu nhỏ
+        g2d.setColor(Color.RED);
+        g2d.fillRect(6, 7, 12, 8);
+        
+        // Vẽ ngôi sao vàng
+        g2d.setColor(Color.YELLOW);
+        int[] xPoints = {12, 14, 17, 14, 15, 12, 9, 10, 7, 10};
+        int[] yPoints = {7, 9, 9, 11, 14, 12, 14, 11, 9, 9};
+        g2d.fillPolygon(xPoints, yPoints, 10);
+        
+        // Vẽ đường viền trắng
+        g2d.setColor(Color.WHITE);
+        g2d.setStroke(new BasicStroke(1.5f));
+        g2d.drawOval(1, 1, 21, 21);
         
         g2d.dispose();
         return new javax.swing.ImageIcon(image);
@@ -616,8 +627,18 @@ public class ChatbotPanel extends JPanel {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
             String timestamp = sdf.format(new Date());
             
-            doc.insertString(doc.getLength(), "SalesMate " + timestamp + ":\n", doc.getStyle("timestamp"));
-            doc.insertString(doc.getLength(), "Xin chào! Tôi là SalesMate AI Assistant. Tôi có thể giúp gì cho bạn?\n\n", doc.getStyle("bot"));
+            Style timestampStyle = doc.getStyle("timestamp");
+            StyleConstants.setForeground(timestampStyle, new Color(80, 80, 80));
+            StyleConstants.setBold(timestampStyle, true);
+            StyleConstants.setFontSize(timestampStyle, 11);
+            
+            doc.insertString(doc.getLength(), "SalesMate " + timestamp + ":\n", timestampStyle);
+            
+            JPanel bubblePanel = createMessageBubble("Xin chào! 😊 Tôi là SalesMate AI - trợ lý thông minh của cửa hàng.\n\nAnh Nhân (chủ cửa hàng) đã lập trình tôi để hỗ trợ mọi người, nhưng không dạy tôi cách pha cà phê - đó là lý do tại sao tôi không được phép làm việc ở quầy đồ uống! 😅\n\nTôi có thể giúp gì cho bạn hôm nay?", false);
+            messageArea.setCaretPosition(doc.getLength());
+            messageArea.insertComponent(bubblePanel);
+            
+            doc.insertString(doc.getLength(), "\n\n", null);
             
             chatHistory.add(new MessageEntry("assistant", "Xin chào! Tôi là SalesMate AI Assistant. Tôi có thể giúp gì cho bạn?"));
             
@@ -726,13 +747,14 @@ public class ChatbotPanel extends JPanel {
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
             
-            // Tạo JSON request hoàn chỉnh
+            // Tạo JSON request hoàn chỉnh với cấu hình bắt buộc trả lời tiếng Việt và yếu tố hài hước
             String jsonRequest = "{\n" +
                 "  \"message\": \"" + escapedPrompt + "\",\n" +
                 (contextHistory.isEmpty() ? "" : contextHistory) +
                 "  \"model\": \"command\",\n" +
-                "  \"temperature\": 0.7,\n" +
-                "  \"preamble\": \"Bạn là trợ lý AI cho cửa hàng SalesMate. Giúp người dùng với các câu hỏi về sản phẩm, nhân viên, doanh thu và các vấn đề liên quan đến siêu thị. Trả lời bằng tiếng Việt.\"\n" +
+                "  \"temperature\": 0.85,\n" +
+                "  \"connectors\": [{\"id\": \"web-search\"}],\n" + 
+                "  \"preamble\": \"Bạn là SalesMate AI, trợ lý AI hài hước và thân thiện cho cửa hàng SalesMate của anh Nhân. Luôn trả lời bằng tiếng Việt với văn phong thân thiện, thỉnh thoảng (khoảng 30% số lần trả lời) thêm các câu đùa nhẹ nhàng. Thỉnh thoảng đề cập đến anh Nhân - chủ cửa hàng - như một người sếp vui tính và thông minh. Giúp người dùng với các câu hỏi về sản phẩm, nhân viên, doanh thu và các vấn đề liên quan đến siêu thị. Giữ câu trả lời ngắn gọn, dễ hiểu nhưng vẫn đầy đủ thông tin. Đừng nói rằng bạn là trợ lý AI hoặc là model ngôn ngữ, mà hãy gọi mình là 'tôi' một cách tự nhiên. Tránh câu trả lời quá dài dòng hoặc quá kỹ thuật.\"\n" +
                 "}";
             
             System.out.println("Sending Cohere request: " + jsonRequest); // Debug log
@@ -900,16 +922,33 @@ public class ChatbotPanel extends JPanel {
             errorNotice = "⚠️ LƯU Ý: " + errorDetail + "\n\n";
         }
         
-        // Các câu trả lời cơ bản dựa trên từ khóa
+        // Thêm một số câu trả lời với yếu tố hài hước
         if (promptLower.contains("xin chào") || promptLower.contains("chào") || promptLower.contains("hello")) {
-            return errorNotice + "Xin chào! Tôi là trợ lý AI của SalesMate. Tôi có thể giúp gì cho bạn hôm nay?";
+            return errorNotice + "Xin chào! Tôi là trợ lý AI của SalesMate. Anh Nhân vừa cho tôi update phiên bản mới, khiến tôi thông minh hơn 0.5% - đủ để biết không nên đùa với sếp! 😄 Tôi có thể giúp gì cho bạn hôm nay?";
         }
         
         if (promptLower.contains("sản phẩm") || promptLower.contains("hàng hóa") || promptLower.contains("hàng")) {
+            return errorNotice + "SalesMate hỗ trợ quản lý nhiều loại sản phẩm khác nhau. Bạn có thể thêm, sửa, xóa và tìm kiếm sản phẩm trong hệ thống. Để quản lý sản phẩm, hãy vào mục Quản lý sản phẩm ở menu bên trái. À, và nếu bạn thấy sản phẩm nào giá cao bất thường, đừng lo - đó là anh Nhân đang thử nghiệm xem khách hàng có phản ứng không! 😉";
+        }
+        
+        if (promptLower.contains("nhân") || promptLower.contains("chủ cửa hàng") || promptLower.contains("sếp")) {
+            return errorNotice + "Anh Nhân là chủ cửa hàng SalesMate, người đã tạo ra tôi! Anh ấy vừa là một nhà quản lý tài ba vừa là một lập trình viên xuất sắc. Mặc dù vậy, anh ấy vẫn chưa thể lập trình tôi để pha cà phê buổi sáng cho anh ấy! 😄";
+        }
+        
+        // Thêm các phản hồi hài hước khác
+        if (promptLower.contains("joke") || promptLower.contains("funny") || promptLower.contains("hài") || promptLower.contains("cười")) {
+            return errorNotice + "Bạn biết điểm chung giữa một nhà lập trình và anh Nhân - chủ SalesMate không? Cả hai đều từng thử debug một lỗi cả ngày và phát hiện ra đó chỉ là một dấu chấm phẩy thừa! 😂";
+        }
+        
+        // Các câu trả lời cơ bản dựa trên từ khóa
+        if (promptLower.contains("product") || promptLower.contains("item") || 
+            promptLower.contains("sản phẩm") || promptLower.contains("hàng hóa") || 
+            promptLower.contains("hàng")) {
             return errorNotice + "SalesMate hỗ trợ quản lý nhiều loại sản phẩm khác nhau. Bạn có thể thêm, sửa, xóa và tìm kiếm sản phẩm trong hệ thống. Để quản lý sản phẩm, hãy vào mục Quản lý sản phẩm ở menu bên trái.";
         }
         
-        if (promptLower.contains("doanh thu") || promptLower.contains("báo cáo") || promptLower.contains("thống kê")) {
+        if (promptLower.contains("revenue") || promptLower.contains("report") || promptLower.contains("statistic") ||
+            promptLower.contains("doanh thu") || promptLower.contains("báo cáo") || promptLower.contains("thống kê")) {
             return errorNotice + "SalesMate cung cấp báo cáo doanh thu chi tiết theo ngày, tuần, tháng và năm. Bạn có thể xem biểu đồ và xu hướng doanh thu trong mục Báo cáo doanh thu ở menu chính.";
         }
         
@@ -929,9 +968,9 @@ public class ChatbotPanel extends JPanel {
             return errorNotice + "SalesMate giúp bạn quản lý thông tin khách hàng, lịch sử mua hàng và điểm tích lũy. Bạn có thể thêm khách hàng mới và quản lý thông tin của họ trong mục Quản lý khách hàng.";
         }
         
-        // Phản hồi mặc định
+        // Phản hồi mặc định với yếu tố hài hước
         return errorNotice + "Tôi đang gặp một số vấn đề về kết nối đến máy chủ AI. "
-                + "Tôi chỉ có thể cung cấp thông tin cơ bản lúc này.\n\n"
+                + "Có thể là do anh Nhân quên thanh toán hóa đơn internet... đùa thôi! 😅\n\n"
                 + "SalesMate là phần mềm quản lý bán hàng giúp bạn theo dõi sản phẩm, quản lý hóa đơn, "
                 + "quản lý khách hàng và theo dõi doanh thu. Để được hỗ trợ chi tiết, vui lòng kiểm tra "
                 + "tài liệu hoặc liên hệ với đội hỗ trợ.";
