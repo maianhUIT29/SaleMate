@@ -11,3 +11,6 @@ target/
 *.log
 .idea/
 *.iml
+
+# Ignore /resources/config.properties
+/resources/config.properties

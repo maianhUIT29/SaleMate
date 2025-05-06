@@ -1,21 +1,21 @@
 package com.salesmate.component;
 
-import java.awt.Image;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-import javax.swing.BorderFactory;
 
-import com.salesmate.model.Product;
-import com.salesmate.model.Promotion;
-import com.salesmate.model.PromotionDetail;
 import com.salesmate.controller.PromotionController;
+import com.salesmate.model.Product;
+import com.salesmate.model.PromotionDetail;
 
 public class ProductCard extends javax.swing.JPanel {
 
@@ -606,6 +606,35 @@ public class ProductCard extends javax.swing.JPanel {
                 }
             }
         });
+    }
+
+    public void updateQuantity(int newQuantity) {
+        if (product != null) {
+            // Update the product's quantity
+            product.setQuantity(newQuantity);
+            
+            // Update the quantity label
+            lblProductQuantityValue.setText(String.valueOf(newQuantity));
+            
+            // Add visual indicator if product is out of stock or low stock
+            if (newQuantity <= 0) {
+                lblProductQuantityValue.setForeground(Color.RED);
+                lblProductQuantityValue.setFont(new Font(lblProductQuantityValue.getFont().getName(), 
+                                                Font.BOLD, lblProductQuantityValue.getFont().getSize()));
+            } else if (newQuantity < 10) {
+                lblProductQuantityValue.setForeground(new Color(255, 128, 0)); // Orange for low stock
+                lblProductQuantityValue.setFont(new Font(lblProductQuantityValue.getFont().getName(), 
+                                                Font.PLAIN, lblProductQuantityValue.getFont().getSize()));
+            } else {
+                lblProductQuantityValue.setForeground(PRICE_COLOR); // Normal color for sufficient stock
+                lblProductQuantityValue.setFont(new Font(lblProductQuantityValue.getFont().getName(), 
+                                                Font.PLAIN, lblProductQuantityValue.getFont().getSize()));
+            }
+            
+            // Force repaint to reflect changes
+            revalidate();
+            repaint();
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

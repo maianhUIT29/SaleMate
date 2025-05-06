@@ -1,13 +1,13 @@
 package com.salesmate.controller;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.salesmate.dao.InvoiceDAO;
 import com.salesmate.dao.UserDAO;
 import com.salesmate.model.Invoice;
 import com.salesmate.model.RevenueLineChartModel;
-
 
 public class InvoiceController {
 
@@ -103,7 +103,8 @@ public class InvoiceController {
             return null;
         }
     }
- // Đếm số lượng hóa đơn
+
+    // Đếm số lượng hóa đơn
     public int countInvoices() {
         try {
             return invoiceDAO.countInvoices();
@@ -112,8 +113,8 @@ public class InvoiceController {
             return 0; // Return 0 if there's an error
         }
     }
-   //Tinh doanh thu thang hien tai
 
+    // Tính doanh thu tháng hiện tại
 
     /**
      * Trả về tổng doanh thu tháng hiện tại.
@@ -129,4 +130,16 @@ public class InvoiceController {
     public List<RevenueLineChartModel> getDailyRevenue() {
         return invoiceDAO.getDailyRevenue();
     }
+
+    /* Gets invoices from the last N days */
+    public List<Invoice> getInvoicesLastNDays(int days) {
+        try {
+            return invoiceDAO.getInvoicesLastNDays(days);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+
 }

@@ -2,8 +2,16 @@ package com.salesmate.view;
 
 import java.awt.CardLayout;
 import javax.swing.UIManager;
+import javax.swing.JPanel;
+import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import com.salesmate.component.AdminChatbot;
+
 
 public class AdminView extends javax.swing.JFrame {
+
+    private AdminChatbot anAnChatbot; // Renamed to reflect the chatbot's identity
 
     public AdminView() {
         try {
@@ -41,6 +49,9 @@ public class AdminView extends javax.swing.JFrame {
                 
                 // Make sure to show a default card
                 cl.show(panelCard, "cardDashBoard");
+                
+                // Add chatbot
+                setupChatbot();
             }
             
             // Set preferred size for better initial display
@@ -54,10 +65,46 @@ public class AdminView extends javax.swing.JFrame {
             validate();
             repaint();
             
+            // Add a component listener to handle window resize events
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    repositionChatbot();
+                }
+            });
+            
             System.out.println("AdminView constructor completed successfully");
         } catch (Exception e) {
             System.err.println("Error initializing AdminView: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sets up the chatbot in the bottom right corner
+     */
+    private void setupChatbot() {
+        try {
+            // Create the chatbot instance
+            anAnChatbot = new AdminChatbot();
+            
+            // Add it to the layered pane to make it float over other components
+            getLayeredPane().add(anAnChatbot, new Integer(100)); // High layer number to be on top
+            
+            // Position it properly
+            repositionChatbot();
+        } catch (Exception e) {
+            System.err.println("Error setting up chatbot: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Repositions the chatbot to the bottom right corner of the window
+     */
+    private void repositionChatbot() {
+        if (anAnChatbot != null && isVisible()) {
+            anAnChatbot.positionInBottomRight();
         }
     }
 

@@ -67,16 +67,27 @@ public class ProductDAO {
     public boolean updateProductQuantity(int productId, int soldQuantity) {
         String query = "UPDATE product SET quantity = quantity - ? WHERE product_id = ? AND quantity >= ?";
 
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, soldQuantity);
             stmt.setInt(2, productId);
             stmt.setInt(3, soldQuantity); // Ensure we have enough stock
 
+            System.out.println("Executing update query for product ID: " + productId + 
+                               ", reducing quantity by: " + soldQuantity);
             int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            
+            if (rowsAffected > 0) {
+                System.out.println("Successfully updated quantity for product ID: " + productId);
+                return true;
+            } else {
+                System.err.println("Failed to update quantity for product ID: " + productId + 
+                                  " - No rows were updated. Insufficient stock or product not found.");
+                return false;
+            }
         } catch (SQLException e) {
-            System.err.println("Error updating product quantity: " + e.getMessage());
+            System.err.println("SQL Error updating product quantity: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

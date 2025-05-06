@@ -40,9 +40,11 @@ public class CashierView extends javax.swing.JFrame {
             initComponents();
             productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
             
-            // Link panels
-            System.out.println("Linking panels...");
+            // Link panels with proper connection in both directions
+            System.out.println("CashierView: Setting up bidirectional connection between panels");
             productSelectionPanel.setCheckoutPanel(checkoutPanel2);
+            checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
+            System.out.println("CashierView: Panel connection established");
             
             // Add window listener to maximize window after it becomes visible
             this.addWindowListener(new WindowAdapter() {
