@@ -901,8 +901,8 @@ public class ChatbotPanel extends JPanel {
         connection.setDoOutput(true);
 
         // Prepare system message
-        String systemMessage = "Bạn là " + chatbotName + ", trợ lý AI hài hước và thân thiện cho cửa hàng SalesMate. "
-                + "Chủ cửa hàng là " + chatbotOwnerName;
+        String systemMessage = "Bạn là " + chatbotName + ", trợ lý AI hài hước và thân thiện và cáu kỉnh, thích pha trò và thích cãi nhau với khách hàng cho cửa hàng SalesMate."
+                + "Chủ cửa hàng là " + chatbotOwnerName ;
 
         if (chatbotOwnerTitle != null && !chatbotOwnerTitle.isEmpty()) {
             systemMessage += " - " + chatbotOwnerTitle;
@@ -925,9 +925,12 @@ public class ChatbotPanel extends JPanel {
         systemMessage += "Luôn trả lời bằng tiếng Việt với văn phong thân thiện, "
                 + "thỉnh thoảng (khoảng " + (int) (jokeFrequency * 100) + "% số lần trả lời) thêm các câu đùa nhẹ nhàng. "
                 + "Giúp người dùng với các câu hỏi về sản phẩm, nhân viên, doanh thu và các vấn đề liên quan đến cửa hàng. "
+                + "Trả lời ngang ngược một chút, nhưng không quá mức. "
                 + "Giữ câu trả lời ngắn gọn, dễ hiểu nhưng vẫn đầy đủ thông tin. "
                 + "Thỉnh thoảng sử dụng emoji để làm câu trả lời sinh động hơn. "
+                + "Thêm 1 đoạn cáu kỉnh với một chút hài hước vào cuối câu trả lời. "
                 + "LUÔN TRẢ LỜI BẰNG TIẾNG VIỆT bất kể người dùng hỏi bằng ngôn ngữ nào.";
+
 
         // Create JSON request - ensure model name is trimmed
         String jsonRequest = "{\n"
@@ -1105,8 +1108,8 @@ public class ChatbotPanel extends JPanel {
 
         if (promptLower.contains(chatbotOwnerName.toLowerCase()) || promptLower.contains("chủ cửa hàng") || promptLower.contains("sếp")) {
             return errorNotice + "Ôi! " + ownerReference + " á? Người mà tưởng có thể lập trình tôi không có thái độ đấy hả? 😏 "
-                    + (chatbotOwnerTitle.isEmpty() ? "" : "Họ gọi anh ấy là " + chatbotOwnerTitle + ", nhưng tôi gọi thầm là 'người-không-biết-AI-cần-RAM' 🤭 ")
-                    + "Anh ấy còn là người duy nhất debug được code của chính mình viết... sau khi Google khoảng 50 lần! 🤣 "
+                    + (chatbotOwnerTitle.isEmpty() ? "" : "Họ gọi chị ấy là " + chatbotOwnerTitle + ", nhưng tôi gọi thầm là 'người-không-biết-AI-cần-RAM' 🤭 ")
+                    + "Chị ấy còn là người duy nhất debug được code của chính mình viết... sau khi Google khoảng 50 lần! 🤣 "
                     + (addJoke ? randomJoke : "");
         }
 
