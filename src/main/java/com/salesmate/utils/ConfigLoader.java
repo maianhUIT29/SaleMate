@@ -60,7 +60,16 @@ public class ConfigLoader {
     
     public String getProperty(String key, String defaultValue) {
         String value = properties.getProperty(key);
-        if (value == null) return defaultValue;
+        if (value == null) {
+            // Custom default values for the chatbot
+            if ("chatbot.name".equals(key)) {
+                return "An An";
+            }
+            if ("chatbot.welcome_message".equals(key)) {
+                return "Xin chào! Tôi là An An, chủ cửa hàng SalesMate! Tôi hơi ngang ngược và thích pha trò một chút. Hỏi gì thì hỏi nhanh đi, tôi còn phải đi bán hàng nữa đấy! 😒";
+            }
+            return defaultValue;
+        }
         
         // Return directly without trying to fix encoding
         // The encoding should already be correct from the UTF-8 reader

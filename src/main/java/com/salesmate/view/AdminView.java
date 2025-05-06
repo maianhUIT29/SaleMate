@@ -6,12 +6,12 @@ import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import com.salesmate.component.AdminChatbot; // Add import for AdminChatbot
+import com.salesmate.component.AdminChatbot;
 
 
 public class AdminView extends javax.swing.JFrame {
 
-    private AdminChatbot adminChatbot; // Add field for chatbot
+    private AdminChatbot anAnChatbot; // Renamed to reflect the chatbot's identity
 
     public AdminView() {
         try {
@@ -86,10 +86,10 @@ public class AdminView extends javax.swing.JFrame {
     private void setupChatbot() {
         try {
             // Create the chatbot instance
-            adminChatbot = new AdminChatbot();
+            anAnChatbot = new AdminChatbot();
             
             // Add it to the layered pane to make it float over other components
-            getLayeredPane().add(adminChatbot, new Integer(100)); // High layer number to be on top
+            getLayeredPane().add(anAnChatbot, new Integer(100)); // High layer number to be on top
             
             // Position it properly
             repositionChatbot();
@@ -103,8 +103,8 @@ public class AdminView extends javax.swing.JFrame {
      * Repositions the chatbot to the bottom right corner of the window
      */
     private void repositionChatbot() {
-        if (adminChatbot != null && isVisible()) {
-            adminChatbot.positionInBottomRight();
+        if (anAnChatbot != null && isVisible()) {
+            anAnChatbot.positionInBottomRight();
         }
     }
 

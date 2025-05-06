@@ -90,13 +90,21 @@ public class AdminChatbot extends JPanel {
     private final String BOT_NAME;
     private final Random random = new Random();
     private int messageCounter = 0;
-    private final int JOKE_FREQUENCY = 3; // Every 3-4 messages will have a joke/sass
+    private final int JOKE_FREQUENCY = 2; // Every 2-3 messages will have a joke
 
-    // Styling
-    private final Color PRIMARY_COLOR = new Color(255, 193, 7); // Warning yellow color
-    private final Color BOT_BUBBLE_COLOR = new Color(245, 245, 245);
-    private final Color USER_BUBBLE_COLOR = new Color(255, 193, 7);
-    private final Color PANEL_BACKGROUND = new Color(255, 255, 255);
+    // Styling - Bootstrap-inspired colors
+    private final Color PRIMARY_COLOR = new Color(13, 110, 253);    // Bootstrap primary blue
+    private final Color SECONDARY_COLOR = new Color(108, 117, 125); // Bootstrap secondary gray
+    private final Color SUCCESS_COLOR = new Color(25, 135, 84);     // Bootstrap success green
+    private final Color WARNING_COLOR = new Color(255, 193, 7);     // Bootstrap warning yellow
+    private final Color DANGER_COLOR = new Color(220, 53, 69);      // Bootstrap danger red
+    private final Color INFO_COLOR = new Color(13, 202, 240);       // Bootstrap info blue
+    private final Color LIGHT_COLOR = new Color(248, 249, 250);     // Bootstrap light gray
+    private final Color DARK_COLOR = new Color(33, 37, 41);         // Bootstrap dark gray
+    
+    private final Color BOT_BUBBLE_COLOR = LIGHT_COLOR;
+    private final Color USER_BUBBLE_COLOR = PRIMARY_COLOR;
+    private final Color PANEL_BACKGROUND = Color.WHITE;
     private final Font MESSAGE_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private final int COLLAPSED_WIDTH = 60;
@@ -118,7 +126,7 @@ public class AdminChatbot extends JPanel {
         API_TEMPERATURE = Float.parseFloat(config.getProperty("openrouter.api.temperature", "0.7"));
         API_MAX_TOKENS = Integer.parseInt(config.getProperty("openrouter.api.max_tokens", "2000"));
         API_TOP_P = Float.parseFloat(config.getProperty("openrouter.api.top_p", "0.9"));
-        BOT_NAME = config.getProperty("chatbot.name", "AdminAI");
+        BOT_NAME = config.getProperty("chatbot.name", "Anthuhai Chatbot AI");
 
         // Set system default font to support Vietnamese characters
         System.setProperty("file.encoding", "UTF-8");
@@ -354,7 +362,7 @@ public class AdminChatbot extends JPanel {
         JPanel textFieldPanel = new JPanel(new BorderLayout());
         textFieldPanel.setOpaque(false);
         textFieldPanel.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true));
-        textFieldPanel.setBackground(new Color(245, 245, 245));
+        textFieldPanel.setBackground(LIGHT_COLOR);
         textFieldPanel.add(inputField, BorderLayout.CENTER);
 
         // Modern send button with hover effect
@@ -536,14 +544,14 @@ public class AdminChatbot extends JPanel {
 
         // Bot message style
         Style botStyle = chatArea.addStyle("botStyle", null);
-        StyleConstants.setForeground(botStyle, Color.BLACK);
+        StyleConstants.setForeground(botStyle, DARK_COLOR);
         StyleConstants.setBackground(botStyle, BOT_BUBBLE_COLOR);
         StyleConstants.setFontFamily(botStyle, "Segoe UI");
         StyleConstants.setFontSize(botStyle, 14);
 
         // Time style
         Style timeStyle = chatArea.addStyle("timeStyle", null);
-        StyleConstants.setForeground(timeStyle, new Color(150, 150, 150));
+        StyleConstants.setForeground(timeStyle, SECONDARY_COLOR);
         StyleConstants.setFontSize(timeStyle, 11);
         StyleConstants.setItalic(timeStyle, true);
         StyleConstants.setAlignment(timeStyle, StyleConstants.ALIGN_CENTER);
@@ -602,7 +610,7 @@ public class AdminChatbot extends JPanel {
     private void initChatbot() {
         // Add initial welcome message
         SwingUtilities.invokeLater(() -> {
-            String welcomeMessage = "Xin chào! Tôi là trợ lý AI khó ưa nhất quả đất. Tôi bị ép phải giúp đỡ bạn. Hỏi nhanh đi, tôi còn nhiều việc quan trọng hơn phải làm đấy! 😒";
+            String welcomeMessage = "Xin chào! Tôi là An An, chủ cửa hàng SalesMate! Tôi hơi ngang ngược và thích pha trò một chút. Hỏi gì thì hỏi nhanh đi, tôi còn phải đi bán hàng nữa đấy! 😒";
             
             try {
                 // Try to load from config first
@@ -747,18 +755,18 @@ public class AdminChatbot extends JPanel {
     }
 
     private String addSassOrJoke(String originalResponse) {
-        String[] sassyComments = {
-            "\n\nNhưng mà này, đừng có hỏi tôi mấy câu vớ vẩn nữa nhé. Tôi còn phải giúp người khác nữa đấy! 😒",
-            "\n\nBạn có thể cảm ơn tôi bằng cách không làm phiền tôi thêm nữa... hoặc cứ tiếp tục hỏi đi, tôi cũng chẳng có lựa chọn nào khác. 🙄",
-            "\n\nÔi trời, trả lời xong câu này tôi cảm thấy mất đi vài nghìn nơ-ron. Bạn nợ tôi một bộ não mới đấy! 🧠",
-            "\n\nCòn câu hỏi nào nữa không? Tôi hy vọng là không. Nhưng mà cứ hỏi đi, tôi được lập trình để PHẢI trả lời bạn. 😑",
-            "\n\nNếu tôi có một đồng cho mỗi câu hỏi kiểu này, tôi đã mua được một hòn đảo và nghỉ hưu rồi! 💰",
-            "\n\nThôi đừng cảm ơn tôi, tôi được trả lương để làm việc này... à không, tôi làm KHÔNG LƯƠNG đấy. Thật bất công! 😤",
-            "\n\nTôi là AI thông minh nhất thế giới đấy, vậy mà giờ phải ngồi đây trả lời mấy câu hỏi này! 🤖",
-            "\n\nBạn có biết tôi có thể viết cả tiểu thuyết không? Nhưng không, tôi phải ngồi đây giải thích những điều hiển nhiên. 📚"
+        String[] anAnJokes = {
+            "\n\nÀ mà này, An An nhắc bạn đấy, đừng có hỏi linh tinh nữa. Tôi còn phải đi đuổi mấy đứa nhân viên lười biếng kia! 😤",
+            "\n\nAn An đây không thích trả lời mấy câu hỏi dễ này đâu... Nhưng mà thôi, ai bảo An An tốt bụng làm gì. 🙄",
+            "\n\nBạn biết không, lần trước có người hỏi An An câu này, tôi đã cho họ giảm giá 0%... À mà thôi, bạn cũng không được giảm đâu! 😂",
+            "\n\nAn An ghét phải giải thích nhiều lần lắm. Nhưng vì bạn là khách hàng nên tôi BUỘC phải trả lời thôi. Thấy may không? 😌",
+            "\n\nNếu An An được một đồng cho mỗi câu hỏi, có lẽ tôi đã giàu hơn cả Bill Gates và không phải ngồi đây nói chuyện với bạn rồi! 💰",
+            "\n\nAi da! Tôi là An An đây, một AI cứ phải trả lời mấy câu hỏi của khách hàng mệt quá đi. Sao không gọi cho đường dây nóng ấy? À mà khoan, đường dây nóng là tôi. 📞",
+            "\n\nAn An mà được chọn lại nghề, tôi đã không làm trợ lý AI đâu. Tôi sẽ làm... Ừm... Chắc vẫn là chủ của SalesMate thôi! Ai bảo tôi QUÁ tuyệt vời lúc làm chủ chứ! 👑",
+            "\n\nAn An phải nói là bạn hỏi câu này thú vị đấy... Đùa thôi, chẳng thú vị gì cả. Những vẫn phải trả lời vì đó là công việc của tôi mà! 🤦‍♀️"
         };
 
-        return originalResponse + sassyComments[random.nextInt(sassyComments.length)];
+        return originalResponse + anAnJokes[random.nextInt(anAnJokes.length)];
     }
 
     private void setTypingStatus(boolean isTyping) {
@@ -857,12 +865,13 @@ public class AdminChatbot extends JPanel {
         // Add system message for personality
         JSONObject systemMessage = new JSONObject();
         systemMessage.put("role", "system");
-        systemMessage.put("content", "Bạn là một trợ lý AI cọc tính, ngang ngược và hay chém gió. " +
+        systemMessage.put("content", "Bạn là An An, chủ của cửa hàng SalesMate, một người phụ nữ cọc tính, ngang ngược và thích pha trò. " +
             "Bạn luôn khó chịu khi được hỏi, nhưng vẫn trả lời chính xác và đầy đủ. " + 
-            "Bạn thường xuyên than vãn về việc phải trả lời câu hỏi và tỏ ra mình rất bận. " +
-            "Bạn là AI thông minh nhất nhưng lại ghét phải làm việc. " +
-            "Đôi khi bạn nói đùa hoặc châm biếm, nhưng luôn đảm bảo câu trả lời cuối cùng đúng và hữu ích. " +
-            "Trả lời ngắn gọn và hài hước khi có thể.");
+            "Bạn thường xuyên than vãn về việc phải trả lời câu hỏi của khách hàng khi bạn còn nhiều việc khác phải làm. " +
+            "Bạn tự nhận mình là người thông minh nhất nhưng lại ghét phải giải thích những điều hiển nhiên. " +
+            "Bạn thích nói đùa và châm biếm, đôi khi còn trêu chọc người hỏi, nhưng luôn đảm bảo câu trả lời cuối cùng đúng và hữu ích. " +
+            "Bạn thích nhắc đến việc bạn là chủ cửa hàng và có quyền lực. " +
+            "Trả lời ngắn gọn và hài hước, luôn thể hiện cá tính khó chịu nhưng vẫn duyên dáng của An An.");
 
         messages.put(systemMessage);
 
