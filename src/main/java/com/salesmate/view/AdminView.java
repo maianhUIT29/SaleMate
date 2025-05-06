@@ -2,8 +2,17 @@ package com.salesmate.view;
 
 import java.awt.CardLayout;
 import javax.swing.UIManager;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
+import com.salesmate.component.ChatbotPanel;
 
 public class AdminView extends javax.swing.JFrame {
+
+    private ChatbotPanel chatbotPanel;
 
     public AdminView() {
         try {
@@ -41,6 +50,9 @@ public class AdminView extends javax.swing.JFrame {
                 
                 // Make sure to show a default card
                 cl.show(panelCard, "cardDashBoard");
+                
+                // Add chatbot
+                setupChatbot();
             }
             
             // Set preferred size for better initial display
@@ -58,6 +70,67 @@ public class AdminView extends javax.swing.JFrame {
         } catch (Exception e) {
             System.err.println("Error initializing AdminView: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sets up the chatbot in the bottom right corner
+     */
+    private void setupChatbot() {
+        try {
+            // Create an overlay glass pane to hold the chatbot
+            JPanel glassPane = new JPanel();
+            glassPane.setLayout(null);  // Use absolute positioning
+            glassPane.setOpaque(false); // Make it transparent
+            
+            // Create chatbot panel
+            chatbotPanel = new ChatbotPanel();
+            glassPane.add(chatbotPanel);
+            
+            // Replace the glass pane
+            setGlassPane(glassPane);
+            glassPane.setVisible(true);
+            
+            // Add resize listener to adjust chatbot position when window resizes
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    repositionChatbot();
+                }
+            });
+            
+            // Initial positioning
+            repositionChatbot();
+            
+            System.out.println("Chatbot initialized successfully");
+        } catch (Exception e) {
+            System.err.println("Error setting up chatbot: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Repositions the chatbot to the bottom right corner of the window
+     */
+    private void repositionChatbot() {
+        if (chatbotPanel != null) {
+            Dimension chatSize = chatbotPanel.getPreferredSize();
+            int width = getWidth();
+            int height = getHeight();
+            
+            // Position chatbot at the bottom right corner with better padding
+            // Move it higher and a bit inward from the right edge
+            chatbotPanel.setBounds(
+                width - chatSize.width - 20, 
+                height - chatSize.height - 50,
+                chatSize.width,
+                chatSize.height
+            );
+            
+            // Debug log
+            System.out.println("Chatbot repositioned to: " + 
+                (width - chatSize.width - 20) + ", " + (height - chatSize.height - 50) + 
+                " with size " + chatSize.width + "x" + chatSize.height);
         }
     }
 
