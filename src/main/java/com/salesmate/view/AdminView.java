@@ -3,7 +3,6 @@ package com.salesmate.view;
 import java.awt.CardLayout;
 import javax.swing.UIManager;
 import javax.swing.JPanel;
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;

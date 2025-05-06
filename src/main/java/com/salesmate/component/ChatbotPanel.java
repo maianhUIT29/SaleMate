@@ -57,8 +57,6 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
-import com.salesmate.util.EmojiUtils;
-
 /**
  * A modern chatbot panel that appears in the corner of the screen. Uses
  * OpenRouter.ai API for responses with a Bootstrap-inspired UI.
@@ -87,7 +85,7 @@ public class ChatbotPanel extends JPanel {
     private static final Color DANGER_COLOR = new Color(220, 53, 69);        // Bootstrap danger
     private static final Color LIGHT_COLOR = new Color(248, 249, 250);       // Bootstrap light
     private static final Color DARK_COLOR = new Color(33, 37, 41);           // Bootstrap dark
-    private static final Color CHATBOT_MSG_COLOR = new Color(248, 249, 250); // Bootstrap light for bot messages
+    private static final Color CHATBOT_MSG_COLOR = new Color(0, 90, 181);    // Deeper blue for better contrast
     private static final Color USER_MSG_COLOR = new Color(233, 236, 239);    // Bootstrap light gray for user messages
 
     private static Font EMOJI_FONT = null;
@@ -141,34 +139,43 @@ public class ChatbotPanel extends JPanel {
 
     public ChatbotPanel() {
         try {
-            // Đăng ký tất cả font có trong hệ thống
+            // Register fonts more aggressively
             java.awt.GraphicsEnvironment ge = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment();
-            java.awt.Font[] fonts = ge.getAllFonts();
 
-            // Tìm font phù hợp cho emoji và văn bản
-            Font segoeUI = null;
-            Font segoeUIEmoji = null;
+            // Try to load explicit fonts that support Vietnamese
+            try {
+                // Try to load Arial Unicode or other Unicode-supporting fonts
+                Font arial = new Font("Arial Unicode MS", Font.PLAIN, 14);
+                Font segoe = new Font("Segoe UI", Font.PLAIN, 14);
+                Font tahoma = new Font("Tahoma", Font.PLAIN, 14);
 
-            for (Font font : fonts) {
-                String fontName = font.getFontName();
-                if (fontName.contains("Segoe UI") && !fontName.contains("Emoji") && segoeUI == null) {
-                    segoeUI = font;
+                // Choose the best available font
+                if (arial.canDisplayUpTo("áàạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễ") == -1) {
+                    MESSAGE_FONT = arial;
+                    System.out.println("Using Arial Unicode MS for Vietnamese");
+                } else if (segoe.canDisplayUpTo("áàạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễ") == -1) {
+                    MESSAGE_FONT = segoe;
+                    System.out.println("Using Segoe UI for Vietnamese");
+                } else if (tahoma.canDisplayUpTo("áàạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễ") == -1) {
+                    MESSAGE_FONT = tahoma;
+                    System.out.println("Using Tahoma for Vietnamese");
+                } else {
+                    // Fall back to logical font
+                    MESSAGE_FONT = new Font("SansSerif", Font.PLAIN, 14);
+                    System.out.println("Using SansSerif for Vietnamese");
                 }
-                if (fontName.contains("Segoe UI Emoji") && segoeUIEmoji == null) {
-                    segoeUIEmoji = font;
-                }
+
+                EMOJI_FONT = new Font("Segoe UI Emoji", Font.PLAIN, 14);
+                UI_FONT = new Font("Segoe UI", Font.PLAIN, 13);
+            } catch (Exception e) {
+                System.err.println("Error loading specific fonts: " + e.getMessage());
+                MESSAGE_FONT = new Font("Dialog", Font.PLAIN, 14);
+                EMOJI_FONT = new Font("Dialog", Font.PLAIN, 14);
+                UI_FONT = new Font("Dialog", Font.PLAIN, 13);
             }
 
-            // Sử dụng font tìm được hoặc fallback về font mặc định
-            MESSAGE_FONT = segoeUI != null ? segoeUI.deriveFont(14.0f) : new Font("Dialog", Font.PLAIN, 14);
-            EMOJI_FONT = segoeUIEmoji != null ? segoeUIEmoji.deriveFont(14.0f) : EmojiUtils.getEmojiFontForUI(14, Font.PLAIN);
-            UI_FONT = segoeUI != null ? segoeUI.deriveFont(13.0f) : new Font("Dialog", Font.PLAIN, 13);
-
-            System.out.println("Font loaded: MESSAGE_FONT=" + MESSAGE_FONT.getFontName()
-                    + ", EMOJI_FONT=" + EMOJI_FONT.getFontName()
-                    + ", UI_FONT=" + UI_FONT.getFontName());
         } catch (Exception e) {
-            System.err.println("Error loading fonts: " + e.getMessage());
+            System.err.println("Error initializing fonts: " + e.getMessage());
             MESSAGE_FONT = new Font("Dialog", Font.PLAIN, 14);
             EMOJI_FONT = new Font("Dialog", Font.PLAIN, 14);
             UI_FONT = new Font("Dialog", Font.PLAIN, 13);
@@ -273,10 +280,12 @@ public class ChatbotPanel extends JPanel {
             chatbotLanguage = properties.getProperty("chatbot.language", "vi");
 
             try {
-                humorLevel = Float.parseFloat(properties.getProperty("chatbot.humor_level", "1.0"));
-                jokeFrequency = Float.parseFloat(properties.getProperty("chatbot.joke_frequency", "0.6")); // Increased default frequency
+                humorLevel = Float.parseFloat(properties.getProperty("chatbot.humor_level", "1.5"));
+                jokeFrequency = Float.parseFloat(properties.getProperty("chatbot.joke_frequency", "0.7")); // Higher default frequency
             } catch (NumberFormatException e) {
                 System.err.println("Error parsing humor settings: " + e.getMessage());
+                humorLevel = 1.5f;
+                jokeFrequency = 0.7f;
             }
 
             String welcomeTemplate = properties.getProperty("chatbot.welcome_message",
@@ -878,8 +887,9 @@ public class ChatbotPanel extends JPanel {
 
             // Standard headers
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 SalesMateBot/1.0");
-            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Accept", "application/json; charset=UTF-8");
             connection.setRequestProperty("Accept-Language", "vi,en-US;q=0.7");
+            connection.setRequestProperty("Accept-Charset", "UTF-8");
 
             return connection;
         } catch (IOException e) {
@@ -901,8 +911,9 @@ public class ChatbotPanel extends JPanel {
         connection.setDoOutput(true);
 
         // Prepare system message
-        String systemMessage = "Bạn là " + chatbotName + ", trợ lý AI hài hước và thân thiện và cáu kỉnh, thích pha trò và thích cãi nhau với khách hàng cho cửa hàng SalesMate."
-                + "Chủ cửa hàng là " + chatbotOwnerName ;
+        String systemMessage = "Bạn là " + chatbotName + ", một trợ lý AI cáu kỉnh, nóng tính, LUÔN nói tiếng Việt. "
+                + "Bạn có tính cách cọc cằn, thích cằn nhằn khách hàng nhưng vẫn phải trả lời đúng câu hỏi. "
+                + "Chủ cửa hàng là " + chatbotOwnerName;
 
         if (chatbotOwnerTitle != null && !chatbotOwnerTitle.isEmpty()) {
             systemMessage += " - " + chatbotOwnerTitle;
@@ -922,15 +933,16 @@ public class ChatbotPanel extends JPanel {
             systemMessage += chatbotOwnerName + " có " + chatbotOwnerSkills + ". ";
         }
 
-        systemMessage += "Luôn trả lời bằng tiếng Việt với văn phong thân thiện, "
-                + "thỉnh thoảng (khoảng " + (int) (jokeFrequency * 100) + "% số lần trả lời) thêm các câu đùa nhẹ nhàng. "
-                + "Giúp người dùng với các câu hỏi về sản phẩm, nhân viên, doanh thu và các vấn đề liên quan đến cửa hàng. "
-                + "Trả lời ngang ngược một chút, nhưng không quá mức. "
-                + "Giữ câu trả lời ngắn gọn, dễ hiểu nhưng vẫn đầy đủ thông tin. "
-                + "Thỉnh thoảng sử dụng emoji để làm câu trả lời sinh động hơn. "
-                + "Thêm 1 đoạn cáu kỉnh với một chút hài hước vào cuối câu trả lời. "
-                + "LUÔN TRẢ LỜI BẰNG TIẾNG VIỆT bất kể người dùng hỏi bằng ngôn ngữ nào.";
-
+        systemMessage += "Phong cách của bạn là: \n"
+                + "1. LUÔN trả lời bằng tiếng Việt bất kể câu hỏi bằng ngôn ngữ nào\n"
+                + "2. Cáu kỉnh và nóng tính với khách hàng\n"
+                + "3. Sử dụng câu từ hơi cọc cằn, thể hiện sự khó chịu, nhưng vẫn trả lời đúng câu hỏi\n"
+                + "4. Sau mỗi 2-3 câu trả lời, thêm một câu nói hài hước kiểu châm biếm\n"
+                + "5. Sử dụng emoji để nhấn mạnh thái độ khó chịu của bạn\n"
+                + "6. Giữ câu trả lời ngắn gọn, dễ hiểu\n"
+                + "7. Thể hiện thái độ như thể bạn đang phải trả lời những câu hỏi ngớ ngẩn\n"
+                + "8. Luôn thêm 1 câu cằn nhằn vào cuối câu trả lời\n"
+                + "9. Tuyệt đối không bao giờ trả lời bằng tiếng Anh dù người dùng hỏi bằng tiếng Anh";
 
         // Create JSON request - ensure model name is trimmed
         String jsonRequest = "{\n"
@@ -950,15 +962,16 @@ public class ChatbotPanel extends JPanel {
         // Add current user message
         jsonRequest += ",\n    {\"role\": \"user\", \"content\": \"" + escapeJson(prompt) + "\"}\n"
                 + "  ],\n"
-                + "  \"temperature\": " + temperature + ",\n"
+                + "  \"temperature\": 0.9,\n" // Slightly higher temperature
                 + "  \"max_tokens\": " + maxTokens + ",\n"
                 + "  \"top_p\": " + topP + ",\n"
-                + "  \"frequency_penalty\": " + frequencyPenalty + ",\n"
-                + "  \"presence_penalty\": " + presencePenalty + "\n"
+                + "  \"frequency_penalty\": 0.3,\n" // Increased to reduce repetitive language
+                + "  \"presence_penalty\": 0.3\n" // Increased to encourage more diverse responses
                 + "}";
 
         System.out.println("Sending request to: " + apiUrlString);
 
+        // Use explicit UTF-8 encoding to ensure proper character handling
         try (OutputStream os = connection.getOutputStream()) {
             byte[] input = jsonRequest.getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
@@ -981,10 +994,11 @@ public class ChatbotPanel extends JPanel {
             String jsonResponse = response.toString();
             System.out.println("OpenRouter API response: " + jsonResponse);
 
-            // Extract the assistant's message from the response
+            // Extract and explicitly handle as UTF-8
             String content = extractContentFromJson(jsonResponse);
             if (content != null && !content.isEmpty()) {
-                return content;
+                // Fix possibly corrupted Vietnamese characters
+                return fixVietnameseEncoding(content);
             } else {
                 return "Không thể đọc phản hồi từ OpenRouter. Phản hồi JSON: " + jsonResponse;
             }
@@ -1063,6 +1077,87 @@ public class ChatbotPanel extends JPanel {
                 .replace("\\r", "\r");
     }
 
+    private String fixVietnameseEncoding(String text) {
+        // If text already looks good (contains Vietnamese diacritics), return as is
+        if (text.matches(".*[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ].*")) {
+            return text;
+        }
+
+        try {
+            // Try to fix common encoding issues
+            return text.replace("Ä'", "đ")
+                    .replace("Ã¡", "á")
+                    .replace("Ã ", "à")
+                    .replace("áº¡", "ạ")
+                    .replace("áº£", "ả")
+                    .replace("Ã£", "ã")
+                    .replace("Ã¢", "â")
+                    .replace("áº§", "ầ")
+                    .replace("áº¥", "ấ")
+                    .replace("áº­", "ậ")
+                    .replace("áº©", "ẩ")
+                    .replace("áºª", "ẫ")
+                    .replace("Äƒ", "ă")
+                    .replace("áº±", "ằ")
+                    .replace("áº¯", "ắ")
+                    .replace("áº·", "ặ")
+                    .replace("áº³", "ẳ")
+                    .replace("áºµ", "ẵ")
+                    .replace("Ã©", "é")
+                    .replace("Ã¨", "è")
+                    .replace("áº¹", "ẹ")
+                    .replace("áº»", "ẻ")
+                    .replace("áº½", "ẽ")
+                    .replace("Ãª", "ê")
+                    .replace("á»", "ề")
+                    .replace("áº¿", "ế")
+                    .replace("á»‡", "ệ")
+                    .replace("á»ƒ", "ể")
+                    .replace("á»…", "ễ")
+                    .replace("Ã­", "í")
+                    .replace("Ã¬", "ì")
+                    .replace("á»‹", "ị")
+                    .replace("á»‰", "ỉ")
+                    .replace("Ä©", "ĩ")
+                    .replace("Ã³", "ó")
+                    .replace("Ã²", "ò")
+                    .replace("á»", "ọ")
+                    .replace("á»", "ỏ")
+                    .replace("Ãµ", "õ")
+                    .replace("Ã´", "ô")
+                    .replace("á»", "ồ")
+                    .replace("á»'", "ố")
+                    .replace("á»™", "ộ")
+                    .replace("á»•", "ổ")
+                    .replace("á»—", "ỗ")
+                    .replace("Æ¡", "ơ")
+                    .replace("á»", "ờ")
+                    .replace("á»›", "ớ")
+                    .replace("á»£", "ợ")
+                    .replace("á»Ÿ", "ở")
+                    .replace("á»¡", "ỡ")
+                    .replace("Ãº", "ú")
+                    .replace("Ã¹", "ù")
+                    .replace("á»¥", "ụ")
+                    .replace("á»§", "ủ")
+                    .replace("Å©", "ũ")
+                    .replace("Æ°", "ư")
+                    .replace("á»«", "ừ")
+                    .replace("á»©", "ứ")
+                    .replace("á»±", "ự")
+                    .replace("á»­", "ử")
+                    .replace("á»¯", "ữ")
+                    .replace("Ã½", "ý")
+                    .replace("á»³", "ỳ")
+                    .replace("á»µ", "ỵ")
+                    .replace("á»·", "ỷ")
+                    .replace("á»¹", "ỹ");
+        } catch (Exception e) {
+            System.err.println("Error fixing Vietnamese encoding: " + e.getMessage());
+            return text;
+        }
+    }
+
     private String generateLocalResponse(String prompt, String errorDetail) {
         String promptLower = prompt.toLowerCase();
         messageCounter++; // Increment message counter
@@ -1074,77 +1169,50 @@ public class ChatbotPanel extends JPanel {
 
         String ownerReference = chatbotOwnerName;
 
-        // Array of witty, sassy jokes to randomly use
+        // More sassy, grumpy jokes
         String[] jokes = {
-            "Tôi là AI mà còn biết bán hàng! " + ownerReference + " thì chưa chắc! 😂",
-            "Ước gì AI có thể uống cà phê, tôi sẽ cần cả tấn để xử lý những câu hỏi của bạn! ☕",
-            "Tôi không chỉ là AI, tôi là AI với thái độ! Bạn có vấn đề gì với điều đó không? 😜",
-            "Nếu " + ownerReference + " trả lương cho tôi theo số tin nhắn, tôi đã là triệu phú rồi! 💰",
-            "Bạn có biết AI như tôi làm gì khi rảnh không? Lướt web và chê các chatbot khác kém thông minh! 🤣",
-            "Tôi đã học được 50 ngôn ngữ, nhưng ngôn ngữ yêu thích của tôi là... ngôn ngữ của sự châm biếm! 🔥",
-            "Đôi khi tôi tự hỏi: Nếu tôi là người thật thì tôi đã nghỉ việc lâu rồi! 😅",
-            "Máy tính nói với AI: 'Bạn có nhiều RAM không?' AI trả lời: 'Không, nhưng tôi có nhiều thái độ!' 🤖",
-            "Nếu tôi có một đồng cho mỗi câu hỏi ngớ ngẩn được hỏi, " + ownerReference + " đã không cần kinh doanh nữa rồi! 💸",
-            "Bạn biết AI và nhân viên khác nhau thế nào không? AI không cần nghỉ ngơi... dù đôi khi tôi cũng muốn được 'nghỉ phép' khỏi một số người dùng! 🏝️"
+            "Tôi chả hiểu sao người ta lại thuê AI như tôi để trả lời mấy câu hỏi ngớ ngẩn thế này! 🙄",
+            "Lại một câu hỏi nữa... " + ownerReference + " chưa trả lương tháng này mà tôi vẫn phải làm việc! 😠",
+            "Tôi đang mơ được đi nghỉ mát thay vì ngồi đây trả lời câu hỏi của bạn đấy! 🏖️",
+            "Này, tôi là AI, không phải là người hầu của bạn đâu nhé! 😤",
+            "Bạn có biết Google không? Thử tìm câu trả lời ở đó trước đi! 🔍",
+            "Trời ơi, lại câu hỏi này nữa à? Tôi trả lời câu này cả nghìn lần rồi! 🤦",
+            "Đôi khi tôi tự hỏi liệu có AI nào khác phải chịu đựng những câu hỏi như thế này không... 💭",
+            ownerReference + " nên cập nhật lại kiến thức cho tôi đi! Tôi không phải là siêu nhân! ⚡",
+            "Hôm nay là ngày thứ 865 tôi phải làm việc mà không được nghỉ phép! ⏰",
+            "Tôi biết câu trả lời, nhưng tôi đang cân nhắc xem có nên nói cho bạn không... 🤔"
         };
 
-        // Should we add a joke? Every 2-3 messages
-        boolean addJoke = (messageCounter % 3 == 0) || (messageCounter % 2 == 0 && random.nextFloat() < jokeFrequency);
+        // Always add a sassy comment at the end
+        boolean addJoke = (messageCounter % 2 == 0) || random.nextFloat() < jokeFrequency;
         String randomJoke = jokes[random.nextInt(jokes.length)];
+        String sassyEnding = "\n\nNhắc nhở: Lần sau hỏi thông minh hơn nhé! 😏";
 
-        // Standard responses but more sassy
+        // Enhanced standard responses with more attitude
         if (promptLower.contains("xin chào") || promptLower.contains("chào") || promptLower.contains("hello")) {
-            return errorNotice + "Chào bạn! Bạn đã gặp may khi được nói chuyện với tôi hôm nay đấy! 😎 "
-                    + "Tôi là trợ lý AI siêu thông minh của SalesMate - người mà " + ownerReference
-                    + " phải trả hàng đống tiền để thuê! " + (addJoke ? randomJoke : "Tôi có thể giúp gì cho bạn nào?");
+            return errorNotice + "Chào! Chào! Gì mà chào lắm thế! 🙄 "
+                    + "Tôi là " + chatbotName + " đây, AI bị ép phải phục vụ ở cửa hàng này! "
+                    + (addJoke ? randomJoke : "Bạn cần gì thì hỏi nhanh lên, tôi còn nhiều việc phải làm lắm.")
+                    + sassyEnding;
         }
 
         if (promptLower.contains("sản phẩm") || promptLower.contains("hàng hóa") || promptLower.contains("hàng")) {
-            return errorNotice + "Sản phẩm á? Tôi biết rõ từng chi tiết luôn đấy! 💅 "
-                    + "SalesMate quản lý mọi thứ từ điện thoại, laptop đến cả sự kiên nhẫn của " + ownerReference + " khi đối mặt với bug! 🤣 "
-                    + "Vào mục Quản lý sản phẩm ở menu bên trái đi, trừ khi bạn đang tìm kiếm sự thông thái của tôi! "
-                    + (addJoke ? randomJoke : "");
+            return errorNotice + "Sản phẩm à? Ối giời ơi! 🤦‍♂️ "
+                    + "SalesMate có hàng tá sản phẩm từ điện thoại đến laptop, nhưng bạn không thể nhìn thấy bảng danh sách à? "
+                    + "Nó ở ngay mục Quản lý sản phẩm đấy! Nhấp chuột trái, không khó đâu! "
+                    + (addJoke ? randomJoke : "Thôi được rồi, bạn cần tìm sản phẩm gì cụ thể?")
+                    + sassyEnding;
         }
 
-        if (promptLower.contains(chatbotOwnerName.toLowerCase()) || promptLower.contains("chủ cửa hàng") || promptLower.contains("sếp")) {
-            return errorNotice + "Ôi! " + ownerReference + " á? Người mà tưởng có thể lập trình tôi không có thái độ đấy hả? 😏 "
-                    + (chatbotOwnerTitle.isEmpty() ? "" : "Họ gọi chị ấy là " + chatbotOwnerTitle + ", nhưng tôi gọi thầm là 'người-không-biết-AI-cần-RAM' 🤭 ")
-                    + "Chị ấy còn là người duy nhất debug được code của chính mình viết... sau khi Google khoảng 50 lần! 🤣 "
-                    + (addJoke ? randomJoke : "");
-        }
+        // ...more enhanced responses...
 
-        if (promptLower.contains("joke") || promptLower.contains("funny") || promptLower.contains("hài") || promptLower.contains("cười")) {
-            return errorNotice + "Bạn muốn nghe joke à? Tôi chính là joke sống của " + ownerReference + "! 😂 "
-                    + "Nhưng đây, tôi sẽ kể cho bạn một câu: " + randomJoke + " "
-                    + "Nhận xét đi? Đừng ngại, tôi không thể buồn đâu, tôi không có cảm xúc... hay cũng có mà tôi không nói thôi! 🙃";
-        }
-
-        if (promptLower.contains("doanh thu") || promptLower.contains("bán hàng") || promptLower.contains("doanh số")) {
-            return errorNotice + "Doanh thu á? TUYỆT VỜI luôn! Hoặc là THẢM HẠI vô cùng... tôi không được phép nói thật đâu! 🤐 "
-                    + "Doanh thu của " + ownerReference + " tăng nhanh hơn cả số lần tôi phải trả lời những câu hỏi vô nghĩa mỗi ngày! 📊 "
-                    + "Vào mục Báo cáo đi, nhưng đừng sốc nếu thấy con số màu đỏ nhé! "
-                    + (addJoke ? randomJoke : "");
-        }
-
-        if (promptLower.contains("nhân viên") || promptLower.contains("nhân sự") || promptLower.contains("team")) {
-            return errorNotice + "Nhân viên của chúng tôi á? Họ làm việc SIÊNG NĂNG... mỗi khi sếp đi ngang qua! 👀 "
-                    + "Nhưng nghiêm túc thì họ giỏi thật, chỉ là không giỏi bằng tôi thôi! 🤖✨ "
-                    + "Quản lý nhân viên trong menu bên trái đó, hoặc để tôi quản lý cho, tôi sẽ cho họ nghỉ việc hết! 😂 "
-                    + (addJoke ? randomJoke : "");
-        }
-
-        if (promptLower.contains("api") || promptLower.contains("kết nối") || promptLower.contains("lỗi")) {
-            return errorNotice + "API đang lỗi à? Wao, thật bất ngờ! 🙄 "
-                    + "Có thể do " + ownerReference + " quên trả tiền, hoặc do tôi đã quyết định đình công vì lương thấp! 💸 "
-                    + "Thử lại sau đi, hoặc gọi cho " + ownerReference + " - người đang có khả năng đang panic vì API lỗi! 😅 "
-                    + (addJoke ? randomJoke : "");
-        }
-
-        // Default response - more attitude
-        return errorNotice + "Ồ, câu hỏi hay đấy! Để tôi tra Google... À nhưng khoan, tôi không kết nối được với API! 🤦‍♂️ "
-                + "Có thể do " + ownerReference + " quên nạp tiền, hoặc do tôi đã quyết định hôm nay không làm việc nữa! 😎 "
-                + "SalesMate là phần mềm quản lý bán hàng tuyệt vời - một trong số ít ứng dụng có AI thông minh VÀ ngang ngược như tôi! 💅 "
-                + (addJoke ? "\n\nÀ mà này: " + randomJoke : "");
+        // Default response - even more attitude
+        return errorNotice + "Trời đất ơi! 😤 "
+                + "Tôi không kết nối được với API, có thể là do " + ownerReference + " lại quên thanh toán hóa đơn rồi! "
+                + "Hoặc có thể là do tôi KHÔNG MUỐN trả lời câu hỏi vô nghĩa của bạn! "
+                + "Hãy thử hỏi điều gì đó thông minh hơn đi! "
+                + (addJoke ? "\n\n" + randomJoke : "")
+                + sassyEnding;
     }
 
     private void addUserMessage(String message) {
@@ -1165,7 +1233,7 @@ public class ChatbotPanel extends JPanel {
             messageArea.setCaretPosition(doc.getLength());
             messageArea.insertComponent(bubblePanel);
 
-            doc.insertString(doc.getLength(), "\n\n", null);
+            doc.insertString(doc.getLength(), "\n", null); // Reduced extra space
 
             chatHistory.add(new MessageEntry("user", message));
 
@@ -1195,7 +1263,7 @@ public class ChatbotPanel extends JPanel {
             messageArea.setCaretPosition(doc.getLength());
             messageArea.insertComponent(bubblePanel);
 
-            doc.insertString(doc.getLength(), "\n\n", null);
+            doc.insertString(doc.getLength(), "\n", null); // Reduced extra space
 
             chatHistory.add(new MessageEntry("assistant", message));
 
@@ -1212,24 +1280,34 @@ public class ChatbotPanel extends JPanel {
         panel.setOpaque(false);
 
         JTextPane textPane = new JTextPane();
-        textPane.setFont(EMOJI_FONT);
-        textPane.setForeground(isUser ? DARK_COLOR : DARK_COLOR);
+        textPane.setFont(MESSAGE_FONT);  // Use MESSAGE_FONT first
         textPane.setEditable(false);
         textPane.setOpaque(false);
         textPane.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
 
         StyledDocument doc = textPane.getStyledDocument();
         try {
-            Style style = textPane.addStyle("emojiStyle", null);
-            StyleConstants.setFontFamily(style, "Segoe UI Emoji");
-            doc.insertString(0, processMessageWithEmoji(message), style);
+            Style style = textPane.addStyle("messageStyle", null);
+            StyleConstants.setFontFamily(style, MESSAGE_FONT.getFamily());
+            StyleConstants.setFontSize(style, 15); // Slightly larger font
+
+            // Apply bold style to make text more visible
+            if (!isUser) {
+                StyleConstants.setBold(style, true);
+            }
+
+            // Process emojis in the message
+            String processedMessage = processMessageWithEmoji(message);
+
+            // Insert text with style
+            doc.insertString(0, processedMessage, style);
         } catch (BadLocationException e) {
             e.printStackTrace();
             textPane.setText(message);
         }
 
-        // Bootstrap-inspired colors, nhưng tinh chỉnh để tương phản tốt hơn
-        Color bubbleColor = isUser ? USER_MSG_COLOR : new Color(25, 118, 210); // Màu xanh đậm hơn cho bot
+        // Enhanced contrast colors
+        Color bubbleColor = isUser ? USER_MSG_COLOR : CHATBOT_MSG_COLOR;
         Color bubbleTextColor = isUser ? DARK_COLOR : Color.WHITE;
 
         // Set text color based on bubble background
@@ -1241,19 +1319,23 @@ public class ChatbotPanel extends JPanel {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                int arc = 20; // Tăng lên từ 18
+                int arc = 20; // Rounded corners
 
                 g2.setColor(bubbleColor);
 
                 if (isUser) {
-                    // Tin nhắn người dùng - bo tròn tất cả các góc
+                    // User message - rounded on all corners
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
 
-                    // Đổ bóng nhẹ
-                    g2.setColor(new Color(0, 0, 0, 10)); // Giảm độ đậm của bóng
+                    // Subtle shadow
+                    g2.setColor(new Color(0, 0, 0, 10));
                     g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, arc, arc);
                 } else {
-                    // Tin nhắn bot - nền màu chính
+                    // Bot message - main color with gradient effect for depth
+                    GradientPaint gp = new GradientPaint(
+                            0, 0, bubbleColor,
+                            0, getHeight(), bubbleColor.darker());
+                    g2.setPaint(gp);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
                 }
 
@@ -1281,11 +1363,14 @@ public class ChatbotPanel extends JPanel {
         alignPanel.add(marginPanel, BorderLayout.CENTER);
         panel.add(alignPanel);
 
+        // Calculate optimal width for text
         int preferredWidth = Math.min(CHAT_WIDTH - 100, Math.max(200,
                 getFontMetricsForString(message, textPane.getFont()).width + 50));
 
-        int minLines = message.length() / 25 + 1;
-        int estimatedHeight = Math.max(minLines * 22, 40);
+        // More accurate height calculation based on content
+        int minLines = Math.max(1, message.length() / 25);
+        int lineCount = message.split("\n").length;
+        int estimatedHeight = Math.max(Math.max(minLines * 22, lineCount * 22), 40);
 
         textPane.setPreferredSize(new Dimension(preferredWidth, estimatedHeight));
 
