@@ -2,117 +2,112 @@ package com.salesmate.util;
 
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
- * Utility class for emoji handling in the application
+ * Utility class for finding and using emoji-compatible fonts
  */
 public class EmojiUtils {
     
-    private static boolean isEmojiSupported = false;
-    private static String bestEmojiFont = "Segoe UI Emoji"; // Default for Windows
-    
-    static {
-        initEmojiSupport();
-    }
+    // Danh sách các font có hỗ trợ emoji tốt theo thứ tự ưu tiên
+    private static final String[] EMOJI_FONT_NAMES = {
+        "Segoe UI Emoji",   // Windows
+        "Apple Color Emoji", // macOS
+        "Noto Color Emoji",  // Linux
+        "Noto Emoji",
+        "Segoe UI Symbol",
+        "Symbola",
+        "DejaVu Sans"
+    };
     
     /**
-     * Initializes emoji support by finding the best font for emoji
+     * Tìm font phù hợp nhất cho việc hiển thị emoji trên UI
      */
-    private static void initEmojiSupport() {
+    public static Font getEmojiFontForUI(float size, int style) {
+        Font bestFont = null;
+        
         try {
+            // Danh sách các font có sẵn trong hệ thống
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            String[] fontNames = ge.getAvailableFontFamilyNames();
+            List<Font> availableFonts = new ArrayList<>(Arrays.asList(ge.getAllFonts()));
             
-            // List of fonts that are known to support emoji, in order of preference
-            String[] emojiFonts = {
-                "Segoe UI Emoji", // Windows
-                "Apple Color Emoji", // macOS
-                "Noto Color Emoji", // Linux
-                "Noto Emoji", // Linux
-                "Segoe UI Symbol", // Windows fallback
-                "Arial Unicode MS", // Common fallback
-                "Symbola" // Another fallback
-            };
+            // Thêm các font có sẵn trong JRE
+            availableFonts.add(new Font(Font.SANS_SERIF, style, (int)size));
+            availableFonts.add(new Font(Font.DIALOG, style, (int)size));
             
-            // Find the first available emoji font
-            for (String emojiFont : emojiFonts) {
-                if (Arrays.asList(fontNames).contains(emojiFont)) {
-                    bestEmojiFont = emojiFont;
-                    isEmojiSupported = true;
-                    System.out.println("Using emoji font: " + bestEmojiFont);
-                    return;
+            // Tìm font emoji phù hợp đầu tiên
+            for (String fontName : EMOJI_FONT_NAMES) {
+                for (Font font : availableFonts) {
+                    String name = font.getFontName().toLowerCase();
+                    if (name.contains(fontName.toLowerCase())) {
+                        bestFont = font.deriveFont(style, size);
+                        System.out.println("Found emoji font: " + font.getFontName());
+                        break;
+                    }
                 }
+                if (bestFont != null) break;
             }
             
-            // If no specific emoji font is found, use system default
-            bestEmojiFont = new JLabel().getFont().getFamily();
-            System.out.println("No dedicated emoji font found. Using: " + bestEmojiFont);
+            // Nếu không tìm thấy font emoji nào, thử đăng ký font từ hệ thống
+            if (bestFont == null) {
+                for (String fontName : EMOJI_FONT_NAMES) {
+                    try {
+                        bestFont = new Font(fontName, style, (int)size);
+                        if (!bestFont.getFontName().equals(fontName)) {
+                            bestFont = null; // Font không khớp với tên, JRE đã thay thế bằng font fallback
+                        } else {
+                            System.out.println("Registered emoji font: " + fontName);
+                            break;
+                        }
+                    } catch (Exception e) {
+                        // Font không tồn tại, tiếp tục tìm
+                    }
+                }
+            }
         } catch (Exception e) {
-            System.err.println("Error initializing emoji support: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error finding emoji font: " + e.getMessage());
         }
-    }
-    
-    /**
-     * Gets the best font for emoji display
-     * 
-     * @param size Font size
-     * @param style Font style
-     * @return Font for emoji
-     */
-    public static Font getEmojiFontForUI(int size, int style) {
-        return new Font(bestEmojiFont, style, size);
-    }
-    
-    /**
-     * Check if emoji is supported
-     * 
-     * @return True if emoji is supported
-     */
-    public static boolean isEmojiSupported() {
-        return isEmojiSupported;
-    }
-    
-    /**
-     * Tests emoji rendering capability
-     */
-    public static void testEmojiSupport() {
-        String testEmojis = "Test Emoji: 😊 😂 🎉 🚀 🌈";
         
-        JLabel testLabel = new JLabel(testEmojis);
-        testLabel.setFont(getEmojiFontForUI(14, Font.PLAIN));
+        // Fallback về font Dialog nếu không tìm thấy font emoji nào
+        if (bestFont == null) {
+            bestFont = new Font(Font.DIALOG, style, (int)size);
+            System.out.println("Using fallback font: " + bestFont.getFontName());
+        }
         
-        JOptionPane.showMessageDialog(null, testLabel, "Emoji Test", JOptionPane.INFORMATION_MESSAGE);
+        return bestFont;
     }
     
     /**
-     * Convert Unicode codes to actual emoji characters
-     * 
-     * @param unicodeNotation Unicode notation like \uD83D\uDE00
-     * @return The actual emoji character
+     * Kiểm tra xem một ký tự có phải là emoji hay không
      */
-    public static String unicodeToEmoji(String unicodeNotation) {
-        StringBuilder result = new StringBuilder();
-        
-        for (int i = 0; i < unicodeNotation.length(); i++) {
-            if (unicodeNotation.charAt(i) == '\\' && i + 1 < unicodeNotation.length() && unicodeNotation.charAt(i + 1) == 'u') {
-                try {
-                    // Parse the next 4 characters as a hex string
-                    String hex = unicodeNotation.substring(i + 2, i + 6);
-                    result.append((char)Integer.parseInt(hex, 16));
-                    i += 5; // Skip the \u and 4 hex digits
-                } catch (Exception e) {
-                    // In case of error, just add the original character
-                    result.append(unicodeNotation.charAt(i));
-                }
-            } else {
-                result.append(unicodeNotation.charAt(i));
+    public static boolean isEmoji(char c) {
+        return c == 0x1F60A || // 😊 - smiling face with smiling eyes
+               c == 0x1F603 || // 😃 - smiling face with open mouth
+               c == 0x1F609 || // 😉 - winking face
+               c == 0x1F614 || // 😔 - pensive face
+               c == 0x1F61B || // 😛 - face with stuck-out tongue
+               c == 0x1F62E || // 😮 - face with open mouth
+               (c >= 0x1F600 && c <= 0x1F64F) || // Emoticons
+               (c >= 0x1F300 && c <= 0x1F5FF) || // Misc Symbols and Pictographs
+               (c >= 0x1F680 && c <= 0x1F6FF) || // Transport and Map
+               (c >= 0x2600 && c <= 0x26FF) ||   // Misc symbols
+               (c >= 0x2700 && c <= 0x27BF) ||   // Dingbats
+               (c >= 0xFE00 && c <= 0xFE0F) ||   // Variation Selectors
+               (c >= 0x1F900 && c <= 0x1F9FF) || // Supplemental Symbols and Pictographs
+               (c >= 0x1F1E6 && c <= 0x1F1FF);   // Flags
+    }
+    
+    /**
+     * Kiểm tra xem một chuỗi có chứa emoji không
+     */
+    public static boolean containsEmoji(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            if (isEmoji(text.charAt(i))) {
+                return true;
             }
         }
-        
-        return result.toString();
+        return false;
     }
 }

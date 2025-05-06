@@ -1,0 +1,20 @@
+# Hosts file for DNS fallbacks
+104.21.26.220 api.openrouter.ai
+172.67.169.139 api.openrouter.ai
+
+# Base domain mappings
+104.21.26.220 openrouter.ai
+172.67.169.139 openrouter.ai
+
+# Alternative subdomains
+104.21.26.220 direct.openrouter.ai
+172.67.169.139 direct.openrouter.ai
+104.21.26.220 api.direct.openrouter.ai
+172.67.169.139 api.direct.openrouter.ai
+
+# Direct IP aliases
+104.21.26.220 directip1.openrouter.local
+172.67.169.139 directip2.openrouter.local
+
+# Local testing fallback
+127.0.0.1 api.mock.local

@@ -8,6 +8,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\configs\Ope
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdRevenuePanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Employee.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Purchase.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\util\EmojiUtils.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdminHeader.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\utils\ExcelExporter.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Supplier.java
@@ -15,6 +16,7 @@ C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\Salar
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\component\AdUserPanel.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\PurchaseDetail.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\model\LeaveRequest.java
+C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\util\JokeProvider.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\controller\UserController.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\dao\UserDAO.java
 C:\Users\Nhan\Desktop\src\java\SalesMate\src\main\java\com\salesmate\view\LoginForm.java

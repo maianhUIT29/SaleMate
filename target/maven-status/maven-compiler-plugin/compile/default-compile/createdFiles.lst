@@ -104,6 +104,7 @@ com\salesmate\component\ProductSelectionPanel$2.class
 com\salesmate\component\AdminSidebar.class
 com\salesmate\component\ChatbotPanel$3.class
 com\salesmate\model\Shift.class
+com\salesmate\util\JokeProvider.class
 com\salesmate\view\ForgotPasswordForm$1$1.class
 com\salesmate\component\ChatbotPanel.class
 com\salesmate\view\LoginForm$5.class
@@ -118,6 +119,7 @@ com\salesmate\component\ProductSelectionPanel$3.class
 com\salesmate\view\CashierView.class
 com\salesmate\component\CashierAccount$2.class
 com\salesmate\view\ForgotPasswordForm$2.class
+com\salesmate\component\ChatbotPanel$9.class
 com\salesmate\model\Report.class
 com\salesmate\configs\MailSender.class
 com\salesmate\model\Employee.class
