@@ -28,6 +28,7 @@ import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import com.salesmate.controller.UserController;
+import com.salesmate.utils.UIHelper;
 
 class GradientPanel extends JPanel {
     @Override
@@ -58,6 +59,7 @@ public class ForgotPasswordForm extends JFrame {
     public ForgotPasswordForm() {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
+            UIHelper.removeFocusIndicators(); // Apply our focus removers to FlatLightLaf
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -177,6 +179,9 @@ public class ForgotPasswordForm extends JFrame {
             }
         });
 
+        // Apply no-focus styling to all components
+        UIHelper.removeFocusFromAll(this);
+
         setVisible(true);
     }
 
@@ -243,6 +248,13 @@ public class ForgotPasswordForm extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(ForgotPasswordForm::new);
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIHelper.setupLookAndFeel();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new ForgotPasswordForm();
+        });
     }
 }

@@ -7,7 +7,7 @@ import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import com.salesmate.component.AdminChatbot;
-
+import com.salesmate.utils.UIHelper;
 
 public class AdminView extends javax.swing.JFrame {
 
@@ -15,6 +15,9 @@ public class AdminView extends javax.swing.JFrame {
 
     public AdminView() {
         try {
+            // Use our custom look and feel helper
+            UIHelper.setupLookAndFeel();
+            
             // Set system look and feel but exclude buttons
             try {
                 // Capture existing button UI before setting look and feel
@@ -53,6 +56,9 @@ public class AdminView extends javax.swing.JFrame {
                 // Add chatbot
                 setupChatbot();
             }
+            
+            // Apply no-focus styling to all components
+            UIHelper.removeFocusFromAll(this);
             
             // Set preferred size for better initial display
             setPreferredSize(new java.awt.Dimension(1024, 768));
@@ -162,6 +168,9 @@ public class AdminView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     public static void main(String args[]) {
+        // Use our custom look and feel helper
+        UIHelper.setupLookAndFeel();
+        
         // Set up look and feel
         try {
             javax.swing.UIManager.setLookAndFeel(

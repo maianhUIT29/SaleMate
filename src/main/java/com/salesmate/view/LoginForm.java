@@ -20,6 +20,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.salesmate.utils.ColorPalette;
+import com.salesmate.utils.UIHelper;
 
 public class LoginForm extends JFrame {
 
@@ -33,15 +34,8 @@ public class LoginForm extends JFrame {
     public LoginForm() {
         // Set system look and feel but preserve button styling
         try {
-            // Capture existing button UI before setting look and feel
-            Object buttonUI = UIManager.get("ButtonUI");
-            
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            
-            // Preserve button UI to keep their appearance
-            if (buttonUI != null) {
-                UIManager.put("ButtonUI", buttonUI);
-            }
+            // Use our custom look and feel helper
+            UIHelper.setupLookAndFeel();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -110,6 +104,9 @@ public class LoginForm extends JFrame {
 
         add(mainPanel);
 
+        // Apply no-focus styling to all components
+        UIHelper.removeFocusFromAll(this);
+
         // Action listeners
         forgotPasswordButton.addActionListener(new ActionListener() {
             @Override
@@ -154,6 +151,9 @@ public class LoginForm extends JFrame {
             ((JTextField) field).putClientProperty("JTextField.placeholderText", placeholder);
         }
         field.setBackground(Color.WHITE);
+
+        // Remove focus border
+        UIHelper.removeFocusBorder(field);
     }
 
     private JButton createStyledButton(String text, Color bgColor) {
@@ -381,9 +381,8 @@ public class LoginForm extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Set system look and feel
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIHelper.setupLookAndFeel();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
