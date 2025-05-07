@@ -7,10 +7,10 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
+import com.salesmate.utils.UIHelper;
 
 public class CashierView extends javax.swing.JFrame {
 
@@ -20,22 +20,8 @@ public class CashierView extends javax.swing.JFrame {
         try {
             System.out.println("Initializing CashierView...");
             
-            // Set system look and feel but exclude buttons
-            try {
-                // Capture existing button UI before setting look and feel
-                javax.swing.LookAndFeel oldLF = UIManager.getLookAndFeel();
-                Object buttonUI = UIManager.get("ButtonUI");
-                
-                javax.swing.UIManager.setLookAndFeel(
-                    javax.swing.UIManager.getSystemLookAndFeelClassName());
-                
-                // Preserve button UI to keep their appearance
-                if (buttonUI != null) {
-                    UIManager.put("ButtonUI", buttonUI);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            // Use our custom look and feel helper
+            UIHelper.setupLookAndFeel();
             
             initComponents();
             productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
@@ -59,6 +45,9 @@ public class CashierView extends javax.swing.JFrame {
             
             // Make sure window is visible before loading products
             setVisible(true);
+            
+            // Apply no-focus styling to all components
+            UIHelper.removeFocusFromAll(this);
             
             // Load products after UI is set up
             SwingUtilities.invokeLater(this::loadProductList);
@@ -221,13 +210,7 @@ public class CashierView extends javax.swing.JFrame {
     public static void main(String args[]) {
         try {
             System.out.println("Starting CashierView application...");
-            // Set up look and feel
-            try {
-                javax.swing.UIManager.setLookAndFeel(
-                    javax.swing.UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            UIHelper.setupLookAndFeel();
             
             java.awt.EventQueue.invokeLater(() -> {
                 try {

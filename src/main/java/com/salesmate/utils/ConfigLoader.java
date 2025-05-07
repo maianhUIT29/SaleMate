@@ -66,14 +66,35 @@ public class ConfigLoader {
                 return "An An";
             }
             if ("chatbot.welcome_message".equals(key)) {
-                return "Xin chào! Tôi là An An, chủ cửa hàng SalesMate! Tôi hơi ngang ngược và thích pha trò một chút. Hỏi gì thì hỏi nhanh đi, tôi còn phải đi bán hàng nữa đấy! 😒";
+                return "Xin chao! Toi la An An, chu cua hang SalesMate! Toi hoi ngang nguoc va thich pha tro mot chut. Hoi gi thi hoi nhanh di, toi con phai di ban hang nua day! 😒";
             }
             return defaultValue;
         }
         
-        // Return directly without trying to fix encoding
-        // The encoding should already be correct from the UTF-8 reader
+        // Try to fix encoding issues with Vietnamese text
+        try {
+            // Check if the text might be wrongly encoded
+            if (containsEncodingIssues(value)) {
+                // Try ISO-8859-1 to UTF-8 conversion (common fix)
+                byte[] bytes = value.getBytes("ISO-8859-1");
+                String utf8Value = new String(bytes, StandardCharsets.UTF_8);
+                
+                // If the conversion seems to have worked
+                if (!containsEncodingIssues(utf8Value)) {
+                    return utf8Value;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Error fixing encoding for property " + key + ": " + e.getMessage());
+        }
+        
         return value;
+    }
+    
+    private boolean containsEncodingIssues(String text) {
+        // Check for common signs of encoding issues (like weird characters)
+        return text.contains("Ä") || text.contains("Ã") || text.contains("Æ") || 
+               text.contains("â€") || text.contains("Ã¡") || text.contains("Ã ");
     }
     
     public String getProperty(String key) {

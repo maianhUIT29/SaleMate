@@ -55,6 +55,7 @@ import com.github.sarxos.webcam.WebcamPanel;
 import com.salesmate.controller.UserController;
 import com.salesmate.model.User;
 import com.salesmate.utils.SessionManager;
+import com.salesmate.utils.UIHelper;
 
 public class LoginFaceID extends JFrame {
 
@@ -198,6 +199,9 @@ public class LoginFaceID extends JFrame {
     }
 
     public LoginFaceID() {
+        // Use our custom look and feel helper
+        UIHelper.setupLookAndFeel();
+
         userController = new UserController();
         setTitle("🔑 Đăng nhập bằng FaceID - SalesMate");
         setSize(800, 600); // Tăng kích thước cửa sổ
@@ -228,6 +232,10 @@ public class LoginFaceID extends JFrame {
         }
 
         initComponents();
+
+        // Apply no-focus styling to all components
+        UIHelper.removeFocusFromAll(this);
+
         startFaceDetection();
     }
     
@@ -621,6 +629,9 @@ public class LoginFaceID extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(LoginFaceID::new);
+        SwingUtilities.invokeLater(() -> {
+            UIHelper.setupLookAndFeel();
+            new LoginFaceID();
+        });
     }
 }
