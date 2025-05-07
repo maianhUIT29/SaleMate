@@ -7,6 +7,7 @@ import com.salesmate.model.Product;
 import com.salesmate.controller.InvoiceController;
 import com.salesmate.controller.ProductController;
 import com.salesmate.controller.UserController;
+import com.salesmate.model.ChartDataModel;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -14,6 +15,20 @@ import javax.swing.table.DefaultTableModel;
 import java.util.List;
 import java.util.Map;
 import javax.swing.SwingUtilities;
+import java.math.BigDecimal;
+import javax.swing.*;
+import java.awt.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 /**
  *
  * @author meiln
@@ -21,31 +36,370 @@ import javax.swing.SwingUtilities;
 public class AdDashBoard extends javax.swing.JPanel {
     private InvoiceController invoiceController;
     private ProductController productController;
- private UserController userController;
+    private UserController userController;
+    
+    // Statistics panels
+    private JPanel employeePanel;
+    private JPanel productPanel;
+    private JPanel invoicePanel;
+    private JPanel revenuePanel;
+    
+    // Chart panels
+    private JPanel revenueChartPanel;
+    private JPanel topProductsPanel;
+    private JPanel topCustomersPanel;
+    private JPanel topInvoicesPanel;
+    private JPanel invoiceStatusPanel;
+    
+    // Filter components
+    private JComboBox<String> timeRangeCombo;
+    private JComboBox<Integer> yearCombo;
+    private JPanel filterPanel;
+
     /**
      * Creates new form AdDashBoard
      */
     public AdDashBoard() {
         initComponents();
         if (!java.beans.Beans.isDesignTime()) { 
-        invoiceController = new InvoiceController(); 
-        updateInvoiceCount();
-        
-        productController = new ProductController(); 
-        updateProductCount(); 
-        updateBestSellingTable();
-        
-        userController = new UserController(); 
-        updateUserCount();
+            invoiceController = new InvoiceController();         
+            productController = new ProductController();
+            userController = new UserController();
+            setupDashboard();
+        }
     }
 
-    spBestSellingTable.addComponentListener(new ComponentAdapter() {
-        @Override
-        public void componentResized(ComponentEvent e) {
-            resizeRowsToFill();
+    private void setupDashboard() {
+        // Create statistics panels
+        createStatisticsPanels();
+        
+        // Create filter panel
+        createFilterPanel();
+        
+        // Create revenue and order widgets
+        createRevenueWidgets();
+        
+        // Create charts
+        createCharts();
+        
+        // Add all panels to the main layout
+        panelStatistic.setLayout(new BoxLayout(panelStatistic, BoxLayout.Y_AXIS));
+        
+        // Add statistics panels in a row
+        JPanel statsRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        statsRow.add(employeePanel);
+        statsRow.add(productPanel);
+        statsRow.add(invoicePanel);
+        statsRow.add(revenuePanel);
+        panelStatistic.add(statsRow);
+        
+        // Add filter panel
+        panelStatistic.add(filterPanel);
+        
+        // Add revenue widgets
+        JPanel revenueWidgetsRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        revenueWidgetsRow.add(createDailyRevenueWidget());
+        revenueWidgetsRow.add(createMonthlyRevenueWidget());
+        panelStatistic.add(revenueWidgetsRow);
+        
+        // Add charts in a grid
+        JPanel chartsGrid = new JPanel(new GridLayout(2, 2, 10, 10));
+        chartsGrid.add(revenueChartPanel);
+        chartsGrid.add(topProductsPanel);
+        chartsGrid.add(topCustomersPanel);
+        chartsGrid.add(invoiceStatusPanel);
+        panelStatistic.add(chartsGrid);
+        // Add top invoices table below charts
+        panelStatistic.add(topInvoicesPanel);
+        // Add low stock prediction table below
+        List<Map<String, Object>> lowStockProducts = productController.getProductsLowStockPrediction(7);
+        String[] lowStockColumns = {"Mã SP", "Tên SP", "Tồn kho", "Dự đoán hết hàng (ngày)", "Ngày dự kiến hết"};
+        Object[][] lowStockData = new Object[lowStockProducts.size()][5];
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        for (int i = 0; i < lowStockProducts.size(); i++) {
+            Map<String, Object> row = lowStockProducts.get(i);
+            lowStockData[i][0] = row.get("product_id");
+            lowStockData[i][1] = row.get("product_name");
+            lowStockData[i][2] = row.get("quantity");
+            lowStockData[i][3] = row.get("days_left");
+            java.sql.Date outDate = (java.sql.Date) row.get("out_of_stock_date");
+            lowStockData[i][4] = outDate != null ? sdf.format(outDate) : "-";
         }
-    });
-}
+        JTable lowStockTable = new JTable(lowStockData, lowStockColumns);
+        JScrollPane lowStockScroll = new JScrollPane(lowStockTable);
+        lowStockScroll.setPreferredSize(new Dimension(500, 150));
+        JPanel lowStockPanel = new JPanel(new BorderLayout());
+        lowStockPanel.add(new JLabel("Sản phẩm sắp hết hàng", SwingConstants.CENTER), BorderLayout.NORTH);
+        lowStockPanel.add(lowStockScroll, BorderLayout.CENTER);
+        lowStockPanel.setPreferredSize(new Dimension(500, 200));
+        panelStatistic.add(lowStockPanel);
+    }
+
+    private void createStatisticsPanels() {
+        // Employee count panel
+        employeePanel = createStatPanel("Nhân viên", 
+            String.valueOf(userController.countUser()),
+            "Tổng số nhân viên");
+
+        // Product count panel
+        productPanel = createStatPanel("Sản phẩm", 
+            String.valueOf(productController.countProduct()), 
+            "Tổng số sản phẩm");
+
+        // Invoice count panel
+        invoicePanel = createStatPanel("Hóa đơn", 
+            String.valueOf(invoiceController.countInvoices()), 
+            "Tổng số hóa đơn");
+
+        // Total revenue panel
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        String totalRevenue = formatter.format(invoiceController.getCurrentMonthRevenue());
+        revenuePanel = createStatPanel("Doanh thu", totalRevenue, "Tổng doanh thu");
+    }
+
+    private JPanel createStatPanel(String title, String value, String description) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setPreferredSize(new Dimension(200, 100));
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        
+        JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        JLabel descLabel = new JLabel(description);
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        
+        panel.add(titleLabel);
+        panel.add(valueLabel);
+        panel.add(descLabel);
+        
+        return panel;
+    }
+
+    private void createRevenueWidgets() {
+        // Daily revenue widget
+        JPanel dailyWidget = createDailyRevenueWidget();
+        
+        // Monthly revenue widget
+        JPanel monthlyWidget = createMonthlyRevenueWidget();
+    }
+
+    private JPanel createDailyRevenueWidget() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        String dailyRevenue = formatter.format(invoiceController.getTodayRevenue());
+        
+        JLabel titleLabel = new JLabel("Doanh thu hôm nay");
+        JLabel valueLabel = new JLabel(dailyRevenue);
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        
+        panel.add(titleLabel);
+        panel.add(valueLabel);
+        
+        return panel;
+    }
+
+    private JPanel createMonthlyRevenueWidget() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        String monthlyRevenue = formatter.format(invoiceController.getCurrentMonthRevenue());
+        
+        JLabel titleLabel = new JLabel("Doanh thu tháng này");
+        JLabel valueLabel = new JLabel(monthlyRevenue);
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        
+        panel.add(titleLabel);
+        panel.add(valueLabel);
+        
+        return panel;
+    }
+
+    private void createFilterPanel() {
+        filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        
+        // Time range filter
+        String[] timeRanges = {"Theo năm", "Theo tháng", "Theo tuần"};
+        timeRangeCombo = new JComboBox<>(timeRanges);
+        timeRangeCombo.addActionListener(e -> updateCharts());
+        
+        // Year filter
+        yearCombo = new JComboBox<>();
+        updateYearCombo();
+        yearCombo.addActionListener(e -> updateCharts());
+        
+        filterPanel.add(new JLabel("Thời gian:"));
+        filterPanel.add(timeRangeCombo);
+        filterPanel.add(new JLabel("Năm:"));
+        filterPanel.add(yearCombo);
+    }
+
+    private void updateYearCombo() {
+        yearCombo.removeAllItems();
+        List<Integer> years = invoiceController.getAvailableYears();
+        for (Integer year : years) {
+            yearCombo.addItem(year);
+        }
+    }
+
+    private void updateCharts() {
+        String selectedRange = (String) timeRangeCombo.getSelectedItem();
+        Integer selectedYear = (Integer) yearCombo.getSelectedItem();
+        
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        String title = "";
+        
+        switch (selectedRange) {
+            case "Theo năm":
+                List<ChartDataModel> yearlyData = invoiceController.getYearlyRevenue();
+                for (ChartDataModel data : yearlyData) {
+                    dataset.addValue(data.getValue().doubleValue(), "Doanh thu", data.getLabel());
+                }
+                title = "Doanh thu theo năm";
+                break;
+                
+            case "Theo tháng":
+                List<ChartDataModel> monthlyData = invoiceController.getMonthlyRevenueByYear(selectedYear);
+                for (ChartDataModel data : monthlyData) {
+                    dataset.addValue(data.getValue().doubleValue(), "Doanh thu", "Tháng " + data.getLabel());
+                }
+                title = "Doanh thu theo tháng - " + selectedYear;
+                break;
+                
+            case "Theo tuần":
+                List<ChartDataModel> weeklyData = invoiceController.getWeeklyRevenueForCurrentMonth();
+                for (ChartDataModel data : weeklyData) {
+                    dataset.addValue(data.getValue().doubleValue(), "Doanh thu", data.getLabel());
+                }
+                title = "Doanh thu theo tuần - Tháng hiện tại";
+                break;
+        }
+        
+        JFreeChart chart = ChartFactory.createLineChart(
+            title,
+            "Thời gian",
+            "Doanh thu (VNĐ)",
+            dataset,
+            PlotOrientation.VERTICAL,
+            true,
+            true,
+            false
+        );
+        
+        revenueChartPanel.removeAll();
+        revenueChartPanel.add(new ChartPanel(chart));
+        revenueChartPanel.revalidate();
+        revenueChartPanel.repaint();
+    }
+
+    private void createCharts() {
+        // Revenue chart
+        DefaultCategoryDataset revenueDataset = new DefaultCategoryDataset();
+        List<ChartDataModel> yearlyData = invoiceController.getYearlyRevenue();
+        for (ChartDataModel data : yearlyData) {
+            revenueDataset.addValue(data.getValue().doubleValue(), "Doanh thu", data.getLabel());
+        }
+        
+        JFreeChart revenueChart = ChartFactory.createLineChart(
+            "Doanh thu theo năm",
+            "Năm",
+            "Doanh thu (VNĐ)",
+            revenueDataset,
+            PlotOrientation.VERTICAL,
+            true,
+            true,
+            false
+        );
+        
+        revenueChartPanel = new ChartPanel(revenueChart);
+        revenueChartPanel.setPreferredSize(new Dimension(400, 300));
+        
+        // Top products chart
+        DefaultCategoryDataset productsDataset = new DefaultCategoryDataset();
+        List<Map<String, Object>> topProducts = productController.getTopSellingProducts();
+        for (Map<String, Object> product : topProducts) {
+            productsDataset.addValue((Integer)product.get("quantity"), 
+                "Số lượng", product.get("product_name").toString());
+        }
+        
+        JFreeChart productsChart = ChartFactory.createBarChart(
+            "Sản phẩm bán chạy",
+            "Sản phẩm",
+            "Số lượng",
+            productsDataset,
+            PlotOrientation.VERTICAL,
+            true,
+            true,
+            false
+        );
+        
+        topProductsPanel = new ChartPanel(productsChart);
+        topProductsPanel.setPreferredSize(new Dimension(400, 300));
+        
+        // Top customers by revenue (bar chart)
+        DefaultCategoryDataset customersDataset = new DefaultCategoryDataset();
+        List<Map<String, Object>> topCustomers = invoiceController.getTopCustomersByRevenue(5);
+        for (Map<String, Object> customer : topCustomers) {
+            customersDataset.addValue(((BigDecimal)customer.get("total_revenue")).doubleValue(),
+                "Doanh thu", customer.get("users_id").toString());
+        }
+        JFreeChart customersChart = ChartFactory.createBarChart(
+            "Top khách hàng theo doanh thu",
+            "Khách hàng (ID)",
+            "Doanh thu (VNĐ)",
+            customersDataset,
+            PlotOrientation.VERTICAL,
+            true,
+            true,
+            false
+        );
+        topCustomersPanel = new ChartPanel(customersChart);
+        topCustomersPanel.setPreferredSize(new Dimension(400, 300));
+
+        // Top invoices (table)
+        List<Map<String, Object>> topInvoices = invoiceController.getTopInvoices(5);
+        String[] columns = {"Mã hóa đơn", "Khách hàng (ID)", "Tổng tiền", "Ngày tạo"};
+        Object[][] data = new Object[topInvoices.size()][4];
+        for (int i = 0; i < topInvoices.size(); i++) {
+            Map<String, Object> invoice = topInvoices.get(i);
+            data[i][0] = invoice.get("invoice_id");
+            data[i][1] = invoice.get("users_id");
+            data[i][2] = invoice.get("total_amount");
+            data[i][3] = invoice.get("created_at");
+        }
+        JTable invoiceTable = new JTable(data, columns);
+        JScrollPane invoiceScroll = new JScrollPane(invoiceTable);
+        invoiceScroll.setPreferredSize(new Dimension(400, 150));
+        topInvoicesPanel = new JPanel(new BorderLayout());
+        topInvoicesPanel.add(new JLabel("Top hóa đơn giá trị lớn nhất", SwingConstants.CENTER), BorderLayout.NORTH);
+        topInvoicesPanel.add(invoiceScroll, BorderLayout.CENTER);
+        topInvoicesPanel.setPreferredSize(new Dimension(400, 200));
+
+        // Invoice status ratio (pie chart)
+        org.jfree.data.general.DefaultPieDataset pieDataset = new org.jfree.data.general.DefaultPieDataset();
+        List<ChartDataModel> statusData = invoiceController.getInvoiceStatusRatio();
+        for (ChartDataModel dataModel : statusData) {
+            pieDataset.setValue(dataModel.getLabel(), dataModel.getValue());
+        }
+        JFreeChart statusChart = ChartFactory.createPieChart(
+            "Tỷ lệ hóa đơn đã thanh toán/Chưa thanh toán",
+            pieDataset,
+            true,
+            true,
+            false
+        );
+        invoiceStatusPanel = new ChartPanel(statusChart);
+        invoiceStatusPanel.setPreferredSize(new Dimension(400, 300));
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -57,18 +411,7 @@ public class AdDashBoard extends javax.swing.JPanel {
 
         spAdmin = new javax.swing.JScrollPane();
         panelAdmin = new javax.swing.JPanel();
-        spBestSellingTable = new javax.swing.JScrollPane();
-        tbBestSelling = new javax.swing.JTable();
         panelStatistic = new javax.swing.JPanel();
-        panelUserCount = new javax.swing.JPanel();
-        lblUserCount = new javax.swing.JLabel();
-        panelProductCount = new javax.swing.JPanel();
-        lblProductCount = new javax.swing.JLabel();
-        panelInvoiceCount = new javax.swing.JPanel();
-        lblInvoiceCount = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        revenueLineChart1 = new com.salesmate.component.RevenueLineChart();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
 
@@ -77,245 +420,31 @@ public class AdDashBoard extends javax.swing.JPanel {
         spAdmin.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         spAdmin.setViewportView(panelAdmin);
 
-        spBestSellingTable.setBorder(null);
-
-        tbBestSelling.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "STT", "Tên sản phẩm", "Giá", "Số lượng bán"
-            }
-        ));
-        tbBestSelling.setShowGrid(true);
-        spBestSellingTable.setViewportView(tbBestSelling);
-
-        panelStatistic.setLayout(new java.awt.GridLayout(1, 0));
-
-        panelUserCount.setBackground(new java.awt.Color(204, 255, 255));
-
-        lblUserCount.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lblUserCount.setText("slg user");
-
-        javax.swing.GroupLayout panelUserCountLayout = new javax.swing.GroupLayout(panelUserCount);
-        panelUserCount.setLayout(panelUserCountLayout);
-        panelUserCountLayout.setHorizontalGroup(
-            panelUserCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelUserCountLayout.createSequentialGroup()
-                .addGap(94, 94, 94)
-                .addComponent(lblUserCount)
-                .addContainerGap(117, Short.MAX_VALUE))
-        );
-        panelUserCountLayout.setVerticalGroup(
-            panelUserCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelUserCountLayout.createSequentialGroup()
-                .addGap(48, 48, 48)
-                .addComponent(lblUserCount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(49, 49, 49))
-        );
-
-        panelStatistic.add(panelUserCount);
-
-        panelProductCount.setBackground(new java.awt.Color(255, 204, 204));
-
-        lblProductCount.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lblProductCount.setText("slg product");
-
-        javax.swing.GroupLayout panelProductCountLayout = new javax.swing.GroupLayout(panelProductCount);
-        panelProductCount.setLayout(panelProductCountLayout);
-        panelProductCountLayout.setHorizontalGroup(
-            panelProductCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelProductCountLayout.createSequentialGroup()
-                .addContainerGap(86, Short.MAX_VALUE)
-                .addComponent(lblProductCount)
-                .addGap(100, 100, 100))
-        );
-        panelProductCountLayout.setVerticalGroup(
-            panelProductCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelProductCountLayout.createSequentialGroup()
-                .addGap(51, 51, 51)
-                .addComponent(lblProductCount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(46, 46, 46))
-        );
-
-        panelStatistic.add(panelProductCount);
-
-        panelInvoiceCount.setBackground(new java.awt.Color(204, 255, 204));
-
-        lblInvoiceCount.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lblInvoiceCount.setText("slg hóa đơn");
-
-        javax.swing.GroupLayout panelInvoiceCountLayout = new javax.swing.GroupLayout(panelInvoiceCount);
-        panelInvoiceCount.setLayout(panelInvoiceCountLayout);
-        panelInvoiceCountLayout.setHorizontalGroup(
-            panelInvoiceCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelInvoiceCountLayout.createSequentialGroup()
-                .addContainerGap(104, Short.MAX_VALUE)
-                .addComponent(lblInvoiceCount)
-                .addGap(80, 80, 80))
-        );
-        panelInvoiceCountLayout.setVerticalGroup(
-            panelInvoiceCountLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelInvoiceCountLayout.createSequentialGroup()
-                .addGap(52, 52, 52)
-                .addComponent(lblInvoiceCount, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
-                .addGap(54, 54, 54))
-        );
-
-        panelStatistic.add(panelInvoiceCount);
-
-        jPanel1.setBackground(new java.awt.Color(153, 153, 255));
-
-        jLabel1.setText("Doanh thu hôm nay");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(134, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(21, 21, 21))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(84, 84, 84)
-                .addComponent(jLabel1)
-                .addContainerGap(94, Short.MAX_VALUE))
-        );
-
-        panelStatistic.add(jPanel1);
+        panelStatistic.setLayout(new javax.swing.BoxLayout(panelStatistic, javax.swing.BoxLayout.X_AXIS));
 
         javax.swing.GroupLayout panelAdminLayout = new javax.swing.GroupLayout(panelAdmin);
         panelAdmin.setLayout(panelAdminLayout);
         panelAdminLayout.setHorizontalGroup(
             panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelAdminLayout.createSequentialGroup()
-                .addGroup(panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(revenueLineChart1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panelStatistic, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(spBestSellingTable))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(panelStatistic, javax.swing.GroupLayout.DEFAULT_SIZE, 835, Short.MAX_VALUE)
         );
         panelAdminLayout.setVerticalGroup(
             panelAdminLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelAdminLayout.createSequentialGroup()
                 .addComponent(panelStatistic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spBestSellingTable, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(revenueLineChart1, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(441, Short.MAX_VALUE))
         );
 
         spAdmin.setViewportView(panelAdmin);
 
         add(spAdmin);
     }// </editor-fold>//GEN-END:initComponents
- private void updateInvoiceCount() {
-        try {
-            // Lấy số lượng hóa đơn từ controller
-            int totalInvoices = invoiceController.countInvoices();
-            // Cập nhật số lượng hóa đơn lên lblInvoiceCount
-            lblInvoiceCount.setText("Số lượng hóa đơn: " + totalInvoices);
-        } catch (Exception e) {
-            e.printStackTrace();
-            lblInvoiceCount.setText("Không thể lấy số lượng hóa đơn");
-        }
- }
- 
- private void updateProductCount() {
-        try {
-            // Lấy số lượng sản phẩm từ controller
-            int totalProduct = productController.countProduct();
-            // Cập nhật số lượng hóa đơn lên lblProductCount
-            lblProductCount.setText("Số lượng sản phẩm: " + totalProduct);
-        } catch (Exception e) {
-            e.printStackTrace();
-            lblProductCount.setText("Không thể lấy số lượng sản phẩm");
-        }
- }
- 
-  private void updateUserCount() {
-        try {
-            // Lấy số lượng user từ controller
-            int totalUser = userController.countUser();
-            // Cập nhật số lượng user lên lbluserCount
-            lblUserCount.setText("Số lượng nhân viên: " + totalUser);
-        } catch (Exception e) {
-            e.printStackTrace();
-            lblUserCount.setText("Không thể lấy số lượng nhân viên");
-        }
- }
-  
-// Cập nhật bảng sản phẩm bán chạy nhất
-private void updateBestSellingTable() {
-    try {
-        List<Map<String, Object>> topSellingProducts = productController.getTopSellingProducts();
-        DefaultTableModel model = (DefaultTableModel) tbBestSelling.getModel();
-        model.setRowCount(0);
-
-        for (int i = 0; i < topSellingProducts.size(); i++) {
-            Map<String, Object> productData = topSellingProducts.get(i);
-            model.addRow(new Object[]{
-                i + 1,
-                productData.get("product_name"),
-                productData.get("price"),
-                productData.get("total_sold")
-            });
-        }
-
-        // Sau khi fill dữ liệu, yêu cầu Swing cập nhật rowHeight
-        SwingUtilities.invokeLater(this::resizeRowsToFill);
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-/**
- * Chia đều phần chiều cao viewport (trừ header) cho tất cả các row.
- */
-private void resizeRowsToFill() {
-    int rowCount = tbBestSelling.getRowCount();
-    if (rowCount <= 0) return;
-
-    // Lấy chiều cao viewport (phần hiển thị các hàng)
-    int viewportHeight = spBestSellingTable.getViewport().getHeight();
-    int headerHeight   = tbBestSelling.getTableHeader().getHeight();
-    int available      = viewportHeight - headerHeight;
-    if (available <= 0) return;
-
-    // Chia đều cho từng row
-    int rowHeight = available / rowCount;
-    if (rowHeight < 1) rowHeight = 1;
-    tbBestSelling.setRowHeight(rowHeight);
-}
-
-// Trong constructor hoặc nơi khởi tạo UI, thêm listener để tự động tái resize khi scroll pane thay đổi:
-
-
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JLabel lblInvoiceCount;
-    private javax.swing.JLabel lblProductCount;
-    private javax.swing.JLabel lblUserCount;
     private javax.swing.JPanel panelAdmin;
-    private javax.swing.JPanel panelInvoiceCount;
-    private javax.swing.JPanel panelProductCount;
     private javax.swing.JPanel panelStatistic;
-    private javax.swing.JPanel panelUserCount;
-    private com.salesmate.component.RevenueLineChart revenueLineChart1;
     private javax.swing.JScrollPane spAdmin;
-    private javax.swing.JScrollPane spBestSellingTable;
-    private javax.swing.JTable tbBestSelling;
     // End of variables declaration//GEN-END:variables
+
 }

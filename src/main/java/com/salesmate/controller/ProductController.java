@@ -148,4 +148,8 @@ public class ProductController {
         }
     }
 
+    public List<Map<String, Object>> getProductsLowStockPrediction(int thresholdDays) {
+        return productDAO.getProductsLowStockPrediction(thresholdDays);
+    }
+
 }

@@ -265,4 +265,40 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         return categories;
     }
 
+    public List<Map<String, Object>> getProductsLowStockPrediction(int thresholdDays) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String sql = 
+            "SELECT p.product_id, p.product_name, p.quantity, " +
+            "  NVL(SUM(d.quantity), 0) / NULLIF(COUNT(DISTINCT TRUNC(i.created_at)), 0) AS avg_sold_per_day " +
+            "FROM product p " +
+            "LEFT JOIN detail d ON p.product_id = d.product_id " +
+            "LEFT JOIN invoice i ON d.invoice_id = i.invoice_id AND i.payment_status = 'Paid' " +
+            "GROUP BY p.product_id, p.product_name, p.quantity";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                int quantity = rs.getInt("quantity");
+                double avgSold = rs.getDouble("avg_sold_per_day");
+                int daysLeft = avgSold > 0 ? (int)Math.floor(quantity / avgSold) : Integer.MAX_VALUE;
+                if (daysLeft < thresholdDays) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("product_id", rs.getInt("product_id"));
+                    row.put("product_name", rs.getString("product_name"));
+                    row.put("quantity", quantity);
+                    row.put("days_left", daysLeft);
+                    // Tính ngày hết hàng dự kiến
+                    java.util.Calendar cal = java.util.Calendar.getInstance();
+                    cal.add(java.util.Calendar.DATE, daysLeft);
+                    java.util.Date outOfStockDate = cal.getTime();
+                    row.put("out_of_stock_date", new java.sql.Date(outOfStockDate.getTime()));
+                    result.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
 }

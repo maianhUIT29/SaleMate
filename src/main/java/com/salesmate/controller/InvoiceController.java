@@ -3,15 +3,16 @@ package com.salesmate.controller;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.salesmate.dao.InvoiceDAO;
 import com.salesmate.dao.UserDAO;
 import com.salesmate.model.Invoice;
-import com.salesmate.model.RevenueLineChartModel;
+import com.salesmate.model.ChartDataModel;
 
 public class InvoiceController {
 
-    private InvoiceDAO invoiceDAO;
+    private final InvoiceDAO invoiceDAO;
     private final UserDAO userDAO;
 
     public InvoiceController() {
@@ -127,7 +128,7 @@ public class InvoiceController {
      * Trả về danh sách doanh thu theo ngày trong tháng hiện tại
      * để vẽ biểu đồ line chart.
      */
-    public List<RevenueLineChartModel> getDailyRevenue() {
+    public List<ChartDataModel> getDailyRevenue() {
         return invoiceDAO.getDailyRevenue();
     }
 
@@ -141,5 +142,65 @@ public class InvoiceController {
         }
     }
 
+    /**
+     * Gets the total revenue for today
+     */
+    public BigDecimal getTodayRevenue() {
+        try {
+            return invoiceDAO.getTodayRevenue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return BigDecimal.ZERO;
+        }
+    }
+
+    /**
+     * Gets the weekly revenue data for the chart
+     */
+  
+
+    /**
+     * Gets the monthly revenue data for the chart
+     */
+ 
+
+    /**
+     * Gets yearly revenue data for the chart
+     */
+    public List<ChartDataModel> getYearlyRevenue() {
+        return invoiceDAO.getYearlyRevenue();
+    }
+
+    /**
+     * Gets monthly revenue data for a specific year
+     */
+    public List<ChartDataModel> getMonthlyRevenueByYear(int year) {
+        return invoiceDAO.getMonthlyRevenueByYear(year);
+    }
+
+    /**
+     * Gets weekly revenue data for current month
+     */
+    public List<ChartDataModel> getWeeklyRevenueForCurrentMonth() {
+        return invoiceDAO.getWeeklyRevenueForCurrentMonth();
+    }
+
+    /**
+     * Gets list of available years for filtering
+     */
+    public List<Integer> getAvailableYears() {
+        return invoiceDAO.getAvailableYears();
+    }
+
+    // Add new methods for dashboard
+    public List<Map<String, Object>> getTopCustomersByRevenue(int topN) {
+        return invoiceDAO.getTopCustomersByRevenue(topN);
+    }
+    public List<Map<String, Object>> getTopInvoices(int topN) {
+        return invoiceDAO.getTopInvoices(topN);
+    }
+    public List<ChartDataModel> getInvoiceStatusRatio() {
+        return invoiceDAO.getInvoiceStatusRatio();
+    }
 
 }

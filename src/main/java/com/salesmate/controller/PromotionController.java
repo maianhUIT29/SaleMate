@@ -12,8 +12,15 @@ import java.math.BigDecimal;
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Promotion;
 import com.salesmate.model.PromotionDetail;
+import com.salesmate.dao.PromotionDAO;
+import com.salesmate.model.ChartDataModel;
 
 public class PromotionController {
+    private final PromotionDAO promotionDAO;
+    
+    public PromotionController() {
+        this.promotionDAO = new PromotionDAO();
+    }
     
     /**
      * Get active promotion for a specific product
@@ -59,29 +66,7 @@ public class PromotionController {
      * @return List of active promotions
      */
     public List<Promotion> getActivePromotions() {
-        List<Promotion> promotions = new ArrayList<>();
-        String sql = "SELECT * FROM PROMOTION WHERE status = 'ACTIVE' AND start_date <= SYSDATE AND end_date >= SYSDATE";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-             
-            while (rs.next()) {
-                Promotion promotion = new Promotion();
-                promotion.setPromotionId(rs.getInt("promotion_id"));
-                promotion.setPromotionName(rs.getString("promotion_name"));
-                promotion.setDescription(rs.getString("description"));
-                promotion.setStartDate(rs.getDate("start_date"));
-                promotion.setEndDate(rs.getDate("end_date"));
-                promotion.setStatus(rs.getString("status"));
-                promotion.setCreatedAt(rs.getTimestamp("created_at"));
-                promotions.add(promotion);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        
-        return promotions;
+        return promotionDAO.getActivePromotions();
     }
     
     /**
@@ -115,5 +100,25 @@ public class PromotionController {
         }
         
         return details;
+    }
+    
+    public int getActivePromotionsCount() {
+        return promotionDAO.getActivePromotionsCount();
+    }
+    
+    public List<ChartDataModel> getActivePromotionsByType() {
+        return promotionDAO.getActivePromotionsByType();
+    }
+    
+    public boolean createPromotion(Promotion promotion) {
+        return promotionDAO.createPromotion(promotion);
+    }
+    
+    public boolean updatePromotion(Promotion promotion) {
+        return promotionDAO.updatePromotion(promotion);
+    }
+    
+    public boolean deactivatePromotion(int promotionId) {
+        return promotionDAO.deactivatePromotion(promotionId);
     }
 }

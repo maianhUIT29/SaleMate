@@ -1,12 +1,32 @@
 package com.salesmate.component;
 
+import com.salesmate.controller.InvoiceController;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import javax.swing.JPanel;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
 public class AdRevenuePanel extends javax.swing.JPanel {
+    private InvoiceController invoiceController;
+    private ChartPanel dailyChartPanel;
+    private ChartPanel weeklyChartPanel;
+    private ChartPanel monthlyChartPanel;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private SimpleDateFormat monthFormat = new SimpleDateFormat("MM/yyyy");
 
     /**
      * Creates new form AdReportPanel
      */
     public AdRevenuePanel() {
         initComponents();
+        invoiceController = new InvoiceController();
     }
 
     /**
@@ -18,62 +38,19 @@ public class AdRevenuePanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        tpRevenue = new javax.swing.JTabbedPane();
-        panelRevenueCal = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        panelRevenueReport = new javax.swing.JPanel();
-
-        jLabel1.setText("Tiính doanh thu");
-
-        javax.swing.GroupLayout panelRevenueCalLayout = new javax.swing.GroupLayout(panelRevenueCal);
-        panelRevenueCal.setLayout(panelRevenueCalLayout);
-        panelRevenueCalLayout.setHorizontalGroup(
-            panelRevenueCalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelRevenueCalLayout.createSequentialGroup()
-                .addGap(181, 181, 181)
-                .addComponent(jLabel1)
-                .addContainerGap(136, Short.MAX_VALUE))
-        );
-        panelRevenueCalLayout.setVerticalGroup(
-            panelRevenueCalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelRevenueCalLayout.createSequentialGroup()
-                .addGap(76, 76, 76)
-                .addComponent(jLabel1)
-                .addContainerGap(173, Short.MAX_VALUE))
-        );
-
-        tpRevenue.addTab("Table", panelRevenueCal);
-
-        javax.swing.GroupLayout panelRevenueReportLayout = new javax.swing.GroupLayout(panelRevenueReport);
-        panelRevenueReport.setLayout(panelRevenueReportLayout);
-        panelRevenueReportLayout.setHorizontalGroup(
-            panelRevenueReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        panelRevenueReportLayout.setVerticalGroup(
-            panelRevenueReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 265, Short.MAX_VALUE)
-        );
-
-        tpRevenue.addTab("Report", panelRevenueReport);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tpRevenue)
+            .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tpRevenue)
+            .addGap(0, 300, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel panelRevenueCal;
-    private javax.swing.JPanel panelRevenueReport;
-    private javax.swing.JTabbedPane tpRevenue;
     // End of variables declaration//GEN-END:variables
 }

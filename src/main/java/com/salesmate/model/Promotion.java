@@ -29,6 +29,9 @@ public class Promotion {
     @Column(name = "status", nullable = false)
     private String status; // ACTIVE, INACTIVE, EXPIRED
     
+    @Column(name = "promotion_type")
+    private String promotionType;
+    
     @Column(name = "created_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
@@ -41,13 +44,14 @@ public class Promotion {
     
     // All-args constructor
     public Promotion(Integer promotionId, String promotionName, String description, 
-                   Date startDate, Date endDate, String status, Date createdAt) {
+                   Date startDate, Date endDate, String status, String promotionType, Date createdAt) {
         this.promotionId = promotionId;
         this.promotionName = promotionName;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
+        this.promotionType = promotionType;
         this.createdAt = createdAt != null ? createdAt : new Date();
     }
     
@@ -100,6 +104,14 @@ public class Promotion {
         this.status = status;
     }
     
+    public String getPromotionType() {
+        return promotionType;
+    }
+    
+    public void setPromotionType(String promotionType) {
+        this.promotionType = promotionType;
+    }
+    
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -125,6 +137,7 @@ public class Promotion {
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
                 ", status='" + status + '\'' +
+                ", promotionType='" + promotionType + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }
