@@ -8,14 +8,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import com.salesmate.configs.DBConnection;
-import com.salesmate.model.Invoice;
-import com.salesmate.model.RevenueLineChartModel;
 import com.salesmate.model.ChartDataModel;
+import com.salesmate.model.Invoice;
 
 public class InvoiceDAO {
 
@@ -380,61 +379,6 @@ public class InvoiceDAO {
         }
     }
 
-    /**
-     * Gets weekly revenue data for the chart
-     */
-    public List<RevenueLineChartModel> getWeeklyRevenue() {
-        List<RevenueLineChartModel> result = new ArrayList<>();
-        try {
-            String sql = "SELECT TRUNC(created_at) as date, SUM(total_amount) as revenue " +
-                        "FROM invoice " +
-                        "WHERE created_at >= TRUNC(SYSDATE) - 7 " +
-                        "  AND payment_status = 'Paid' " +
-                        "GROUP BY TRUNC(created_at) " +
-                        "ORDER BY date";
-            
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Date date = rs.getDate("date");
-                    BigDecimal revenue = rs.getBigDecimal("revenue");
-                    result.add(new RevenueLineChartModel(date, revenue));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-    /**
-     * Gets monthly revenue data for the chart
-     */
-    public List<RevenueLineChartModel> getMonthlyRevenue() {
-        List<RevenueLineChartModel> result = new ArrayList<>();
-        try {
-            String sql = "SELECT TRUNC(created_at, 'MM') as date, SUM(total_amount) as revenue " +
-                        "FROM invoice " +
-                        "WHERE created_at >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -6) " +
-                        "  AND payment_status = 'Paid' " +
-                        "GROUP BY TRUNC(created_at, 'MM') " +
-                        "ORDER BY date";
-            
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Date date = rs.getDate("date");
-                    BigDecimal revenue = rs.getBigDecimal("revenue");
-                    result.add(new RevenueLineChartModel(date, revenue));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
 
     // Helper method to get single result
     private Object getSingleResult(String sql) {

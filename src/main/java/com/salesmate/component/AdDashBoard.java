@@ -67,8 +67,9 @@ public class AdDashBoard extends javax.swing.JPanel {
     private JPanel topProductsPanel;
     private JPanel topCustomersPanel;
     private JPanel topInvoicesPanel;
-    private JPanel invoiceStatusPanel;
     private JPanel lowStockPanel;
+    private JPanel paymentMethodPanel;
+    private JPanel userRolePanel;
     
     // Filter components
     private JComboBox<String> timeRangeCombo;
@@ -193,19 +194,21 @@ public class AdDashBoard extends javax.swing.JPanel {
         // Add top customers chart
         JPanel topCustomersContainer = new JPanel(new BorderLayout());
         topCustomersContainer.setBackground(BACKGROUND_COLOR);
-        topCustomersContainer.add(createPanelWithBorder(topCustomersPanel, "Top khách hàng"), BorderLayout.CENTER);
+        topCustomersContainer.add(createPanelWithBorder(topCustomersPanel, "Top nhân viên"), BorderLayout.CENTER);
         topCustomersContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
         panelStatistic.add(topCustomersContainer);
         
         // Add spacing
         panelStatistic.add(Box.createVerticalStrut(15));
         
-        // Add invoice status chart
-        JPanel invoiceStatusContainer = new JPanel(new BorderLayout());
-        invoiceStatusContainer.setBackground(BACKGROUND_COLOR);
-        invoiceStatusContainer.add(createPanelWithBorder(invoiceStatusPanel, "Trạng thái hóa đơn"), BorderLayout.CENTER);
-        invoiceStatusContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panelStatistic.add(invoiceStatusContainer);
+        // Add payment method and user role charts in a row
+        JPanel paymentAndRoleRow = new JPanel(new GridLayout(1, 2, 15, 0));
+        paymentAndRoleRow.setBackground(BACKGROUND_COLOR);
+        paymentAndRoleRow.add(createPanelWithBorder(paymentMethodPanel, "Phương thức thanh toán"));
+        paymentAndRoleRow.add(createPanelWithBorder(userRolePanel, "Loại nhân viên"));
+        paymentAndRoleRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        paymentAndRoleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 320));
+        panelStatistic.add(paymentAndRoleRow);
         
         // Add spacing
         panelStatistic.add(Box.createVerticalStrut(20));
@@ -420,7 +423,6 @@ public class AdDashBoard extends javax.swing.JPanel {
         timeRangeCombo.setPreferredSize(new Dimension(120, 30));
         timeRangeCombo.setBackground(Color.WHITE);
         timeRangeCombo.setForeground(TEXT_COLOR);
-        // Fix combo box hover issue by using a renderer that maintains consistent colors
         timeRangeCombo.setRenderer(new javax.swing.DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index, 
@@ -437,7 +439,6 @@ public class AdDashBoard extends javax.swing.JPanel {
             }
         });
         timeRangeCombo.addActionListener(e -> {
-            updateMonthComboVisibility();
             updateCharts();
         });
         
@@ -447,7 +448,6 @@ public class AdDashBoard extends javax.swing.JPanel {
         yearCombo.setPreferredSize(new Dimension(100, 30));
         yearCombo.setBackground(Color.WHITE);
         yearCombo.setForeground(TEXT_COLOR);
-        // Fix combo box hover issue
         yearCombo.setRenderer(new javax.swing.DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index, 
@@ -466,31 +466,6 @@ public class AdDashBoard extends javax.swing.JPanel {
         updateYearCombo();
         yearCombo.addActionListener(e -> updateCharts());
         
-        // Month filter
-        Integer[] months = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-        monthCombo = new JComboBox<>(months);
-        monthCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        monthCombo.setPreferredSize(new Dimension(100, 30));
-        monthCombo.setBackground(Color.WHITE);
-        monthCombo.setForeground(TEXT_COLOR);
-        // Fix combo box hover issue
-        monthCombo.setRenderer(new javax.swing.DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index, 
-                                                         boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (isSelected) {
-                    c.setBackground(PRIMARY_COLOR);
-                    c.setForeground(Color.WHITE);
-                } else {
-                    c.setBackground(Color.WHITE);
-                    c.setForeground(TEXT_COLOR);
-                }
-                return c;
-            }
-        });
-        monthCombo.addActionListener(e -> updateCharts());
-        
         JLabel filterTitle = new JLabel("Lọc dữ liệu:");
         filterTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
         filterTitle.setForeground(PRIMARY_COLOR);
@@ -501,24 +476,15 @@ public class AdDashBoard extends javax.swing.JPanel {
         JLabel yearLabel = new JLabel("Năm:");
         yearLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         
-        JLabel monthLabel = new JLabel("Tháng:");
-        monthLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        
         filterPanel.add(filterTitle);
         filterPanel.add(timeLabel);
         filterPanel.add(timeRangeCombo);
         filterPanel.add(yearLabel);
         filterPanel.add(yearCombo);
-        filterPanel.add(monthLabel);
-        filterPanel.add(monthCombo);
         
-        // Fix button styling - use a custom button with proper look and feel
         JButton applyButton = createStyledButton("Áp dụng", PRIMARY_COLOR, Color.WHITE);
         applyButton.addActionListener(e -> updateCharts());
         filterPanel.add(applyButton);
-        
-        // Initially hide month combo if not needed
-        updateMonthComboVisibility();
     }
 
     // Helper method to create consistently styled buttons that properly display colors
@@ -548,13 +514,6 @@ public class AdDashBoard extends javax.swing.JPanel {
         return button;
     }
 
-    private void updateMonthComboVisibility() {
-        String selectedRange = (String) timeRangeCombo.getSelectedItem();
-        boolean showMonth = "Theo tháng".equals(selectedRange);
-        monthCombo.setVisible(showMonth);
-        filterPanel.getComponent(5).setVisible(showMonth); // monthLabel
-    }
-
     private void updateYearCombo() {
         yearCombo.removeAllItems();
         List<Integer> years = invoiceController.getAvailableYears();
@@ -566,7 +525,6 @@ public class AdDashBoard extends javax.swing.JPanel {
     private void updateCharts() {
         String selectedRange = (String) timeRangeCombo.getSelectedItem();
         Integer selectedYear = (Integer) yearCombo.getSelectedItem();
-        Integer selectedMonth = (Integer) monthCombo.getSelectedItem();
         
         if (selectedYear == null) return;
         
@@ -773,8 +731,8 @@ public class AdDashBoard extends javax.swing.JPanel {
         }
         
         JFreeChart customersChart = ChartFactory.createBarChart(
-            "Top khách hàng theo doanh thu",
-            "Khách hàng",
+            "Top nhân viên theo doanh thu",
+            "Nhân viên (ID)",
             "Doanh thu (Triệu VNĐ)",
             customersDataset,
             PlotOrientation.VERTICAL,
@@ -821,40 +779,59 @@ public class AdDashBoard extends javax.swing.JPanel {
         customersCP.setPreferredSize(new Dimension(400, 300));
         topCustomersPanel.add(customersCP);
 
-        // Invoice status ratio (pie chart)
-        invoiceStatusPanel = new JPanel(new BorderLayout());
-        invoiceStatusPanel.setBackground(Color.WHITE);
-        
-        org.jfree.data.general.DefaultPieDataset pieDataset = new org.jfree.data.general.DefaultPieDataset();
-        List<ChartDataModel> statusData = invoiceController.getInvoiceStatusRatio();
-        for (ChartDataModel dataModel : statusData) {
-            pieDataset.setValue(dataModel.getLabel(), dataModel.getValue());
+        // 1. Payment method pie chart
+        paymentMethodPanel = new JPanel(new BorderLayout());
+        paymentMethodPanel.setBackground(Color.WHITE);
+        org.jfree.data.general.DefaultPieDataset paymentDataset = new org.jfree.data.general.DefaultPieDataset();
+        List<ChartDataModel> paymentData = invoiceController.getInvoiceCountByPaymentMethod();
+        for (ChartDataModel data : paymentData) {
+            paymentDataset.setValue(data.getLabel(), data.getValue());
         }
-        
-        JFreeChart statusChart = ChartFactory.createPieChart(
-            "Tỷ lệ hóa đơn",
-            pieDataset,
+        JFreeChart paymentChart = ChartFactory.createPieChart(
+            "Phương thức thanh toán",
+            paymentDataset,
             true,
             true,
             false
         );
-        
-        // Style the pie chart
-        statusChart.setBackgroundPaint(Color.WHITE);
-        statusChart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        statusChart.getTitle().setPaint(PRIMARY_COLOR);
-        
-        PiePlot piePlot = (PiePlot) statusChart.getPlot();
-        piePlot.setBackgroundPaint(Color.WHITE);
-        piePlot.setOutlineVisible(false);
-        piePlot.setSectionPaint("Đã thanh toán", PRIMARY_COLOR);
-        piePlot.setSectionPaint("Chưa thanh toán", ACCENT_COLOR);
-        piePlot.setLabelFont(new Font("Segoe UI", Font.PLAIN, 12));
-        piePlot.setLabelBackgroundPaint(Color.WHITE);
-        
-        ChartPanel statusCP = new ChartPanel(statusChart);
-        statusCP.setPreferredSize(new Dimension(400, 300));
-        invoiceStatusPanel.add(statusCP);
+        paymentChart.setBackgroundPaint(Color.WHITE);
+        paymentChart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        paymentChart.getTitle().setPaint(SECONDARY_COLOR);
+        PiePlot paymentPlot = (PiePlot) paymentChart.getPlot();
+        paymentPlot.setBackgroundPaint(Color.WHITE);
+        paymentPlot.setOutlineVisible(false);
+        paymentPlot.setLabelFont(new Font("Segoe UI", Font.PLAIN, 12));
+        paymentPlot.setLabelBackgroundPaint(Color.WHITE);
+        ChartPanel paymentCP = new ChartPanel(paymentChart);
+        paymentCP.setPreferredSize(new Dimension(400, 300));
+        paymentMethodPanel.add(paymentCP);
+
+        // 2. User role pie chart
+        userRolePanel = new JPanel(new BorderLayout());
+        userRolePanel.setBackground(Color.WHITE);
+        org.jfree.data.general.DefaultPieDataset roleDataset = new org.jfree.data.general.DefaultPieDataset();
+        List<ChartDataModel> roleData = userController.getUserCountByRole();
+        for (ChartDataModel data : roleData) {
+            roleDataset.setValue(data.getLabel(), data.getValue());
+        }
+        JFreeChart roleChart = ChartFactory.createPieChart(
+            "Loại nhân viên",
+            roleDataset,
+            true,
+            true,
+            false
+        );
+        roleChart.setBackgroundPaint(Color.WHITE);
+        roleChart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        roleChart.getTitle().setPaint(new Color(46, 204, 113));
+        PiePlot rolePlot = (PiePlot) roleChart.getPlot();
+        rolePlot.setBackgroundPaint(Color.WHITE);
+        rolePlot.setOutlineVisible(false);
+        rolePlot.setLabelFont(new Font("Segoe UI", Font.PLAIN, 12));
+        rolePlot.setLabelBackgroundPaint(Color.WHITE);
+        ChartPanel roleCP = new ChartPanel(roleChart);
+        roleCP.setPreferredSize(new Dimension(400, 300));
+        userRolePanel.add(roleCP);
     }
     
     private void createTopInvoicesPanel() {
@@ -873,7 +850,7 @@ public class AdDashBoard extends javax.swing.JPanel {
         
         // Create table with data
         List<Map<String, Object>> topInvoices = invoiceController.getTopInvoices(5);
-        String[] columns = {"Mã hóa đơn", "Khách hàng (ID)", "Tổng tiền", "Ngày tạo"};
+        String[] columns = {"Mã hóa đơn", "Người lập hóa đơn", "Tổng tiền", "Ngày tạo"};
         Object[][] data = new Object[topInvoices.size()][4];
         
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));

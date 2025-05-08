@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.User;
@@ -173,5 +175,21 @@ public int countUser() {
     }
     return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
 }
+
+    // Thống kê số lượng user theo role
+    public List<com.salesmate.model.ChartDataModel> getUserCountByRole() {
+        List<com.salesmate.model.ChartDataModel> result = new ArrayList<>();
+        String sql = "SELECT role, COUNT(*) AS count FROM users GROUP BY role";
+        try (Connection conn = com.salesmate.configs.DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                result.add(new com.salesmate.model.ChartDataModel(rs.getString("role"), java.math.BigDecimal.valueOf(rs.getInt("count"))));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
 
 }

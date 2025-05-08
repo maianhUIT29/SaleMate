@@ -203,4 +203,21 @@ public class InvoiceController {
         return invoiceDAO.getInvoiceStatusRatio();
     }
 
+    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethod() {
+        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
+        return dao.getInvoiceCountByPaymentMethod();
+    }
+    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethodForYear(int year) {
+        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
+        return dao.getInvoiceCountByPaymentMethodForYear(year);
+    }
+    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethodForMonth(int year, int month) {
+        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
+        return dao.getInvoiceCountByPaymentMethodForMonth(year, month);
+    }
+    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethodForWeek(int year, int month) {
+        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
+        return dao.getInvoiceCountByPaymentMethodForWeek(year, month);
+    }
+
 }
