@@ -74,4 +74,9 @@ public class UserController {
             return 0; // Return 0 if there's an error
         }
     }
+
+    public java.util.List<com.salesmate.model.ChartDataModel> getUserCountByRole() {
+        com.salesmate.dao.UserDAO dao = new com.salesmate.dao.UserDAO();
+        return dao.getUserCountByRole();
+    }
 }

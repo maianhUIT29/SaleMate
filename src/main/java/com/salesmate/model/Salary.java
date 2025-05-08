@@ -54,6 +54,12 @@ public class Salary {
     @Column(name = "note", length = 255)
     private String note;
 
+    @Column(name = "month_year")
+    private Date monthYear;
+
+    @Column(name = "amount", precision = 10, scale = 2)
+    private BigDecimal amount;
+
     // Constructors
     public Salary() {
     }
@@ -170,5 +176,21 @@ public class Salary {
         if (this.totalSalary == null) {
             this.totalSalary = this.basicSalary;
         }
+    }
+
+    public Date getMonthYear() {
+        return monthYear;
+    }
+
+    public void setMonthYear(Date monthYear) {
+        this.monthYear = monthYear;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 }

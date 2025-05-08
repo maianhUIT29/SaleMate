@@ -1,6 +1,7 @@
 package com.salesmate.model;
 
 import java.util.Date;
+import java.sql.Timestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -66,6 +67,12 @@ public class Attendance {
 
     @Column(name = "note", length = 255)
     private String note;
+
+    @Column(name = "check_in_time")
+    private Timestamp checkInTime;
+
+    @Column(name = "check_out_time")
+    private Timestamp checkOutTime;
 
     // Constructors
     public Attendance() {
@@ -178,5 +185,21 @@ public class Attendance {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public Timestamp getCheckInTime() {
+        return checkInTime;
+    }
+
+    public void setCheckInTime(Timestamp checkInTime) {
+        this.checkInTime = checkInTime;
+    }
+
+    public Timestamp getCheckOutTime() {
+        return checkOutTime;
+    }
+
+    public void setCheckOutTime(Timestamp checkOutTime) {
+        this.checkOutTime = checkOutTime;
     }
 }

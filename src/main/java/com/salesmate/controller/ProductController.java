@@ -51,6 +51,16 @@ public class ProductController {
         }
     }
 
+    // Add this method to get product name by ID
+    public String getProductNameById(int productId) {
+        try {
+            return productDAO.getProductNameById(productId);
+        } catch (Exception e) {
+            System.err.println("Error fetching product name: " + e.getMessage());
+            return null;
+        }
+    }
+
     // UPDATE
     public boolean updateProduct(Product product) {
         try {
@@ -146,6 +156,10 @@ public class ProductController {
             System.err.println("Error getting product categories: " + e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    public List<Map<String, Object>> getProductsLowStockPrediction(int thresholdDays) {
+        return productDAO.getProductsLowStockPrediction(thresholdDays);
     }
 
 }

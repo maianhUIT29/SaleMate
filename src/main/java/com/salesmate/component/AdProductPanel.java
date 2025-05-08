@@ -1,90 +1,128 @@
 package com.salesmate.component;
 
+import com.salesmate.controller.ProductController;
+import com.salesmate.model.Product;
+import com.salesmate.utils.BarcodeGenerator;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.List;
+import javax.swing.table.TableRowSorter;
+import com.google.zxing.WriterException;
+
 public class AdProductPanel extends javax.swing.JPanel {
+    private ProductController productController;
+    private DefaultTableModel tableModel;
+    private JTable productTable;
+    private JButton generateBarcodeButton;
+    private JButton refreshButton;
 
     public AdProductPanel() {
+        productController = new ProductController();
         initComponents();
+        loadProducts();
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        setLayout(new BorderLayout());
 
-        tpProduct = new javax.swing.JTabbedPane();
-        panelProductTable = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jLabel1 = new javax.swing.JLabel();
-        panelProductReport = new javax.swing.JPanel();
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+        // Create top panel for buttons
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        generateBarcodeButton = new JButton("Generate Barcode");
+        refreshButton = new JButton("Refresh");
+        
+        generateBarcodeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generateBarcodes();
             }
-        ));
-        jScrollPane1.setViewportView(jTable1);
+        });
+        
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadProducts();
+            }
+        });
+        
+        topPanel.add(generateBarcodeButton);
+        topPanel.add(refreshButton);
 
-        jLabel1.setText("CRUD Product  ");
+        // Create table model
+        String[] columns = {"ID", "Name", "Price", "Quantity", "Barcode", "Category"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table read-only
+            }
+        };
 
-        javax.swing.GroupLayout panelProductTableLayout = new javax.swing.GroupLayout(panelProductTable);
-        panelProductTable.setLayout(panelProductTableLayout);
-        panelProductTableLayout.setHorizontalGroup(
-            panelProductTableLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addGroup(panelProductTableLayout.createSequentialGroup()
-                .addGap(166, 166, 166)
-                .addComponent(jLabel1)
-                .addContainerGap(151, Short.MAX_VALUE))
-        );
-        panelProductTableLayout.setVerticalGroup(
-            panelProductTableLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelProductTableLayout.createSequentialGroup()
-                .addGap(0, 23, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        // Create table
+        productTable = new JTable(tableModel);
+        productTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        productTable.setRowSorter(new TableRowSorter<>(tableModel));
+        
+        // Set column widths
+        productTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
+        productTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Name
+        productTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Price
+        productTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Quantity
+        productTable.getColumnModel().getColumn(4).setPreferredWidth(150); // Barcode
+        productTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Category
 
-        tpProduct.addTab("Table", panelProductTable);
+        // Add table to scroll pane
+        JScrollPane scrollPane = new JScrollPane(productTable);
+        scrollPane.setPreferredSize(new Dimension(800, 400));
 
-        javax.swing.GroupLayout panelProductReportLayout = new javax.swing.GroupLayout(panelProductReport);
-        panelProductReport.setLayout(panelProductReportLayout);
-        panelProductReportLayout.setHorizontalGroup(
-            panelProductReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        panelProductReportLayout.setVerticalGroup(
-            panelProductReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 265, Short.MAX_VALUE)
-        );
+        // Add components to panel
+        add(topPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+    }
 
-        tpProduct.addTab("Report", panelProductReport);
+    private void loadProducts() {
+        // Clear existing data
+        tableModel.setRowCount(0);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tpProduct)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(tpProduct, javax.swing.GroupLayout.Alignment.TRAILING)
-        );
-    }// </editor-fold>//GEN-END:initComponents
+        // Get products from controller
+        List<Product> products = productController.getAllProducts();
 
+        // Add products to table
+        for (Product product : products) {
+            Object[] row = {
+                product.getProductId(),
+                product.getProductName(),
+                product.getPrice(),
+                product.getQuantity(),
+                product.getBarcode(),
+                product.getCategory()
+            };
+            tableModel.addRow(row);
+        }
+    }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JPanel panelProductReport;
-    private javax.swing.JPanel panelProductTable;
-    private javax.swing.JTabbedPane tpProduct;
-    // End of variables declaration//GEN-END:variables
+    private void generateBarcodes() {
+        List<Product> products = productController.getAllProducts();
+        int successCount = 0;
+        int failCount = 0;
+
+        for (Product product : products) {
+            if (product.getBarcode() != null && !product.getBarcode().isEmpty()) {
+                try {
+                    BarcodeGenerator.generateBarcode(product.getBarcode(), product.getProductId());
+                    successCount++;
+                } catch (WriterException | IOException e) {
+                    failCount++;
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        String message = String.format("Generated %d barcodes successfully.\nFailed to generate %d barcodes.", 
+                                     successCount, failCount);
+        JOptionPane.showMessageDialog(this, message, "Barcode Generation", 
+                                    JOptionPane.INFORMATION_MESSAGE);
+    }
 }

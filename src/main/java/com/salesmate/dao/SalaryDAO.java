@@ -6,9 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Salary;
+import com.salesmate.model.ChartDataModel;
 
 public class SalaryDAO {
 
@@ -69,5 +71,81 @@ public class SalaryDAO {
         }
 
         return false;
+    }
+
+    public List<ChartDataModel> getMonthlySalaryData() {
+        List<ChartDataModel> data = new ArrayList<>();
+        String sql = "SELECT TO_CHAR(month_year, 'YYYY-MM') as month, SUM(amount) as total " +
+                    "FROM SALARY GROUP BY month_year ORDER BY month_year";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                data.add(new ChartDataModel(rs.getString("month"), rs.getBigDecimal("total")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    
+    public BigDecimal getTotalSalaryForCurrentMonth() {
+        String sql = "SELECT SUM(amount) FROM SALARY " +
+                    "WHERE TO_CHAR(month_year, 'YYYY-MM') = TO_CHAR(SYSDATE, 'YYYY-MM')";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBigDecimal(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+    
+    public List<Salary> getPendingSalaries() {
+        List<Salary> salaries = new ArrayList<>();
+        String sql = "SELECT * FROM SALARY WHERE status = 'PENDING'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Salary salary = new Salary();
+                salary.setSalaryId(rs.getInt("salary_id"));
+                salary.setEmployeeId(rs.getInt("employee_id"));
+                salary.setMonthYear(rs.getDate("month_year"));
+                salary.setAmount(rs.getBigDecimal("amount"));
+                salary.setStatus(rs.getString("status"));
+                salaries.add(salary);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return salaries;
+    }
+    
+    public boolean processSalary(int salaryId) {
+        String sql = "UPDATE SALARY SET status = 'PROCESSED' WHERE salary_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, salaryId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean paySalary(int salaryId) {
+        String sql = "UPDATE SALARY SET status = 'PAID' WHERE salary_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, salaryId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

@@ -144,4 +144,12 @@ public class LeaveRequest {
     public void setRequestDate(Date requestDate) {
         this.requestDate = requestDate;
     }
+
+    public int getEmployeeId() {
+        return employee.getEmployeeId();
+    }
+
+    public void setEmployeeId(int employeeId) {
+        // This method is not used in the current implementation
+    }
 }

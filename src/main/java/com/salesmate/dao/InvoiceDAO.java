@@ -7,13 +7,26 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.salesmate.configs.DBConnection;
+import com.salesmate.model.ChartDataModel;
 import com.salesmate.model.Invoice;
-import com.salesmate.model.RevenueLineChartModel;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTextField;
+import com.salesmate.model.Detail;
+import com.salesmate.dao.DetailDAO;
+import com.salesmate.controller.DetailController;
+import com.salesmate.dao.ProductDAO;
 
 public class InvoiceDAO {
+
+    private DetailDAO detailDAO = new DetailDAO();
+    private DetailController detailController = new DetailController();
+    private ProductDAO productDAO = new ProductDAO();
 
     // Tạo invoice mới
     public boolean createInvoice(Invoice invoice) {
@@ -229,26 +242,26 @@ public class InvoiceDAO {
         return 0; // Nếu có lỗi hoặc không tìm thấy dữ liệu, trả về 0
     }
 
-    public List<RevenueLineChartModel> getDailyRevenue() {
-        String sql =
-            "SELECT TO_CHAR(created_at, 'DD') AS day_label, " +
-            "       NVL(SUM(total_amount),0) AS total_revenue " +
+    public List<ChartDataModel> getDailyRevenue() {
+        String sql = 
+            "SELECT TRUNC(created_at) AS date, " +
+            "       NVL(SUM(total_amount), 0) AS total_revenue " +
             "FROM invoice " +
             "WHERE payment_status = 'Paid' " +
             "  AND created_at >= TRUNC(SYSDATE, 'MM') " +
-            "  AND created_at <  ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1) " +
-            "GROUP BY TO_CHAR(created_at, 'DD') " +
-            "ORDER BY TO_NUMBER(TO_CHAR(created_at, 'DD'))";
+            "  AND created_at < ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1) " +
+            "GROUP BY TRUNC(created_at) " +
+            "ORDER BY date";
 
-        List<RevenueLineChartModel> list = new ArrayList<>();
+        List<ChartDataModel> list = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                String day   = rs.getString("day_label");
-                double total = rs.getDouble("total_revenue");
-                list.add(new RevenueLineChartModel(day, total));
+                Date date = rs.getDate("date");
+                BigDecimal revenue = rs.getBigDecimal("total_revenue");
+                list.add(new ChartDataModel(date, revenue));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -360,5 +373,305 @@ public class InvoiceDAO {
             e.printStackTrace();
         }
         return BigDecimal.ZERO;
+    }
+
+    /**
+     * Gets today's total revenue
+     */
+    public BigDecimal getTodayRevenue() {
+        try {
+            String sql = "SELECT COALESCE(SUM(total_amount), 0) FROM invoice WHERE TRUNC(created_at) = TRUNC(SYSDATE) AND payment_status = 'Paid'";
+            Object result = getSingleResult(sql);
+            return result != null ? (BigDecimal) result : BigDecimal.ZERO;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return BigDecimal.ZERO;
+        }
+    }
+
+
+    // Helper method to get single result
+    private Object getSingleResult(String sql) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getObject(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Helper method to get result list
+    private List<Object[]> getResultList(String sql) {
+        List<Object[]> result = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            int columnCount = rs.getMetaData().getColumnCount();
+            while (rs.next()) {
+                Object[] row = new Object[columnCount];
+                for (int i = 0; i < columnCount; i++) {
+                    row[i] = rs.getObject(i + 1);
+                }
+                result.add(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Get revenue by year
+    public List<ChartDataModel> getYearlyRevenue() {
+        List<ChartDataModel> result = new ArrayList<>();
+        String sql = 
+            "SELECT EXTRACT(YEAR FROM created_at) as year, " +
+            "       NVL(SUM(total_amount), 0) AS revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "GROUP BY EXTRACT(YEAR FROM created_at) " +
+            "ORDER BY year";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String year = String.valueOf(rs.getInt("year"));
+                BigDecimal revenue = rs.getBigDecimal("revenue");
+                result.add(new ChartDataModel(year, revenue));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Get revenue by month for a specific year
+    public List<ChartDataModel> getMonthlyRevenueByYear(int year) {
+        List<ChartDataModel> result = new ArrayList<>();
+        String sql = 
+            "SELECT EXTRACT(MONTH FROM created_at) as month, " +
+            "       NVL(SUM(total_amount), 0) AS revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND EXTRACT(YEAR FROM created_at) = ? " +
+            "GROUP BY EXTRACT(MONTH FROM created_at) " +
+            "ORDER BY month";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String month = String.valueOf(rs.getInt("month"));
+                BigDecimal revenue = rs.getBigDecimal("revenue");
+                result.add(new ChartDataModel(month, revenue));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Get revenue by week for current month
+    public List<ChartDataModel> getWeeklyRevenueForCurrentMonth() {
+        List<ChartDataModel> result = new ArrayList<>();
+        String sql = 
+            "SELECT TO_CHAR(created_at, 'IW') as week, " +
+            "       NVL(SUM(total_amount), 0) AS revenue " +
+            "FROM invoice " +
+            "WHERE payment_status = 'Paid' " +
+            "  AND created_at >= TRUNC(SYSDATE, 'MM') " +
+            "  AND created_at < ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1) " +
+            "GROUP BY TO_CHAR(created_at, 'IW') " +
+            "ORDER BY week";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String week = "Tuần " + rs.getString("week");
+                BigDecimal revenue = rs.getBigDecimal("revenue");
+                result.add(new ChartDataModel(week, revenue));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Top customers by revenue
+    public List<Map<String, Object>> getTopCustomersByRevenue(int topN) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String sql = "SELECT users_id, SUM(total_amount) AS total_revenue " +
+                     "FROM invoice WHERE payment_status = 'Paid' " +
+                     "GROUP BY users_id ORDER BY total_revenue DESC FETCH FIRST ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, topN);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("users_id", rs.getInt("users_id"));
+                row.put("total_revenue", rs.getBigDecimal("total_revenue"));
+                result.add(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Top invoices by value
+    public List<Map<String, Object>> getTopInvoices(int n) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String sql = "SELECT i.invoice_id, u.username, i.total_amount, i.created_at FROM invoice i JOIN users u ON i.users_id = u.users_id WHERE i.payment_status = 'Paid' ORDER BY i.total_amount DESC FETCH FIRST ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, n);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("invoice_id", rs.getInt("invoice_id"));
+                    map.put("username", rs.getString("username"));
+                    map.put("total_amount", rs.getBigDecimal("total_amount"));
+                    map.put("created_at", rs.getDate("created_at"));
+                    result.add(map);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Invoice status ratio
+    public List<ChartDataModel> getInvoiceStatusRatio() {
+        List<ChartDataModel> result = new ArrayList<>();
+        String sql = "SELECT payment_status, COUNT(*) AS count FROM invoice GROUP BY payment_status";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                result.add(new ChartDataModel(rs.getString("payment_status"), BigDecimal.valueOf(rs.getInt("count"))));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Get available years for filtering
+    public List<Integer> getAvailableYears() {
+        List<Integer> years = new ArrayList<>();
+        String sql = 
+            "SELECT DISTINCT EXTRACT(YEAR FROM created_at) as year " +
+            "FROM invoice " +
+            "ORDER BY year DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                years.add(rs.getInt("year"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return years;
+    }
+
+    // Top employees by revenue (tổng doanh thu do nhân viên lập hóa đơn)
+    public List<Map<String, Object>> getTopEmployeesByRevenue(int topN) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String sql = "SELECT u.users_id, u.username, SUM(i.total_amount) AS total_revenue " +
+                     "FROM invoice i JOIN users u ON i.users_id = u.users_id " +
+                     "WHERE i.payment_status = 'Paid' " +
+                     "GROUP BY u.users_id, u.username " +
+                     "ORDER BY total_revenue DESC FETCH FIRST ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, topN);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("users_id", rs.getInt("users_id"));
+                row.put("username", rs.getString("username"));
+                row.put("total_revenue", rs.getBigDecimal("total_revenue"));
+                result.add(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Tổng doanh thu tất cả hóa đơn
+    public BigDecimal getTotalRevenue() {
+        String sql = "SELECT NVL(SUM(total_amount),0) AS total_revenue FROM invoice WHERE payment_status = 'Paid'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    // Doanh thu theo tuần cho cả năm
+    public List<ChartDataModel> getWeeklyRevenueByYear(int year) {
+        List<ChartDataModel> result = new ArrayList<>();
+        // Lấy số tuần tối đa trong năm (ISO)
+        int maxWeek = 53;
+        // Truy vấn doanh thu từng tuần
+        String sql = "SELECT TO_CHAR(created_at, 'IW') as week, NVL(SUM(total_amount), 0) AS revenue " +
+                     "FROM invoice WHERE payment_status = 'Paid' AND EXTRACT(YEAR FROM created_at) = ? " +
+                     "GROUP BY TO_CHAR(created_at, 'IW')";
+        Map<Integer, BigDecimal> weekRevenue = new HashMap<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                int week = Integer.parseInt(rs.getString("week"));
+                BigDecimal revenue = rs.getBigDecimal("revenue");
+                weekRevenue.put(week, revenue);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Đảm bảo đủ tất cả các tuần (1-53)
+        for (int w = 1; w <= maxWeek; w++) {
+            BigDecimal revenue = weekRevenue.getOrDefault(w, BigDecimal.ZERO);
+            result.add(new ChartDataModel("Tuần " + w, revenue));
+        }
+        return result;
+    }
+
+    public List<Detail> getInvoiceDetails(int invoiceId) {
+        return detailDAO.getDetailsByInvoiceId(invoiceId);
+    }
+
+    public String getProductNameById(int productId) {
+        String productName = null;
+        String query = "SELECT product_name FROM product WHERE product_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                productName = rs.getString("product_name");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching product name: " + e.getMessage());
+        }
+        return productName;
     }
 }
