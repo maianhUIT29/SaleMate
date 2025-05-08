@@ -304,7 +304,7 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
     // Add this method to get product name by ID
     public String getProductNameById(int productId) {
         String productName = null;
-        String query = "SELECT product_name FROM products WHERE product_id = ?";
+        String query = "SELECT product_name FROM product WHERE product_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -321,6 +321,104 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         }
         
         return productName;
+    }
+
+    // Get products with pagination and filtering
+    public List<Product> getProducts(int page, int pageSize, String category, String search) {
+        List<Product> products = new ArrayList<>();
+        StringBuilder query = new StringBuilder("SELECT * FROM product WHERE 1=1");
+        
+        if (category != null && !category.equals("Tất cả")) {
+            if (category.equals("Không có danh mục")) {
+                query.append(" AND (category IS NULL OR category = '')");
+            } else {
+                query.append(" AND category = ?");
+            }
+        }
+        
+        if (search != null && !search.trim().isEmpty()) {
+            query.append(" AND (product_name LIKE ? OR barcode LIKE ?)");
+        }
+        
+        query.append(" ORDER BY product_id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query.toString())) {
+            
+            int paramIndex = 1;
+            
+            if (category != null && !category.equals("Tất cả") && !category.equals("Không có danh mục")) {
+                stmt.setString(paramIndex++, category);
+            }
+            
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                stmt.setString(paramIndex++, searchPattern);
+                stmt.setString(paramIndex++, searchPattern);
+            }
+            
+            stmt.setInt(paramIndex++, (page - 1) * pageSize);
+            stmt.setInt(paramIndex, pageSize);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Product product = new Product();
+                    product.setProductId(rs.getInt("product_id"));
+                    product.setProductName(rs.getString("product_name"));
+                    product.setPrice(rs.getBigDecimal("price"));
+                    product.setQuantity(rs.getInt("quantity"));
+                    product.setBarcode(rs.getString("barcode"));
+                    product.setImage(rs.getString("image"));
+                    product.setCategory(rs.getString("category"));
+                    products.add(product);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return products;
+    }
+    
+    // Count products with filtering
+    public int countProducts(String category, String search) {
+        StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM product WHERE 1=1");
+        
+        if (category != null && !category.equals("Tất cả")) {
+            if (category.equals("Không có danh mục")) {
+                query.append(" AND (category IS NULL OR category = '')");
+            } else {
+                query.append(" AND category = ?");
+            }
+        }
+        
+        if (search != null && !search.trim().isEmpty()) {
+            query.append(" AND (product_name LIKE ? OR barcode LIKE ?)");
+        }
+        
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query.toString())) {
+            
+            int paramIndex = 1;
+            
+            if (category != null && !category.equals("Tất cả") && !category.equals("Không có danh mục")) {
+                stmt.setString(paramIndex++, category);
+            }
+            
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                stmt.setString(paramIndex++, searchPattern);
+                stmt.setString(paramIndex++, searchPattern);
+            }
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 }

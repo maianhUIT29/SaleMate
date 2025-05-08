@@ -13,14 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.salesmate.configs.DBConnection;
-import com.salesmate.model.ChartDataModel;
-import com.salesmate.model.Invoice;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JTextField;
-import com.salesmate.model.Detail;
-import com.salesmate.dao.DetailDAO;
 import com.salesmate.controller.DetailController;
-import com.salesmate.dao.ProductDAO;
+import com.salesmate.model.ChartDataModel;
+import com.salesmate.model.Detail;
+import com.salesmate.model.Invoice;
 
 public class InvoiceDAO {
 
@@ -658,20 +654,4 @@ public class InvoiceDAO {
         return detailDAO.getDetailsByInvoiceId(invoiceId);
     }
 
-    public String getProductNameById(int productId) {
-        String productName = null;
-        String query = "SELECT product_name FROM product WHERE product_id = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                productName = rs.getString("product_name");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching product name: " + e.getMessage());
-        }
-        return productName;
-    }
 }
