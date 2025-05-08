@@ -574,4 +574,74 @@ public class InvoiceDAO {
         }
         return years;
     }
+
+    // Top employees by revenue (tổng doanh thu do nhân viên lập hóa đơn)
+    public List<Map<String, Object>> getTopEmployeesByRevenue(int topN) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String sql = "SELECT u.users_id, u.username, SUM(i.total_amount) AS total_revenue " +
+                     "FROM invoice i JOIN users u ON i.users_id = u.users_id " +
+                     "WHERE i.payment_status = 'Paid' " +
+                     "GROUP BY u.users_id, u.username " +
+                     "ORDER BY total_revenue DESC FETCH FIRST ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, topN);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("users_id", rs.getInt("users_id"));
+                row.put("username", rs.getString("username"));
+                row.put("total_revenue", rs.getBigDecimal("total_revenue"));
+                result.add(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Tổng doanh thu tất cả hóa đơn
+    public BigDecimal getTotalRevenue() {
+        String sql = "SELECT NVL(SUM(total_amount),0) AS total_revenue FROM invoice WHERE payment_status = 'Paid'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBigDecimal("total_revenue");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    // Doanh thu theo tuần cho cả năm
+    public List<ChartDataModel> getWeeklyRevenueByYear(int year) {
+        List<ChartDataModel> result = new ArrayList<>();
+        // Lấy số tuần tối đa trong năm (ISO)
+        int maxWeek = 53;
+        // Truy vấn doanh thu từng tuần
+        String sql = "SELECT TO_CHAR(created_at, 'IW') as week, NVL(SUM(total_amount), 0) AS revenue " +
+                     "FROM invoice WHERE payment_status = 'Paid' AND EXTRACT(YEAR FROM created_at) = ? " +
+                     "GROUP BY TO_CHAR(created_at, 'IW')";
+        Map<Integer, BigDecimal> weekRevenue = new HashMap<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                int week = Integer.parseInt(rs.getString("week"));
+                BigDecimal revenue = rs.getBigDecimal("revenue");
+                weekRevenue.put(week, revenue);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Đảm bảo đủ tất cả các tuần (1-53)
+        for (int w = 1; w <= maxWeek; w++) {
+            BigDecimal revenue = weekRevenue.getOrDefault(w, BigDecimal.ZERO);
+            result.add(new ChartDataModel("Tuần " + w, revenue));
+        }
+        return result;
+    }
 }

@@ -41,6 +41,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.ui.TextAnchor;
 
 import com.salesmate.controller.InvoiceController;
 import com.salesmate.controller.ProductController;
@@ -277,10 +278,10 @@ public class AdDashBoard extends javax.swing.JPanel {
 
         // Total revenue panel
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-        String totalRevenue = formatter.format(invoiceController.getCurrentMonthRevenue());
+        String totalRevenue = formatter.format(invoiceController.getTotalRevenue());
         revenuePanel = createStatPanel("Doanh thu", 
             totalRevenue, 
-            "Tổng doanh thu tháng này",
+            "Tổng doanh thu tất cả hóa đơn",
             new Color(46, 204, 113)); // Green color for revenue
     }
 
@@ -549,11 +550,11 @@ public class AdDashBoard extends javax.swing.JPanel {
                 break;
                 
             case "Theo tuần":
-                List<ChartDataModel> weeklyData = invoiceController.getWeeklyRevenueForCurrentMonth();
+                List<ChartDataModel> weeklyData = invoiceController.getWeeklyRevenueByYear(selectedYear);
                 for (ChartDataModel data : weeklyData) {
                     dataset.addValue(data.getValue().doubleValue(), "Doanh thu", data.getLabel());
                 }
-                title = "Doanh thu theo tuần - Tháng hiện tại";
+                title = "Doanh thu theo tuần - " + selectedYear;
                 break;
         }
         
@@ -717,67 +718,72 @@ public class AdDashBoard extends javax.swing.JPanel {
         productsCP.setPreferredSize(new Dimension(400, 300));
         topProductsPanel.add(productsCP);
         
-        // Top customers by revenue (bar chart)
+        // Top employees by revenue (bar chart)
         topCustomersPanel = new JPanel(new BorderLayout());
         topCustomersPanel.setBackground(Color.WHITE);
         
-        DefaultCategoryDataset customersDataset = new DefaultCategoryDataset();
-        List<Map<String, Object>> topCustomers = invoiceController.getTopCustomersByRevenue(5);
-        for (Map<String, Object> customer : topCustomers) {
-            // Convert to millions for Y-axis consistency
-            double revenueInMillions = ((BigDecimal)customer.get("total_revenue")).doubleValue();
-            customersDataset.addValue(revenueInMillions,
-                "Doanh thu", "KH " + customer.get("users_id").toString());
+        DefaultCategoryDataset employeesDataset = new DefaultCategoryDataset();
+        List<Map<String, Object>> topEmployees = invoiceController.getTopEmployeesByRevenue(5);
+        for (Map<String, Object> emp : topEmployees) {
+            double revenueInMillions = ((BigDecimal)emp.get("total_revenue")).doubleValue();
+            String label = emp.get("username") + " (" + emp.get("users_id") + ")";
+            employeesDataset.addValue(revenueInMillions, "Doanh thu", label);
         }
         
-        JFreeChart customersChart = ChartFactory.createBarChart(
+        JFreeChart employeesChart = ChartFactory.createBarChart(
             "Top nhân viên theo doanh thu",
-            "Nhân viên (ID)",
+            "Nhân viên (Tên & ID)",
             "Doanh thu (Triệu VNĐ)",
-            customersDataset,
+            employeesDataset,
             PlotOrientation.VERTICAL,
             false,
             true,
             false
         );
         
-        // Style the customers chart
-        customersChart.setBackgroundPaint(Color.WHITE);
-        customersChart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        customersChart.getTitle().setPaint(PRIMARY_COLOR);
+        // Style the employees chart
+        employeesChart.setBackgroundPaint(Color.WHITE);
+        employeesChart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        employeesChart.getTitle().setPaint(PRIMARY_COLOR);
         
-        CategoryPlot customersPlot = customersChart.getCategoryPlot();
-        customersPlot.setBackgroundPaint(Color.WHITE);
-        customersPlot.setDomainGridlinePaint(new Color(220, 220, 220));
-        customersPlot.setRangeGridlinePaint(new Color(220, 220, 220));
+        CategoryPlot employeesPlot = employeesChart.getCategoryPlot();
+        employeesPlot.setBackgroundPaint(Color.WHITE);
+        employeesPlot.setDomainGridlinePaint(new Color(220, 220, 220));
+        employeesPlot.setRangeGridlinePaint(new Color(220, 220, 220));
         
         // Format Y-axis to show values in millions like the revenue chart
-        NumberAxis customerRangeAxis = (NumberAxis) customersPlot.getRangeAxis();
-        customerRangeAxis.setNumberFormatOverride(new NumberFormat() {
+        NumberAxis empRangeAxis = (NumberAxis) employeesPlot.getRangeAxis();
+        empRangeAxis.setNumberFormatOverride(new java.text.NumberFormat() {
             @Override
             public StringBuffer format(double number, StringBuffer toAppendTo, java.text.FieldPosition pos) {
                 return new StringBuffer(Math.round(number / 1000000) + "");
             }
-            
             @Override
             public StringBuffer format(long number, StringBuffer toAppendTo, java.text.FieldPosition pos) {
                 return format((double) number, toAppendTo, pos);
             }
-            
             @Override
             public Number parse(String source, java.text.ParsePosition parsePosition) {
                 return null;
             }
         });
         
-        BarRenderer customerRenderer = (BarRenderer) customersPlot.getRenderer();
-        customerRenderer.setSeriesPaint(0, ACCENT_COLOR);
-        customerRenderer.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
-        customerRenderer.setShadowVisible(false);
+        BarRenderer empRenderer = (BarRenderer) employeesPlot.getRenderer();
+        empRenderer.setSeriesPaint(0, new Color(41, 128, 185));
+        empRenderer.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
+        empRenderer.setShadowVisible(false);
+        empRenderer.setItemLabelGenerator(new org.jfree.chart.labels.StandardCategoryItemLabelGenerator());
+        empRenderer.setItemLabelsVisible(true);
+        empRenderer.setItemLabelFont(new Font("Segoe UI", Font.BOLD, 12));
+        empRenderer.setItemLabelPaint(Color.WHITE);
+        empRenderer.setPositiveItemLabelPosition(new org.jfree.chart.labels.ItemLabelPosition(
+            org.jfree.chart.labels.ItemLabelAnchor.CENTER,
+            org.jfree.ui.TextAnchor.CENTER
+        ));
         
-        ChartPanel customersCP = new ChartPanel(customersChart);
-        customersCP.setPreferredSize(new Dimension(400, 300));
-        topCustomersPanel.add(customersCP);
+        ChartPanel employeesCP = new ChartPanel(employeesChart);
+        employeesCP.setPreferredSize(new Dimension(400, 300));
+        topCustomersPanel.add(employeesCP);
 
         // 1. Payment method pie chart
         paymentMethodPanel = new JPanel(new BorderLayout());

@@ -220,4 +220,16 @@ public class InvoiceController {
         return dao.getInvoiceCountByPaymentMethodForWeek(year, month);
     }
 
+    public List<Map<String, Object>> getTopEmployeesByRevenue(int topN) {
+        return invoiceDAO.getTopEmployeesByRevenue(topN);
+    }
+
+    public java.math.BigDecimal getTotalRevenue() {
+        return invoiceDAO.getTotalRevenue();
+    }
+
+    public java.util.List<com.salesmate.model.ChartDataModel> getWeeklyRevenueByYear(int year) {
+        return invoiceDAO.getWeeklyRevenueByYear(year);
+    }
+
 }
