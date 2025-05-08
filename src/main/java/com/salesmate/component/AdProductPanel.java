@@ -1,32 +1,53 @@
 package com.salesmate.component;
 
-import com.salesmate.controller.ProductController;
-import com.salesmate.model.Product;
-import com.salesmate.utils.BarcodeGenerator;
-import com.salesmate.utils.ExcelExporter;
-import com.salesmate.utils.ExportDialog;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Vector;
-import javax.swing.table.TableRowSorter;
-import com.google.zxing.WriterException;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
+
+import com.google.zxing.WriterException;
+import com.salesmate.controller.ProductController;
+import com.salesmate.model.Product;
+import com.salesmate.utils.BarcodeGenerator;
+import com.salesmate.utils.ExcelExporter;
 import com.salesmate.utils.ExcelImporter;
+import com.salesmate.utils.ExportDialog;
 
 public class AdProductPanel extends javax.swing.JPanel {
     private ProductController productController;
@@ -39,15 +60,23 @@ public class AdProductPanel extends javax.swing.JPanel {
     private JButton refreshButton;
     private JButton exportButton;
     private JButton importButton;
-    private JComboBox<String> categoryFilter;
     private JTextField searchField;
     private JSpinner pageSpinner;
     private JLabel totalPagesLabel;
     private int currentPage = 1;
     private int pageSize = 20;
     private int totalPages = 1;
-    private String currentCategory = "Tất cả";
     private String currentSearch = "";
+    
+    // Color scheme
+    private final Color PRIMARY_COLOR = new Color(41, 128, 185);
+    private final Color SECONDARY_COLOR = new Color(52, 152, 219);
+    private final Color ACCENT_COLOR = new Color(231, 76, 60);
+    private final Color BACKGROUND_COLOR = new Color(236, 240, 241);
+    private final Color TEXT_COLOR = new Color(44, 62, 80);
+    private final Color LIGHT_TEXT = new Color(255, 255, 255);
+    private final Color CARD_COLOR = new Color(255, 255, 255);
+    private final Color BORDER_COLOR = new Color(189, 195, 199);
 
     public AdProductPanel() {
         productController = new ProductController();
@@ -57,19 +86,36 @@ public class AdProductPanel extends javax.swing.JPanel {
 
     private void initComponents() {
         setLayout(new BorderLayout());
+        setBackground(BACKGROUND_COLOR);
+        setBorder(new EmptyBorder(15, 15, 15, 15));
 
+        // Create top panel with a title
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(BACKGROUND_COLOR);
+        headerPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
+        
+        JLabel titleLabel = new JLabel("Quản lý sản phẩm");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(PRIMARY_COLOR);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        
         // Create top panel for buttons and filters
-        JPanel topPanel = new JPanel(new BorderLayout());
+        JPanel topPanel = new JPanel(new BorderLayout(10, 0));
+        topPanel.setBackground(BACKGROUND_COLOR);
+        topPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
         
         // Left panel for buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addButton = new JButton("Thêm sản phẩm");
-        editButton = new JButton("Sửa");
-        deleteButton = new JButton("Xóa");
-        generateBarcodeButton = new JButton("Tạo mã vạch");
-        refreshButton = new JButton("Làm mới");
-        exportButton = new JButton("Xuất Excel");
-        importButton = new JButton("Nhập Excel");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        buttonPanel.setBackground(BACKGROUND_COLOR);
+        
+        // Create styled buttons
+        addButton = createStyledButton("Thêm sản phẩm", PRIMARY_COLOR, LIGHT_TEXT);
+        editButton = createStyledButton("Sửa", SECONDARY_COLOR, LIGHT_TEXT);
+        deleteButton = createStyledButton("Xóa", ACCENT_COLOR, LIGHT_TEXT);
+        generateBarcodeButton = createStyledButton("Tạo mã vạch", new Color(46, 204, 113), LIGHT_TEXT);
+        refreshButton = createStyledButton("Làm mới", new Color(52, 73, 94), LIGHT_TEXT);
+        exportButton = createStyledButton("Xuất Excel", new Color(155, 89, 182), LIGHT_TEXT);
+        importButton = createStyledButton("Nhập Excel", new Color(243, 156, 18), LIGHT_TEXT);
         
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
@@ -79,16 +125,25 @@ public class AdProductPanel extends javax.swing.JPanel {
         buttonPanel.add(exportButton);
         buttonPanel.add(importButton);
         
-        // Right panel for filters
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        categoryFilter = new JComboBox<>(new String[]{"Tất cả", "Nước giặt", "Dầu gội", "Nước xả", "Sữa tắm", "Không có danh mục"});
-        searchField = new JTextField(20);
-        searchField.setPreferredSize(new Dimension(200, 30));
+        // Right panel for filters (only search field now)
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        filterPanel.setBackground(BACKGROUND_COLOR);
         
-        filterPanel.add(new JLabel("Tìm kiếm:"));
+        // Styled search field
+        searchField = new JTextField(20);
+        searchField.setPreferredSize(new Dimension(200, 35));
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        
+        JLabel searchLabel = new JLabel("Tìm kiếm:");
+        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        searchLabel.setForeground(TEXT_COLOR);
+        
+        filterPanel.add(searchLabel);
         filterPanel.add(searchField);
-        filterPanel.add(new JLabel("Danh mục:"));
-        filterPanel.add(categoryFilter);
         
         topPanel.add(buttonPanel, BorderLayout.WEST);
         topPanel.add(filterPanel, BorderLayout.EAST);
@@ -102,40 +157,127 @@ public class AdProductPanel extends javax.swing.JPanel {
             }
         };
 
-        // Create table
+        // Create and style table
         productTable = new JTable(tableModel);
+        productTable.setRowHeight(40); // Make rows taller
+        productTable.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Larger font
         productTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         productTable.setRowSorter(new TableRowSorter<>(tableModel));
+        productTable.setShowGrid(true);
+        productTable.setGridColor(new Color(220, 220, 220));
+        productTable.setSelectionBackground(new Color(232, 234, 246));
+        productTable.setSelectionForeground(TEXT_COLOR);
+        productTable.setFillsViewportHeight(true);
         
-        // Set column widths
-        productTable.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
-        productTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Name
-        productTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Price
-        productTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Quantity
-        productTable.getColumnModel().getColumn(4).setPreferredWidth(150); // Barcode
-        productTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Category
-        productTable.getColumnModel().getColumn(6).setPreferredWidth(100); // Image
+        // Style table header with a different color than the buttons
+        JTableHeader header = productTable.getTableHeader();
+        
+        // Use a deeper blue color for headers to distinguish from buttons
+        final Color HEADER_COLOR = new Color(25, 79, 115);
+        
+        // Make header taller
+        header.setPreferredSize(new Dimension(header.getWidth(), 45)); // Increased from default
+        
+        // Important: Set custom header renderer with the new color
+        header.setDefaultRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                         boolean isSelected, boolean hasFocus,
+                                                         int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+                label.setBackground(HEADER_COLOR);
+                label.setForeground(Color.WHITE);
+                label.setFont(new Font("Segoe UI", Font.BOLD, 15));
+                label.setHorizontalAlignment(JLabel.CENTER);
+                // Add more vertical padding
+                label.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 2, 1, BORDER_COLOR),
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5) // Increased padding
+                ));
+                label.setOpaque(true);
+                return label;
+            }
+        });
 
-        // Add table to scroll pane
+        // Alternate row colors and center align some columns
+        productTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                         boolean isSelected, boolean hasFocus,
+                                                         int row, int column) {
+                Component c = super.getTableCellRendererComponent(
+                    table, value, isSelected, false, row, column);
+                
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 247, 250));
+                }
+                
+                // Center align ID, Price, Quantity columns
+                setHorizontalAlignment(column == 0 || column == 2 || column == 3 ? 
+                                      SwingConstants.CENTER : SwingConstants.LEFT);
+                
+                // Add padding
+                setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                
+                return c;
+            }
+        });
+        
+        // Set column widths (increase for better visibility)
+        productTable.getColumnModel().getColumn(0).setPreferredWidth(80);  // ID
+        productTable.getColumnModel().getColumn(1).setPreferredWidth(260); // Tên sản phẩm
+        productTable.getColumnModel().getColumn(2).setPreferredWidth(140); // Giá
+        productTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Số lượng
+        productTable.getColumnModel().getColumn(4).setPreferredWidth(180); // Mã vạch
+        productTable.getColumnModel().getColumn(5).setPreferredWidth(160); // Danh mục
+        productTable.getColumnModel().getColumn(6).setPreferredWidth(120); // Hình ảnh
+
+        // Add table to scroll pane with styling
         JScrollPane scrollPane = new JScrollPane(productTable);
-        scrollPane.setPreferredSize(new Dimension(800, 400));
+        scrollPane.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setPreferredSize(new Dimension(800, 500)); // Make table bigger
 
-        // Create pagination panel
-        JPanel paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton prevButton = new JButton("Trước");
-        JButton nextButton = new JButton("Sau");
+        // Create styled pagination panel
+        JPanel paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        paginationPanel.setBackground(BACKGROUND_COLOR);
+        paginationPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
+        
+        JButton prevButton = createStyledButton("« Trước", SECONDARY_COLOR, LIGHT_TEXT);
+        JButton nextButton = createStyledButton("Sau »", SECONDARY_COLOR, LIGHT_TEXT);
+        
         pageSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 1, 1));
+        pageSpinner.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        pageSpinner.setPreferredSize(new Dimension(60, 35));
+        
         totalPagesLabel = new JLabel(" / 1");
+        totalPagesLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        totalPagesLabel.setForeground(TEXT_COLOR);
+        
+        JLabel pageInfoLabel = new JLabel("Trang:");
+        pageInfoLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        pageInfoLabel.setForeground(TEXT_COLOR);
         
         paginationPanel.add(prevButton);
+        paginationPanel.add(pageInfoLabel);
         paginationPanel.add(pageSpinner);
         paginationPanel.add(totalPagesLabel);
         paginationPanel.add(nextButton);
 
         // Add components to panel
+        add(headerPanel, BorderLayout.NORTH);
         add(topPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         add(paginationPanel, BorderLayout.SOUTH);
+        
+        // Move header to top
+        remove(headerPanel);
+        JPanel topContainer = new JPanel(new BorderLayout());
+        topContainer.setBackground(BACKGROUND_COLOR);
+        topContainer.add(headerPanel, BorderLayout.NORTH);
+        topContainer.add(topPanel, BorderLayout.SOUTH);
+        add(topContainer, BorderLayout.NORTH);
 
         // Add action listeners
         addButton.addActionListener(e -> showAddProductDialog());
@@ -167,13 +309,6 @@ public class AdProductPanel extends javax.swing.JPanel {
             loadProducts();
         });
         
-        categoryFilter.addActionListener(e -> {
-            currentCategory = (String) categoryFilter.getSelectedItem();
-            currentPage = 1;
-            pageSpinner.setValue(1);
-            loadProducts();
-        });
-        
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             public void changedUpdate(DocumentEvent e) { filterProducts(); }
             public void removeUpdate(DocumentEvent e) { filterProducts(); }
@@ -188,20 +323,44 @@ public class AdProductPanel extends javax.swing.JPanel {
         });
     }
 
-    private void loadProducts() {
-        // Clear existing data
-        tableModel.setRowCount(0);
+    // Helper method to create consistently styled buttons
+    private JButton createStyledButton(String text, Color bgColor, Color fgColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (getModel().isPressed()) {
+                    g.setColor(bgColor.darker());
+                } else if (getModel().isRollover()) {
+                    g.setColor(bgColor.brighter());
+                } else {
+                    g.setColor(bgColor);
+                }
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
+        button.setForeground(fgColor);
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
 
-        // Get products from controller with pagination and filters
-        List<Product> products = productController.getProducts(currentPage, pageSize, currentCategory, currentSearch);
-        int totalProducts = productController.countProducts(currentCategory, currentSearch);
+    private void loadProducts() {
+        tableModel.setRowCount(0);
+        List<Product> products = productController.getProducts(currentPage, pageSize, null, currentSearch);
+        int totalProducts = productController.countProducts(null, currentSearch);
         totalPages = (int) Math.ceil((double) totalProducts / pageSize);
-        
-        // Update pagination controls
+        if (totalPages < 1) totalPages = 1;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
         pageSpinner.setModel(new SpinnerNumberModel(currentPage, 1, totalPages, 1));
         totalPagesLabel.setText(" / " + totalPages);
 
-        // Add products to table
         for (Product product : products) {
             Object[] row = {
                 product.getProductId(),

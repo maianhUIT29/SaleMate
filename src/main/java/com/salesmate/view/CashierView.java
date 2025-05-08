@@ -101,7 +101,7 @@ public class CashierView extends javax.swing.JFrame {
         panelInvoicesContainer = new javax.swing.JPanel();
         cashierInvoicesPanel2 = new com.salesmate.component.CashierInvoicesPanel();
         panelAccountContainer = new javax.swing.JPanel();
-        cashierAccount3 = new com.salesmate.component.CashierAccount();
+        cashierAccount1 = new com.salesmate.component.CashierAccount();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(204, 255, 255));
@@ -165,17 +165,17 @@ public class CashierView extends javax.swing.JFrame {
         panelAccountContainer.setLayout(panelAccountContainerLayout);
         panelAccountContainerLayout.setHorizontalGroup(
             panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelAccountContainerLayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.PREFERRED_SIZE, 929, Short.MAX_VALUE)
-                .addGap(20, 20, 20))
+            .addGroup(panelAccountContainerLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(cashierAccount1, javax.swing.GroupLayout.PREFERRED_SIZE, 957, Short.MAX_VALUE)
+                .addContainerGap())
         );
         panelAccountContainerLayout.setVerticalGroup(
             panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelAccountContainerLayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(cashierAccount3, javax.swing.GroupLayout.DEFAULT_SIZE, 455, Short.MAX_VALUE)
-                .addContainerGap())
+                .addContainerGap()
+                .addComponent(cashierAccount1, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
+                .addGap(22, 22, 22))
         );
 
         tpCashier.addTab("Tài Khoản", panelAccountContainer);
@@ -233,7 +233,7 @@ public class CashierView extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel CashierViewContainer;
     private javax.swing.JPanel PanelSale;
-    private com.salesmate.component.CashierAccount cashierAccount3;
+    private com.salesmate.component.CashierAccount cashierAccount1;
     private com.salesmate.component.CashierHeader cashierHeader;
     private com.salesmate.component.CashierInvoicesPanel cashierInvoicesPanel2;
     private com.salesmate.component.CheckoutPanel checkoutPanel2;
