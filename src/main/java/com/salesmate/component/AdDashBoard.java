@@ -16,13 +16,18 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -41,8 +46,8 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.ui.TextAnchor;
 
+import com.salesmate.controller.DetailController;
 import com.salesmate.controller.InvoiceController;
 import com.salesmate.controller.ProductController;
 import com.salesmate.controller.UserController;
@@ -56,6 +61,7 @@ public class AdDashBoard extends javax.swing.JPanel {
     private InvoiceController invoiceController;
     private ProductController productController;
     private UserController userController;
+    private DetailController detailController = new DetailController();
     
     // Statistics panels
     private JPanel employeePanel;
@@ -856,8 +862,8 @@ public class AdDashBoard extends javax.swing.JPanel {
         
         // Create table with data
         List<Map<String, Object>> topInvoices = invoiceController.getTopInvoices(5);
-        String[] columns = {"Mã hóa đơn", "Người lập hóa đơn", "Tổng tiền", "Ngày tạo"};
-        Object[][] data = new Object[topInvoices.size()][4];
+        String[] columns = {"Mã hóa đơn", "Người lập hóa đơn", "Tổng tiền", "Ngày tạo", "Chi tiết"};
+        Object[][] data = new Object[topInvoices.size()][5];
         
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy");
@@ -865,17 +871,29 @@ public class AdDashBoard extends javax.swing.JPanel {
         for (int i = 0; i < topInvoices.size(); i++) {
             Map<String, Object> invoice = topInvoices.get(i);
             data[i][0] = invoice.get("invoice_id");
-            data[i][1] = invoice.get("users_id");
+            data[i][1] = invoice.get("username");
             
             BigDecimal amount = (BigDecimal) invoice.get("total_amount");
             data[i][2] = formatter.format(amount);
             
             java.sql.Date date = (java.sql.Date) invoice.get("created_at");
             data[i][3] = dateFormat.format(date);
+            data[i][4] = "Xem chi tiết";
         }
         
         JTable invoiceTable = new JTable(data, columns);
         styleTable(invoiceTable);
+        
+        // Add button renderer and editor for the last column
+        invoiceTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
+        invoiceTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(invoiceTable, this));
+        
+        // Set column widths
+        invoiceTable.getColumnModel().getColumn(0).setPreferredWidth(80);  // Mã hóa đơn
+        invoiceTable.getColumnModel().getColumn(1).setPreferredWidth(150); // Người lập
+        invoiceTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Tổng tiền
+        invoiceTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Ngày tạo
+        invoiceTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Chi tiết
         
         JScrollPane invoiceScroll = new JScrollPane(invoiceTable);
         invoiceScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -1049,4 +1067,198 @@ public class AdDashBoard extends javax.swing.JPanel {
     private javax.swing.JScrollPane spAdmin;
     // End of variables declaration//GEN-END:variables
 
+    // Hiển thị dialog chi tiết hóa đơn
+    public void showInvoiceDetailsDialog(int invoiceId) {
+        java.util.List<com.salesmate.model.Detail> details = detailController.getDetailsByInvoiceId(invoiceId);
+        if (details == null || details.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Không có chi tiết cho hóa đơn #" + invoiceId, 
+                "Thông báo", 
+                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Tạo JDialog - Sửa lỗi constructor không phù hợp
+        JDialog dialog;
+        Component parent = SwingUtilities.getWindowAncestor(this);
+        if (parent instanceof JFrame) {
+            dialog = new JDialog((JFrame)parent, "Chi tiết hóa đơn #" + invoiceId, true);
+        } else if (parent instanceof JDialog) {
+            dialog = new JDialog((JDialog)parent, "Chi tiết hóa đơn #" + invoiceId, true);
+        } else {
+            dialog = new JDialog(); // Fallback nếu không tìm thấy parent phù hợp
+            dialog.setTitle("Chi tiết hóa đơn #" + invoiceId);
+            dialog.setModal(true);
+        }
+        
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.getContentPane().setBackground(BACKGROUND_COLOR);
+        
+        // Panel title
+        JPanel titlePanel = new JPanel();
+        titlePanel.setBackground(PRIMARY_COLOR);
+        titlePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        JLabel titleLabel = new JLabel("Chi tiết hóa đơn #" + invoiceId);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titleLabel.setForeground(Color.WHITE);
+        titlePanel.add(titleLabel);
+        
+        // Tạo bảng chi tiết
+        String[] columns = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá", "Thành tiền"};
+        Object[][] data = new Object[details.size()][5];
+        java.text.NumberFormat formatter = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("vi", "VN"));
+        BigDecimal invoiceTotal = BigDecimal.ZERO;
+        
+        // Lấy thông tin chi tiết sản phẩm và tính tổng tiền
+        for (int i = 0; i < details.size(); i++) {
+            com.salesmate.model.Detail d = details.get(i);
+            data[i][0] = d.getProductId();
+            String productName = productController.getProductNameById(d.getProductId());
+            System.out.println("ProductId: " + d.getProductId() + ", Name: " + productName);
+            data[i][1] = productName != null ? productName : "Không xác định";
+            data[i][2] = d.getQuantity();
+            data[i][3] = formatter.format(d.getPrice());
+            data[i][4] = formatter.format(d.getTotal());
+            invoiceTotal = invoiceTotal.add(d.getTotal());
+        }
+        
+        JTable table = new JTable(data, columns);
+        styleTable(table); // Sử dụng phương thức có sẵn để styling bảng
+        
+        // Đặt kích thước cột
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);  // Mã SP
+        table.getColumnModel().getColumn(1).setPreferredWidth(200); // Tên sản phẩm
+        table.getColumnModel().getColumn(2).setPreferredWidth(60);  // Số lượng
+        table.getColumnModel().getColumn(3).setPreferredWidth(100); // Đơn giá
+        table.getColumnModel().getColumn(4).setPreferredWidth(120); // Thành tiền
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        
+        // Thông tin tổng tiền
+        JPanel summaryPanel = new JPanel();
+        summaryPanel.setBackground(CARD_COLOR);
+        summaryPanel.setBorder(new CompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER_COLOR),
+            BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
+        summaryPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        
+        JLabel totalLabel = new JLabel("Tổng tiền: " + formatter.format(invoiceTotal));
+        totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        totalLabel.setForeground(new Color(46, 204, 113));
+        summaryPanel.add(totalLabel);
+        
+        // Nút đóng
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(CARD_COLOR);
+        JButton closeButton = createStyledButton("Đóng", PRIMARY_COLOR, Color.WHITE);
+        closeButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(closeButton);
+        
+        // Thêm các components vào dialog
+        dialog.add(titlePanel, BorderLayout.NORTH);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        
+        // Panel phía nam chứa cả summary và button
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.setBackground(CARD_COLOR);
+        southPanel.add(summaryPanel, BorderLayout.NORTH);
+        southPanel.add(buttonPanel, BorderLayout.CENTER);
+        dialog.add(southPanel, BorderLayout.SOUTH);
+        
+        // Đặt kích thước và vị trí
+        dialog.setSize(600, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setVisible(true);
+    }
+}
+
+// 1. Renderer cho nút
+class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
+    public ButtonRenderer() {
+        setOpaque(true);
+        setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        setBackground(new Color(41, 128, 185));
+        setForeground(Color.WHITE);
+        setFocusPainted(false);
+        setBorderPainted(false);
+        setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    }
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        setText((value == null) ? "Xem chi tiết" : value.toString());
+        setBackground(new Color(41, 128, 185));
+        setForeground(Color.WHITE);
+        setOpaque(true);
+        if (isSelected) {
+            setBackground(new Color(31, 97, 141)); // Đậm hơn khi chọn
+        }
+        return this;
+    }
+}
+
+// 2. Editor cho nút
+class ButtonEditor extends DefaultCellEditor {
+    private JButton button;
+    private String label;
+    private boolean clicked;
+    private JTable table;
+    private int row;
+    private AdDashBoard parent;
+
+    public ButtonEditor(JTable table, AdDashBoard parent) {
+        super(new JTextField());
+        this.table = table;
+        this.parent = parent;
+        button = new JButton();
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        button.setBackground(new Color(41, 128, 185));
+        button.setForeground(Color.WHITE);
+        button.setOpaque(true);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        button.addActionListener(e -> {
+            fireEditingStopped();
+        });
+    }
+
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected, int row, int column) {
+        this.row = row;
+        label = (value == null) ? "Xem chi tiết" : value.toString();
+        button.setText(label);
+        clicked = true;
+        return button;
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+        if (clicked) {
+            Object invoiceId = table.getValueAt(row, 0);
+            if (invoiceId instanceof Integer) {
+                parent.showInvoiceDetailsDialog((Integer) invoiceId);
+            } else if (invoiceId instanceof String) {
+                try {
+                    int id = Integer.parseInt(invoiceId.toString());
+                    parent.showInvoiceDetailsDialog(id);
+                } catch (NumberFormatException e) {
+                    System.err.println("Không thể chuyển đổi ID hóa đơn: " + invoiceId);
+                }
+            }
+        }
+        clicked = false;
+        return label;
+    }
+
+    @Override
+    public boolean stopCellEditing() {
+        clicked = false;
+        return super.stopCellEditing();
+    }
 }

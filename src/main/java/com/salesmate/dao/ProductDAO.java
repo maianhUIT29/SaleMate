@@ -301,4 +301,26 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         return result;
     }
 
+    // Add this method to get product name by ID
+    public String getProductNameById(int productId) {
+        String productName = null;
+        String query = "SELECT product_name FROM products WHERE product_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                productName = rs.getString("product_name");
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error fetching product name: " + e.getMessage());
+        }
+        
+        return productName;
+    }
+
 }

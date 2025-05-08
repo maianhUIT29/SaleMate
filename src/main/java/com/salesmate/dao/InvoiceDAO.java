@@ -15,8 +15,18 @@ import java.util.Map;
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.ChartDataModel;
 import com.salesmate.model.Invoice;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTextField;
+import com.salesmate.model.Detail;
+import com.salesmate.dao.DetailDAO;
+import com.salesmate.controller.DetailController;
+import com.salesmate.dao.ProductDAO;
 
 public class InvoiceDAO {
+
+    private DetailDAO detailDAO = new DetailDAO();
+    private DetailController detailController = new DetailController();
+    private ProductDAO productDAO = new ProductDAO();
 
     // Tạo invoice mới
     public boolean createInvoice(Invoice invoice) {
@@ -516,22 +526,21 @@ public class InvoiceDAO {
     }
 
     // Top invoices by value
-    public List<Map<String, Object>> getTopInvoices(int topN) {
+    public List<Map<String, Object>> getTopInvoices(int n) {
         List<Map<String, Object>> result = new ArrayList<>();
-        String sql = "SELECT invoice_id, users_id, total_amount, created_at " +
-                     "FROM invoice WHERE payment_status = 'Paid' " +
-                     "ORDER BY total_amount DESC FETCH FIRST ? ROWS ONLY";
+        String sql = "SELECT i.invoice_id, u.username, i.total_amount, i.created_at FROM invoice i JOIN users u ON i.users_id = u.users_id WHERE i.payment_status = 'Paid' ORDER BY i.total_amount DESC FETCH FIRST ? ROWS ONLY";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, topN);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> row = new HashMap<>();
-                row.put("invoice_id", rs.getInt("invoice_id"));
-                row.put("users_id", rs.getInt("users_id"));
-                row.put("total_amount", rs.getBigDecimal("total_amount"));
-                row.put("created_at", rs.getDate("created_at"));
-                result.add(row);
+            ps.setInt(1, n);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("invoice_id", rs.getInt("invoice_id"));
+                    map.put("username", rs.getString("username"));
+                    map.put("total_amount", rs.getBigDecimal("total_amount"));
+                    map.put("created_at", rs.getDate("created_at"));
+                    result.add(map);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -643,5 +652,26 @@ public class InvoiceDAO {
             result.add(new ChartDataModel("Tuần " + w, revenue));
         }
         return result;
+    }
+
+    public List<Detail> getInvoiceDetails(int invoiceId) {
+        return detailDAO.getDetailsByInvoiceId(invoiceId);
+    }
+
+    public String getProductNameById(int productId) {
+        String productName = null;
+        String query = "SELECT product_name FROM product WHERE product_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                productName = rs.getString("product_name");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching product name: " + e.getMessage());
+        }
+        return productName;
     }
 }
