@@ -1,235 +1,159 @@
 package com.salesmate.controller;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.salesmate.dao.InvoiceDAO;
+import com.salesmate.dao.PaymentDAO;
 import com.salesmate.dao.UserDAO;
-import com.salesmate.model.Invoice;
 import com.salesmate.model.ChartDataModel;
+import com.salesmate.model.Invoice;
 
 public class InvoiceController {
 
-    private final InvoiceDAO invoiceDAO;
-    private final UserDAO userDAO;
+    private final InvoiceDAO invoiceDAO = new InvoiceDAO();
+    private final UserDAO userDAO = new UserDAO();
+    private final PaymentDAO paymentDAO = new PaymentDAO();
 
-    public InvoiceController() {
-        this.invoiceDAO = new InvoiceDAO();
-        this.userDAO = new UserDAO();
-    }
-
-    // Tạo hóa đơn, trả về ID của hóa đơn vừa tạo
     public void saveInvoice(Invoice invoice) {
-        // Validate that the user exists before saving
         if (userDAO.getUserById(invoice.getUsersId()) == null) {
             throw new IllegalArgumentException("Invalid users_id: User does not exist");
         }
-
-        // Validate other required fields
         if (invoice.getTotal() == null || invoice.getTotal().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Total amount must be non-negative");
         }
-
         invoiceDAO.saveInvoice(invoice);
     }
 
     public boolean addInvoice(Invoice invoice) {
         try {
-            // Changed saveInvoice to createInvoice
             return invoiceDAO.createInvoice(invoice);
         } catch (Exception e) {
-            e.printStackTrace();
+            logError(e);
             return false;
         }
     }
 
-    // Lấy hóa đơn theo ID
     public Invoice getInvoiceById(int id) {
-        try {
-            return invoiceDAO.getInvoiceById(id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return handleException(() -> invoiceDAO.getInvoiceById(id));
     }
 
-    // Lấy tất cả hóa đơn
     public List<Invoice> getAllInvoices() {
-        try {
-            return invoiceDAO.getAllInvoices();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return handleException(invoiceDAO::getAllInvoices);
     }
 
-    // Cập nhật hóa đơn
     public boolean updateInvoice(Invoice invoice) {
-        try {
-            return invoiceDAO.updateInvoice(invoice);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return handleException(() -> invoiceDAO.updateInvoice(invoice));
     }
 
-    // Xóa hóa đơn theo ID
     public boolean deleteInvoice(int id) {
-        try {
-            return invoiceDAO.deleteInvoice(id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return handleException(() -> invoiceDAO.deleteInvoice(id));
     }
 
-    // Lấy tất cả hóa đơn của một người dùng
     public List<Invoice> getInvoicesByUserId(int userId) {
-        try {
-            return invoiceDAO.getInvoicesByUserId(userId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return handleException(() -> invoiceDAO.getInvoicesByUserId(userId));
     }
 
-    // Lấy tất cả hóa đơn trong 7 ngày gần đây
     public List<Invoice> getInvoicesLast7Days() {
-        try {
-            return invoiceDAO.getInvoicesLast7Days();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return handleException(invoiceDAO::getInvoicesLast7Days);
     }
 
-    // Đếm số lượng hóa đơn
     public int countInvoices() {
-        try {
-            return invoiceDAO.countInvoices();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0; // Return 0 if there's an error
-        }
+        return handleException(invoiceDAO::countInvoices, 0);
     }
 
-    // Tính doanh thu tháng hiện tại
-
-    /**
-     * Trả về tổng doanh thu tháng hiện tại.
-     */
     public BigDecimal getCurrentMonthRevenue() {
-        return invoiceDAO.getRevenueForCurrentMonth();
+        return handleException(invoiceDAO::getRevenueForCurrentMonth, BigDecimal.ZERO);
     }
 
-    /**
-     * Trả về danh sách doanh thu theo ngày trong tháng hiện tại
-     * để vẽ biểu đồ line chart.
-     */
     public List<ChartDataModel> getDailyRevenue() {
-        return invoiceDAO.getDailyRevenue();
+        return handleException(invoiceDAO::getDailyRevenue);
     }
 
-    /* Gets invoices from the last N days */
     public List<Invoice> getInvoicesLastNDays(int days) {
-        try {
-            return invoiceDAO.getInvoicesLastNDays(days);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
+        return handleException(() -> invoiceDAO.getInvoicesLastNDays(days));
     }
 
-    /**
-     * Gets the total revenue for today
-     */
     public BigDecimal getTodayRevenue() {
-        try {
-            return invoiceDAO.getTodayRevenue();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return BigDecimal.ZERO;
-        }
+        return handleException(invoiceDAO::getTodayRevenue, BigDecimal.ZERO);
     }
 
-    /**
-     * Gets the weekly revenue data for the chart
-     */
-  
-
-    /**
-     * Gets the monthly revenue data for the chart
-     */
- 
-
-    /**
-     * Gets yearly revenue data for the chart
-     */
     public List<ChartDataModel> getYearlyRevenue() {
-        return invoiceDAO.getYearlyRevenue();
+        return handleException(invoiceDAO::getYearlyRevenue);
     }
 
-    /**
-     * Gets monthly revenue data for a specific year
-     */
     public List<ChartDataModel> getMonthlyRevenueByYear(int year) {
-        return invoiceDAO.getMonthlyRevenueByYear(year);
+        return handleException(() -> invoiceDAO.getMonthlyRevenueByYear(year));
     }
 
-    /**
-     * Gets weekly revenue data for current month
-     */
     public List<ChartDataModel> getWeeklyRevenueForCurrentMonth() {
-        return invoiceDAO.getWeeklyRevenueForCurrentMonth();
+        return handleException(invoiceDAO::getWeeklyRevenueForCurrentMonth);
     }
 
-    /**
-     * Gets list of available years for filtering
-     */
     public List<Integer> getAvailableYears() {
-        return invoiceDAO.getAvailableYears();
+        return handleException(invoiceDAO::getAvailableYears);
     }
 
-    // Add new methods for dashboard
     public List<Map<String, Object>> getTopCustomersByRevenue(int topN) {
-        return invoiceDAO.getTopCustomersByRevenue(topN);
-    }
-    public List<Map<String, Object>> getTopInvoices(int topN) {
-        return invoiceDAO.getTopInvoices(topN);
-    }
-    public List<ChartDataModel> getInvoiceStatusRatio() {
-        return invoiceDAO.getInvoiceStatusRatio();
+        return handleException(() -> invoiceDAO.getTopCustomersByRevenue(topN));
     }
 
-    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethod() {
-        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
-        return dao.getInvoiceCountByPaymentMethod();
+    public List<Map<String, Object>> getTopInvoices(int topN) {
+        return handleException(() -> invoiceDAO.getTopInvoices(topN));
     }
-    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethodForYear(int year) {
-        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
-        return dao.getInvoiceCountByPaymentMethodForYear(year);
+
+    public List<ChartDataModel> getInvoiceStatusRatio() {
+        return handleException(invoiceDAO::getInvoiceStatusRatio);
     }
-    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethodForMonth(int year, int month) {
-        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
-        return dao.getInvoiceCountByPaymentMethodForMonth(year, month);
+
+    public List<ChartDataModel> getInvoiceCountByPaymentMethod() {
+        return handleException(paymentDAO::getInvoiceCountByPaymentMethod);
     }
-    public java.util.List<com.salesmate.model.ChartDataModel> getInvoiceCountByPaymentMethodForWeek(int year, int month) {
-        com.salesmate.dao.PaymentDAO dao = new com.salesmate.dao.PaymentDAO();
-        return dao.getInvoiceCountByPaymentMethodForWeek(year, month);
+
+    public List<ChartDataModel> getInvoiceCountByPaymentMethodForYear(int year) {
+        return handleException(() -> paymentDAO.getInvoiceCountByPaymentMethodForYear(year));
+    }
+
+    public List<ChartDataModel> getInvoiceCountByPaymentMethodForMonth(int year, int month) {
+        return handleException(() -> paymentDAO.getInvoiceCountByPaymentMethodForMonth(year, month));
+    }
+
+    public List<ChartDataModel> getInvoiceCountByPaymentMethodForWeek(int year, int month) {
+        return handleException(() -> paymentDAO.getInvoiceCountByPaymentMethodForWeek(year, month));
     }
 
     public List<Map<String, Object>> getTopEmployeesByRevenue(int topN) {
-        return invoiceDAO.getTopEmployeesByRevenue(topN);
+        return handleException(() -> invoiceDAO.getTopEmployeesByRevenue(topN));
     }
 
-    public java.math.BigDecimal getTotalRevenue() {
-        return invoiceDAO.getTotalRevenue();
+    public BigDecimal getTotalRevenue() {
+        return handleException(invoiceDAO::getTotalRevenue, BigDecimal.ZERO);
     }
 
-    public java.util.List<com.salesmate.model.ChartDataModel> getWeeklyRevenueByYear(int year) {
-        return invoiceDAO.getWeeklyRevenueByYear(year);
+    public List<ChartDataModel> getWeeklyRevenueByYear(int year) {
+        return handleException(() -> invoiceDAO.getWeeklyRevenueByYear(year));
     }
 
+    private void logError(Exception e) {
+        e.printStackTrace(); // Replace with proper logging in production
+    }
+
+    private <T> T handleException(SupplierWithException<T> supplier) {
+        return handleException(supplier, null);
+    }
+
+    private <T> T handleException(SupplierWithException<T> supplier, T defaultValue) {
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            logError(e);
+            return defaultValue;
+        }
+    }
+
+    @FunctionalInterface
+    private interface SupplierWithException<T> {
+        T get() throws Exception;
+    }
 }

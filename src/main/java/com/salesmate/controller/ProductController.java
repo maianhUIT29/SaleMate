@@ -162,4 +162,12 @@ public class ProductController {
         return productDAO.getProductsLowStockPrediction(thresholdDays);
     }
 
+    public List<Product> getProducts(int page, int pageSize, String category, String search) {
+        return productDAO.getProducts(page, pageSize, category, search);
+    }
+
+    public int countProducts(String category, String search) {
+        return productDAO.countProducts(category, search);
+    }
+
 }
