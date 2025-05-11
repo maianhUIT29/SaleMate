@@ -1,5 +1,6 @@
 package com.salesmate.controller;
 
+import com.salesmate.dao.DetailDAO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ public class InvoiceController {
     private final InvoiceDAO invoiceDAO = new InvoiceDAO();
     private final UserDAO userDAO = new UserDAO();
     private final PaymentDAO paymentDAO = new PaymentDAO();
+    private final DetailDAO detailDAO   = new DetailDAO();  // ← thêm dòng này
 
     public void saveInvoice(Invoice invoice) {
         if (userDAO.getUserById(invoice.getUsersId()) == null) {
@@ -47,9 +49,15 @@ public class InvoiceController {
         return handleException(() -> invoiceDAO.updateInvoice(invoice));
     }
 
-    public boolean deleteInvoice(int id) {
-        return handleException(() -> invoiceDAO.deleteInvoice(id));
-    }
+ public boolean deleteInvoice(int id) {
+    return handleException(() -> {
+        // 1) Xoá tất cả detail trước
+        detailDAO.deleteByInvoiceId(id);
+        // 2) Xoá chính hóa đơn
+        return invoiceDAO.deleteInvoice(id);
+    }, false);
+}
+
 
     public List<Invoice> getInvoicesByUserId(int userId) {
         return handleException(() -> invoiceDAO.getInvoicesByUserId(userId));
@@ -156,4 +164,5 @@ public class InvoiceController {
     private interface SupplierWithException<T> {
         T get() throws Exception;
     }
+    
 }

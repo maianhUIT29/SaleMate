@@ -41,7 +41,7 @@ public class InvoiceDAO {
     // Lấy tất cả hóa đơn
     public List<Invoice> getAllInvoices() {
         List<Invoice> invoices = new ArrayList<>();
-        String sql = "SELECT * FROM invoices";
+        String sql = "SELECT * FROM invoice";
         try (Connection connection = DBConnection.getConnection(); Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Invoice invoice = new Invoice();
@@ -95,16 +95,40 @@ public class InvoiceDAO {
     }
 
     // Delete
-    public boolean deleteInvoice(int id) {
-        String sql = "DELETE FROM invoice WHERE invoice_id = ?";
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+   // Trong com.salesmate.dao.InvoiceDAO
+
+/**
+ * Xóa một hóa đơn kèm toàn bộ chi tiết của nó.
+ */
+public boolean deleteInvoice(int invoiceId) {
+    String deleteDetailsSql = "DELETE FROM detail WHERE invoice_id = ?";
+    String deleteInvoiceSql = "DELETE FROM invoice WHERE invoice_id = ?";
+    try (Connection conn = DBConnection.getConnection()) {
+        conn.setAutoCommit(false);
+        // 1) Xóa detail
+        try (PreparedStatement ps = conn.prepareStatement(deleteDetailsSql)) {
+            ps.setInt(1, invoiceId);
+            ps.executeUpdate();
         }
+        // 2) Xóa invoice
+        int rows;
+        try (PreparedStatement ps = conn.prepareStatement(deleteInvoiceSql)) {
+            ps.setInt(1, invoiceId);
+            rows = ps.executeUpdate();
+        }
+        conn.commit();
+        return rows > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        // nếu lỗi rollback
+        try { DBConnection.getConnection().rollback(); } catch (Exception ex) { /*ignore*/ }
+        return false;
+    } finally {
+        // reset auto-commit để không ảnh hưởng các giao dịch sau
+        try { DBConnection.getConnection().setAutoCommit(true); } catch (Exception ex) { /*ignore*/ }
     }
+}
+
 
     // Get invoices by user ID
     public List<Invoice> getInvoicesByUserId(int userId) {
