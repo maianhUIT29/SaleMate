@@ -130,5 +130,112 @@ public class EmployeeDAO {
         Employee employee = getEmployeeById(employeeId);
         return employee != null ? employee.getAddress() : null;
     }
+// 1. Lấy danh sách phân trang & tìm kiếm (Oracle ROWNUM)
+public List<Employee> getEmployee(int page, int pageSize, String search) {
+    List<Employee> list = new ArrayList<>();
+    int offset = (page - 1) * pageSize;
+    String base =
+        "SELECT * FROM ( " +
+        "  SELECT a.*, ROWNUM rnum FROM ( " +
+        "    SELECT * FROM EMPLOYEE " +
+        (search != null && !search.isEmpty()
+            ? " WHERE UPPER(FIRST_NAME) LIKE ? OR UPPER(LAST_NAME) LIKE ? OR UPPER(ROLE) LIKE ?"
+            : "") +
+        "    ORDER BY EMPLOYEE_ID" +
+        "  ) a WHERE ROWNUM <= ? " +
+        ") WHERE rnum > ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(base)) {
+        int idx = 1;
+        if (search != null && !search.isEmpty()) {
+            String kw = "%" + search.toUpperCase() + "%";
+            stmt.setString(idx++, kw);
+            stmt.setString(idx++, kw);
+            stmt.setString(idx++, kw);
+        }
+        stmt.setInt(idx++, offset + pageSize);
+        stmt.setInt(idx, offset);
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Employee(
+                    rs.getInt("EMPLOYEE_ID"),
+                    rs.getString("FIRST_NAME"),
+                    rs.getString("LAST_NAME"),
+                    rs.getDate("BIRTH_DATE"),
+                    rs.getDate("HIRE_DATE"),
+                    rs.getString("PHONE"),
+                    rs.getString("ADDRESS"),
+                    rs.getString("EMERGENCY_CONTACT"),
+                    rs.getString("EMERGENCY_PHONE"),
+                    rs.getString("ROLE")
+                ));
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return list;
+}
+
+// 2. Đếm tổng nhân viên (có tìm kiếm)
+public int countEmployee(String search) {
+    String sql = "SELECT COUNT(*) FROM EMPLOYEE" +
+                 (search != null && !search.isEmpty()
+                     ? " WHERE UPPER(FIRST_NAME) LIKE ? OR UPPER(LAST_NAME) LIKE ? OR UPPER(ROLE) LIKE ?"
+                     : "");
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        if (search != null && !search.isEmpty()) {
+            String kw = "%" + search.toUpperCase() + "%";
+            stmt.setString(1, kw);
+            stmt.setString(2, kw);
+            stmt.setString(3, kw);
+        }
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+
+
+// 4. Thêm nhân viên mới (Oracle sequence)
+public boolean addEmployee(Employee e) {
+    String sql = "INSERT INTO EMPLOYEE " +
+                 "(EMPLOYEE_ID, FIRST_NAME, LAST_NAME, BIRTH_DATE, HIRE_DATE, PHONE, ADDRESS, EMERGENCY_CONTACT, EMERGENCY_PHONE, ROLE) " +
+                 "VALUES (EMPLOYEE_SEQ.NEXTVAL, ?,?,?,?,?,?,?,?,?)";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, e.getFirstName());
+        stmt.setString(2, e.getLastName());
+        stmt.setDate(3, new java.sql.Date(e.getBirthDate().getTime()));
+        stmt.setDate(4, new java.sql.Date(e.getHireDate().getTime()));
+        stmt.setString(5, e.getPhone());
+        stmt.setString(6, e.getAddress());
+        stmt.setString(7, e.getEmergencyContact());
+        stmt.setString(8, e.getEmergencyPhone());
+        stmt.setString(9, e.getRole());
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        return false;
+    }
+}
+
+// 5. Xóa nhân viên
+public boolean deleteEmployee(int employeeId) {
+    String sql = "DELETE FROM EMPLOYEE WHERE EMPLOYEE_ID = ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, employeeId);
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        return false;
+    }
+}
+
 
 }

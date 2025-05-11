@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.salesmate.configs.DBConnection;
 import com.salesmate.model.Detail;
+import java.sql.SQLException;
 
 public class DetailDAO {
 
@@ -115,6 +116,21 @@ public class DetailDAO {
         }
     }
 
+     // Xóa tất cả Detail theo invoice_id (dùng khi xoá hoá đơn)
+    public boolean deleteByInvoiceId(int invoiceId) {
+    String sql = "DELETE FROM DETAIL WHERE invoice_id = ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, invoiceId);
+        ps.executeUpdate();
+        return true;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+    
     // lấy tất cả sản phẩm của một hóa đơn
     public List<Detail> getDetailsByInvoiceId(int invoiceId) {
         List<Detail> details = new ArrayList<>();

@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.salesmate.dao.DetailDAO;
 import com.salesmate.model.Detail;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class DetailController {
     private final DetailDAO detailDAO;
@@ -32,8 +34,10 @@ public class DetailController {
         return detailDAO.deleteDetail(detailId);
     }
 
-    // Lấy tất cả chi tiết hóa đơn theo invoice_id
+ 
+
     public List<Detail> getDetailsByInvoiceId(int invoiceId) {
         return detailDAO.getDetailsByInvoiceId(invoiceId);
     }
+    
 }
