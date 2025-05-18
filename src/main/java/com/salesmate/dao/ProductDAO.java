@@ -16,15 +16,17 @@ public class ProductDAO {
 
     // CREATE a new product
     public boolean createProduct(Product product) {
-        String query = "INSERT INTO product (product_name, price, quantity, barcode, image) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO product (product_name, price, quantity, barcode, image, category) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, product.getProductName());
             stmt.setBigDecimal(2, product.getPrice());
             stmt.setInt(3, product.getQuantity());
             stmt.setString(4, product.getBarcode());
             stmt.setString(5, product.getImage());
+            stmt.setString(6, product.getCategory()); // Add category
 
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0; // If rows are affected, the insert was successful
@@ -37,7 +39,7 @@ public class ProductDAO {
 
     // Cập nhật sản phẩm
     public boolean updateProduct(Product product) {
-        String query = "UPDATE product SET product_name = ?, price = ?, quantity = ?, barcode = ?, image = ? WHERE product_id = ?";
+        String query = "UPDATE product SET product_name = ?, price = ?, quantity = ?, barcode = ?, image = ?, category = ? WHERE product_id = ?";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
 
@@ -46,7 +48,8 @@ public class ProductDAO {
             stmt.setInt(3, product.getQuantity());
             stmt.setString(4, product.getBarcode());
             stmt.setString(5, product.getImage());
-            stmt.setInt(6, product.getProductId());
+            stmt.setString(6, product.getCategory()); // Add category
+            stmt.setInt(7, product.getProductId());
 
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0; // If rows are affected, the update was successful
@@ -205,6 +208,49 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
             return rowsAffected > 0; // If rows are affected, the delete was successful
         } catch (SQLException e) {
             System.err.println("Error executing query: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Deletes multiple products from the database
+     * @param productIds Array of product IDs to be deleted
+     * @return true if all deletes were successful, false otherwise
+     */
+    public boolean deleteMultipleProducts(int[] productIds) {
+        String sql = "DELETE FROM product WHERE product_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (int id : productIds) {
+                    ps.setInt(1, id);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                conn.commit();
+                
+                // Check if all deletes were successful
+                for (int result : results) {
+                    if (result != 1) {
+                        return false;
+                    }
+                }
+                return true;
+                
+            } catch (SQLException e) {
+                conn.rollback();
+                System.err.println("Error deleting multiple products: " + e.getMessage());
+                e.printStackTrace();
+                return false;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            System.err.println("Database connection error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -419,6 +465,24 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public boolean updateProductCategory(int productId, String newCategory) {
+        String sql = "UPDATE product SET category = ? WHERE product_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, newCategory);
+            ps.setInt(2, productId);
+            
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating product category: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }
