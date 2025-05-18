@@ -20,6 +20,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -179,11 +181,11 @@ public class AdInvoicePanel extends JPanel {
         JComponent editor = pageSpinner.getEditor();
         JSpinner.DefaultEditor spinnerEditor = (JSpinner.DefaultEditor)editor;
         spinnerEditor.getTextField().setHorizontalAlignment(JTextField.CENTER);
-        spinnerEditor.getTextField().setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        pageSpinner.setPreferredSize(new Dimension(60, 35));
+        spinnerEditor.getTextField().setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        pageSpinner.setPreferredSize(new Dimension(70, 38));
         
         totalPagesLabel = new JLabel(" / 1");
-        totalPagesLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        totalPagesLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         totalPagesLabel.setForeground(TEXT_COLOR);
 
         // Table setup with modern styling
@@ -212,7 +214,7 @@ public class AdInvoicePanel extends JPanel {
         };
         
         invoiceTable.setRowHeight(46);
-        invoiceTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        invoiceTable.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         invoiceTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         invoiceTable.setAutoCreateRowSorter(true);
         invoiceTable.setShowGrid(false);
@@ -244,73 +246,28 @@ public class AdInvoicePanel extends JPanel {
         JPanel paginationPanel = createPaginationPanel();
         add(paginationPanel, BorderLayout.SOUTH);
 
-            // Add listeners
-            addBtn.addActionListener(e -> showAddInvoiceDialog());
-            editBtn.addActionListener(e -> showEditDialog());
-            deleteBtn.addActionListener(e -> deleteInvoice());
-            refreshBtn.addActionListener(e -> loadInvoices());
-            exportBtn.addActionListener(e -> exportToExcel());
-            importBtn.addActionListener(e -> importFromExcel());
-            
-            // Initial load
-            loadInvoices();
-        }
+        // Add listeners
+        addBtn.addActionListener(e -> showAddInvoiceDialog());
+        editBtn.addActionListener(e -> showEditDialog());
+        deleteBtn.addActionListener(e -> deleteInvoice());
+        refreshBtn.addActionListener(e -> loadInvoices());
+        exportBtn.addActionListener(e -> exportToExcel());
+        importBtn.addActionListener(e -> importFromExcel());
         
-        // Method to export the invoice data to Excel
-        private void exportToExcel() {
-            // Choose file location
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Lưu file Excel");
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
-            
-            if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
-                return; // User canceled
-            }
-            
-            File selectedFile = fileChooser.getSelectedFile();
-            if (!selectedFile.getName().toLowerCase().endsWith(".xlsx")) {
-                selectedFile = new File(selectedFile.getAbsolutePath() + ".xlsx");
-            }
-            
-            try {
-                ExcelExporter.exportToExcel(invoiceTable, selectedFile, true, null);
-                JOptionPane.showMessageDialog(this,
-                    "Xuất Excel thành công!\nFile được lưu tại: " + selectedFile.getAbsolutePath(),
-                    "Xuất thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Lỗi khi xuất Excel: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        }
+        // UI Manager settings to fix combo box rendering
+        UIManager.put("ComboBox.background", WHITE_COLOR);
+        UIManager.put("ComboBox.foreground", TEXT_COLOR);
+        UIManager.put("ComboBox.selectionBackground", PRIMARY_COLOR);
+        UIManager.put("ComboBox.selectionForeground", WHITE_COLOR);
+        UIManager.put("ComboBox.buttonBackground", WHITE_COLOR);
+        UIManager.put("ComboBox.buttonDarkShadow", BORDER_COLOR);
+        UIManager.put("ComboBox.buttonHighlight", WHITE_COLOR);
+        UIManager.put("ComboBox.buttonShadow", BORDER_COLOR);
+        UIManager.put("ComboBox.font", new Font("Segoe UI", Font.PLAIN, 16));
+        UIManager.put("ComboBox.rendererUseListColors", Boolean.FALSE);
         
-        // Method to import invoice data from Excel
-        private void importFromExcel() {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Chọn file Excel để nhập");
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
-            
-            if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-                return;
-            }
-            
-            File selectedFile = fileChooser.getSelectedFile();
-            
-            try {
-                ExcelImporter importer = new ExcelImporter();
-                // Here you would implement the actual import logic
-                JOptionPane.showMessageDialog(this,
-                    "Tính năng đang được phát triển",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Lỗi khi nhập Excel: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
+        // Initial load
+        loadInvoices();
     }
     
     private JPanel createFilterPanel() {
@@ -1998,15 +1955,27 @@ private void showErrorDialog(String message) {
     }
 
     private void showAddInvoiceDialog() {
-        // Create the main dialog
+        // Create the main dialog with increased size
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
                           "Thêm hóa đơn mới", true);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(CARD_COLOR);
         
-        // Header panel
-        JPanel dialogHeaderPanel = new JPanel();
-        dialogHeaderPanel.setBackground(HEADER_COLOR); // Use darker header color
+        // Header panel with gradient color
+        JPanel dialogHeaderPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(
+                    0, 0, new Color(41, 128, 185), // Blue
+                    getWidth(), 0, new Color(52, 152, 219) // Lighter blue
+                );
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        };
         dialogHeaderPanel.setLayout(new BorderLayout());
         dialogHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         
@@ -2026,11 +1995,19 @@ private void showErrorDialog(String message) {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.weightx = 0;
         
-        // Get list of employees instead of users
+        // Get list of employees
         List<Employee> employees = employeeController.getAllEmployees();
         
-        // Create employee selection combobox
+        // Create employee selection combobox with consistent styling
         JComboBox<String> employeeCombo = new JComboBox<>();
+        employeeCombo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        employeeCombo.setPreferredSize(new Dimension(200, 40));
+        employeeCombo.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(189, 195, 199)), // Lighter border
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        employeeCombo.setFocusable(false);
+        
         for (Employee emp : employees) {
             employeeCombo.addItem(emp.getEmployeeId() + ": " + emp.getFirstName() + " " + emp.getLastName());
         }
@@ -2039,21 +2016,45 @@ private void showErrorDialog(String message) {
             employeeCombo.setSelectedIndex(0);
         }
         
-        // Total amount field
+        // Total amount field with consistent styling
         JTextField totalField = new JTextField(10);
+        totalField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        totalField.setPreferredSize(new Dimension(200, 40));
+        totalField.setBorder(BorderFactory.createCompoundBorder(
+            new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         
-        // Payment status combo
+        // Payment status combo with consistent styling
         JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Paid", "Unpaid"});
+        statusCombo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        statusCombo.setPreferredSize(new Dimension(200, 40));
+        statusCombo.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(189, 195, 199)), // Lighter border
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        statusCombo.setFocusable(false);
         
-        // Date chooser for invoice date
+        // Date chooser for invoice date with consistent styling
         JDateChooser dateChooser = new JDateChooser(new Date());
         dateChooser.setDateFormatString("yyyy-MM-dd");
-        dateChooser.setPreferredSize(new Dimension(150, 30));
+        dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        dateChooser.setPreferredSize(new Dimension(200, 40));
+        // Style date editor
+        JTextField dateTextField = (JTextField) dateChooser.getDateEditor().getUiComponent();
+        dateTextField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        dateTextField.setBorder(BorderFactory.createCompoundBorder(
+            new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         
         // Add form components
         gbc.gridx = 0;
         gbc.gridy = 0;
-        formPanel.add(createFormLabel("Nhân viên:"), gbc);
+        JLabel employeeLabel = createFormLabel("Nhân viên:");
+        employeeLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        employeeLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+        formPanel.add(employeeLabel, gbc);
         
         gbc.gridx = 1;
         gbc.weightx = 1.0;
@@ -2062,7 +2063,10 @@ private void showErrorDialog(String message) {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
-        formPanel.add(createFormLabel("Tổng tiền:"), gbc);
+        JLabel totalLabel = createFormLabel("Tổng tiền:");
+        totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        totalLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+        formPanel.add(totalLabel, gbc);
         
         gbc.gridx = 1;
         gbc.weightx = 1.0;
@@ -2071,7 +2075,10 @@ private void showErrorDialog(String message) {
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
-        formPanel.add(createFormLabel("Trạng thái:"), gbc);
+        JLabel statusLabel = createFormLabel("Trạng thái:");
+        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        statusLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+        formPanel.add(statusLabel, gbc);
         
         gbc.gridx = 1;
         gbc.weightx = 1.0;
@@ -2080,7 +2087,10 @@ private void showErrorDialog(String message) {
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.weightx = 0;
-        formPanel.add(createFormLabel("Ngày tạo:"), gbc);
+        JLabel dateLabel = createFormLabel("Ngày tạo:");
+        dateLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        dateLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+        formPanel.add(dateLabel, gbc);
         
         gbc.gridx = 1;
         gbc.weightx = 1.0;
@@ -2090,19 +2100,21 @@ private void showErrorDialog(String message) {
         JPanel productsPanel = new JPanel(new BorderLayout());
         productsPanel.setBackground(CARD_COLOR);
         productsPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER_COLOR),
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(189, 195, 199)),
             BorderFactory.createEmptyBorder(20, 0, 0, 0)
         ));
         
         JLabel productsTitle = new JLabel("Sản phẩm");
         productsTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        productsTitle.setForeground(PRIMARY_COLOR);
+        productsTitle.setForeground(new Color(26, 188, 156)); // Turquoise
         
         JPanel productsTitlePanel = new JPanel(new BorderLayout());
         productsTitlePanel.setBackground(CARD_COLOR);
         productsTitlePanel.add(productsTitle, BorderLayout.WEST);
         
-        JButton addProductBtn = createStyledButton("Thêm sản phẩm", SECONDARY_COLOR);
+        JButton addProductBtn = createStyledButton("Thêm sản phẩm", new Color(46, 204, 113)); // Green
+        addProductBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        addProductBtn.setPreferredSize(new Dimension(150, 40));
         productsTitlePanel.add(addProductBtn, BorderLayout.EAST);
         
         productsPanel.add(productsTitlePanel, BorderLayout.NORTH);
@@ -2117,7 +2129,8 @@ private void showErrorDialog(String message) {
         };
         
         JTable productTable = new JTable(productModel);
-        productTable.setRowHeight(35);
+        productTable.setRowHeight(40);
+        productTable.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         styleModernTable(productTable);
         
         // Add delete button column
@@ -2136,12 +2149,25 @@ private void showErrorDialog(String message) {
             JDialog productDialog = new JDialog(dialog, "Thêm sản phẩm", true);
             productDialog.setLayout(new BorderLayout(10, 10));
             productDialog.getContentPane().setBackground(CARD_COLOR);
-            productDialog.setMinimumSize(new Dimension(500, 400));
+            productDialog.setMinimumSize(new Dimension(600, 450)); // Increase dialog size
             
-            // Header panel
-            JPanel headerPanel = new JPanel(new BorderLayout());
-            headerPanel.setBackground(PRIMARY_COLOR);
+            // Header panel with gradient
+            JPanel headerPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    GradientPaint gp = new GradientPaint(
+                        0, 0, new Color(26, 188, 156), // Turquoise
+                        getWidth(), 0, new Color(22, 160, 133) // Darker turquoise
+                    );
+                    g2d.setPaint(gp);
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                    g2d.dispose();
+                }
+            };
             headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+            headerPanel.setLayout(new BorderLayout());
             
             JLabel productTitleLabel = new JLabel("Thêm sản phẩm vào hóa đơn");
             productTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -2151,7 +2177,7 @@ private void showErrorDialog(String message) {
             // Main form panel
             JPanel productFormPanel = new JPanel(new GridBagLayout());
             productFormPanel.setBackground(CARD_COLOR);
-            productFormPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            productFormPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
             
             GridBagConstraints pgbc = new GridBagConstraints();
             pgbc.fill = GridBagConstraints.HORIZONTAL;
@@ -2159,54 +2185,64 @@ private void showErrorDialog(String message) {
             
             // Product search field with better styling
             JTextField productIdField = new JTextField(10);
-            productIdField.setPreferredSize(new Dimension(150, 35));
+            productIdField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            productIdField.setPreferredSize(new Dimension(150, 40));
             productIdField.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(BORDER_COLOR, 8),
+                new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
             ));
             
             // Search button
-            JButton searchBtn = createStyledButton("Tìm", PRIMARY_COLOR);
-            searchBtn.setPreferredSize(new Dimension(80, 35));
+            JButton searchBtn = createStyledButton("Tìm", new Color(52, 152, 219)); // Blue
+            searchBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            searchBtn.setPreferredSize(new Dimension(100, 40));
             
             // Product info fields with styling
             JTextField productNameField = new JTextField(20);
             productNameField.setEditable(false);
+            productNameField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
             productNameField.setBackground(new Color(245, 245, 245));
             productNameField.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(BORDER_COLOR, 8),
+                new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
             ));
+            productNameField.setPreferredSize(new Dimension(200, 40));
 
             // Price field
             JTextField priceField = new JTextField(10);
             priceField.setEditable(false);
+            priceField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
             priceField.setBackground(new Color(245, 245, 245));
             priceField.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(BORDER_COLOR, 8),
+                new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
             ));
+            priceField.setPreferredSize(new Dimension(200, 40));
 
             // Quantity spinner with modern look
             JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
-            quantitySpinner.setPreferredSize(new Dimension(100, 35));
+            quantitySpinner.setPreferredSize(new Dimension(200, 40));
             JSpinner.DefaultEditor spinnerEditor = (JSpinner.DefaultEditor) quantitySpinner.getEditor();
-            spinnerEditor.setBackground(Color.WHITE);
+            spinnerEditor.getTextField().setFont(new Font("Segoe UI", Font.PLAIN, 16));
             spinnerEditor.getTextField().setHorizontalAlignment(JTextField.CENTER);
 
             // Total field
             JTextField totalProductField = new JTextField(10);
             totalProductField.setEditable(false);
+            totalProductField.setFont(new Font("Segoe UI", Font.BOLD, 16));
             totalProductField.setBackground(new Color(245, 245, 245));
-            totalProductField.setFont(new Font("Segoe UI", Font.BOLD, 14));
             totalProductField.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(PRIMARY_COLOR, 8),
+                new RoundedBorder(new Color(26, 188, 156), 8), // Turquoise
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
             ));
+            totalProductField.setPreferredSize(new Dimension(200, 40));
 
             // Add components with labels
             pgbc.gridx = 0; pgbc.gridy = 0;
-            productFormPanel.add(createStyledLabel("Mã sản phẩm:"), pgbc);
+            JLabel pidLabel = createStyledLabel("Mã sản phẩm:");
+            pidLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            pidLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+            productFormPanel.add(pidLabel, pgbc);
             
             JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
             searchPanel.setBackground(CARD_COLOR);
@@ -2217,25 +2253,37 @@ private void showErrorDialog(String message) {
             productFormPanel.add(searchPanel, pgbc);
             
             pgbc.gridx = 0; pgbc.gridy = 1; pgbc.weightx = 0;
-            productFormPanel.add(createStyledLabel("Tên sản phẩm:"), pgbc);
+            JLabel pnameLabel = createStyledLabel("Tên sản phẩm:");
+            pnameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            pnameLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+            productFormPanel.add(pnameLabel, pgbc);
             
             pgbc.gridx = 1; pgbc.weightx = 1.0;
             productFormPanel.add(productNameField, pgbc);
             
             pgbc.gridx = 0; pgbc.gridy = 2; pgbc.weightx = 0;
-            productFormPanel.add(createStyledLabel("Đơn giá:"), pgbc);
+            JLabel priceLabel = createStyledLabel("Đơn giá:");
+            priceLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            priceLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+            productFormPanel.add(priceLabel, pgbc);
             
             pgbc.gridx = 1; pgbc.weightx = 1.0;
             productFormPanel.add(priceField, pgbc);
             
             pgbc.gridx = 0; pgbc.gridy = 3; pgbc.weightx = 0;
-            productFormPanel.add(createStyledLabel("Số lượng:"), pgbc);
+            JLabel qtyLabel = createStyledLabel("Số lượng:");
+            qtyLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            qtyLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+            productFormPanel.add(qtyLabel, pgbc);
             
             pgbc.gridx = 1; pgbc.weightx = 1.0;
             productFormPanel.add(quantitySpinner, pgbc);
             
             pgbc.gridx = 0; pgbc.gridy = 4; pgbc.weightx = 0;
-            productFormPanel.add(createStyledLabel("Thành tiền:"), pgbc);
+            JLabel totalLabel2 = createStyledLabel("Thành tiền:");
+            totalLabel2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            totalLabel2.setForeground(new Color(52, 73, 94)); // Dark blue
+            productFormPanel.add(totalLabel2, pgbc);
             
             pgbc.gridx = 1; pgbc.weightx = 1.0;
             productFormPanel.add(totalProductField, pgbc);
@@ -2245,8 +2293,13 @@ private void showErrorDialog(String message) {
             buttonPanel.setBackground(CARD_COLOR);
             buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-            JButton addToInvoiceBtn = createGradientButton("Thêm vào hóa đơn", PRIMARY_COLOR);
-            JButton cancelProductBtn = createGradientButton("Hủy", ACCENT_COLOR);
+            JButton addToInvoiceBtn = createGradientButton("Thêm vào hóa đơn", new Color(26, 188, 156)); // Turquoise
+            addToInvoiceBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            addToInvoiceBtn.setPreferredSize(new Dimension(180, 45));
+            
+            JButton cancelProductBtn = createGradientButton("Hủy", new Color(231, 76, 60)); // Red
+            cancelProductBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            cancelProductBtn.setPreferredSize(new Dimension(120, 45));
 
             buttonPanel.add(addToInvoiceBtn);
             buttonPanel.add(cancelProductBtn);
@@ -2300,26 +2353,65 @@ private void showErrorDialog(String message) {
                     BigDecimal price = new BigDecimal(priceField.getText());
                     BigDecimal total = new BigDecimal(totalProductField.getText());
                     
-                    // Add to model
-                    productModel.addRow(new Object[] {
-                        productId,
-                        productNameField.getText(),
-                        quantity,
-                        price,
-                        total,
-                        "Xóa"
-                    });
+                    // Check if product already exists in table
+                    boolean productExists = false;
+                    for (int row = 0; row < productModel.getRowCount(); row++) {
+                        int existingProductId = (int) productModel.getValueAt(row, 0);
+                        if (existingProductId == productId) {
+                            // Update existing product quantity and total
+                            int existingQuantity = (int) productModel.getValueAt(row, 2);
+                            int newQuantity = existingQuantity + quantity;
+                            
+                            BigDecimal newTotal = price.multiply(BigDecimal.valueOf(newQuantity));
+                            
+                            // Update table
+                            productModel.setValueAt(newQuantity, row, 2);
+                            productModel.setValueAt(newTotal, row, 4);
+                            
+                            // Update details list
+                            for (Detail detail : details) {
+                                if (detail.getProductId() == productId) {
+                                    detail.setQuantity(newQuantity);
+                                    detail.setTotal(newTotal);
+                                    break;
+                                }
+                            }
+                            
+                            productExists = true;
+                            break;
+                        }
+                    }
                     
-                    // Add to details list
-                    Detail detail = new Detail();
-                    detail.setProductId(productId);
-                    detail.setQuantity(quantity);
-                    detail.setPrice(price);
-                    detail.setTotal(total);
-                    details.add(detail);
+                    if (!productExists) {
+                        // Add new row if product doesn't exist
+                        productModel.addRow(new Object[] {
+                            productId,
+                            productNameField.getText(),
+                            quantity,
+                            price,
+                            total,
+                            "Xóa"
+                        });
+                        
+                        // Add to details list
+                        Detail detail = new Detail();
+                        detail.setProductId(productId);
+                        detail.setQuantity(quantity);
+                        detail.setPrice(price);
+                        detail.setTotal(total);
+                        details.add(detail);
+                    }
                     
                     // Update invoice total
                     updateInvoiceTotal(details, totalField);
+                    
+                    // Show success message with the product that was added/updated
+                    JOptionPane.showMessageDialog(productDialog,
+                        productExists ? 
+                            "Đã cập nhật số lượng sản phẩm: " + productNameField.getText() :
+                            "Đã thêm sản phẩm: " + productNameField.getText(),
+                        "Thành công",
+                        JOptionPane.INFORMATION_MESSAGE);
                     
                     productDialog.dispose();
                 } catch (Exception ex) {
@@ -2342,8 +2434,13 @@ private void showErrorDialog(String message) {
         btnPanel.setBackground(CARD_COLOR);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        JButton saveBtn = createStyledButton("Lưu hóa đơn", PRIMARY_COLOR);
-        JButton cancelBtn = createStyledButton("Hủy", ACCENT_COLOR);
+        JButton saveBtn = createGradientButton("Lưu hóa đơn", new Color(41, 128, 185)); // Blue
+        saveBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        saveBtn.setPreferredSize(new Dimension(180, 45));
+        
+        JButton cancelBtn = createGradientButton("Hủy", new Color(231, 76, 60)); // Red
+        cancelBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        cancelBtn.setPreferredSize(new Dimension(120, 45));
         
         saveBtn.addActionListener(e -> {
             try {
@@ -2376,19 +2473,78 @@ private void showErrorDialog(String message) {
                 controller.saveInvoice(invoice);
                 int invoiceId = invoice.getInvoiceId();
                 
-                // Continue with existing code...
+                // Add details with the invoice ID
                 for (Detail detail : details) {
                     detail.setInvoiceId(invoiceId);
                     detailController.addDetail(detail);
                 }
                 
-                JOptionPane.showMessageDialog(dialog,
-                    "Đã tạo hóa đơn mới với mã " + invoiceId + " thành công",
-                    "Hóa đơn đã được tạo",
-                    JOptionPane.INFORMATION_MESSAGE);
+                // Success message with colorful dialog
+                JDialog successDialog = new JDialog(dialog, "Thành công", true);
+                successDialog.setLayout(new BorderLayout());
                 
-                dialog.dispose();
-                loadInvoices();
+                JPanel successHeader = new JPanel() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2d = (Graphics2D) g.create();
+                        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        GradientPaint gp = new GradientPaint(
+                            0, 0, new Color(46, 204, 113), // Green
+                            getWidth(), 0, new Color(39, 174, 96) // Darker green
+                        );
+                        g2d.setPaint(gp);
+                        g2d.fillRect(0, 0, getWidth(), getHeight());
+                        g2d.dispose();
+                    }
+                };
+                successHeader.setLayout(new BorderLayout());
+                successHeader.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+                
+                JLabel successTitle = new JLabel("Thành công");
+                successTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+                successTitle.setForeground(Color.WHITE);
+                successHeader.add(successTitle, BorderLayout.CENTER);
+                
+                JPanel successContent = new JPanel();
+                successContent.setBackground(Color.WHITE);
+                successContent.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+                successContent.setLayout(new BorderLayout());
+                
+                JLabel successMessage = new JLabel(
+                    "<html><div style='text-align: center;'>" +
+                    "Đã tạo hóa đơn mới thành công!<br><br>" +
+                    "Mã hóa đơn: <b>#" + invoiceId + "</b><br>" +
+                    "Số sản phẩm: <b>" + details.size() + "</b><br>" +
+                    "Tổng tiền: <b>" + totalField.getText() + " VND</b>" +
+                    "</div></html>"
+                );
+                successMessage.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                successMessage.setHorizontalAlignment(JLabel.CENTER);
+                
+                JButton okButton = createGradientButton("Đóng", new Color(46, 204, 113));
+                okButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                okButton.setPreferredSize(new Dimension(120, 40));
+                
+                JPanel buttonWrap = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                buttonWrap.setBackground(Color.WHITE);
+                buttonWrap.add(okButton);
+                
+                successContent.add(successMessage, BorderLayout.CENTER);
+                successContent.add(buttonWrap, BorderLayout.SOUTH);
+                
+                successDialog.add(successHeader, BorderLayout.NORTH);
+                successDialog.add(successContent, BorderLayout.CENTER);
+                
+                okButton.addActionListener(okEvent -> {
+                    successDialog.dispose();
+                    dialog.dispose();
+                    loadInvoices();
+                });
+                
+                successDialog.setSize(400, 300);
+                successDialog.setLocationRelativeTo(dialog);
+                successDialog.setVisible(true);
+                
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog,
                     "Lỗi khi tạo hóa đơn: " + ex.getMessage(),
@@ -2412,7 +2568,8 @@ private void showErrorDialog(String message) {
         dialog.add(centerPanel, BorderLayout.CENTER);
         dialog.add(btnPanel, BorderLayout.SOUTH);
         
-        dialog.setSize(700, 600);
+        // Increase dialog size
+        dialog.setSize(900, 700);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
@@ -2434,6 +2591,116 @@ private void showErrorDialog(String message) {
             total = total.add(detail.getTotal());
         }
         totalField.setText(total.toString());
+    }
+    
+    private void exportToExcel() {
+        try {
+            // Create file chooser
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Lưu báo cáo hóa đơn");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Excel files (*.xlsx)", "xlsx"));
+            
+            // Show save dialog
+            int userSelection = fileChooser.showSaveDialog(this);
+            
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                // Add .xlsx extension if not already there
+                if (!fileToSave.getName().toLowerCase().endsWith(".xlsx")) {
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".xlsx");
+                }
+                
+                // Get all invoices
+                List<Invoice> invoices = controller.getAllInvoices();
+                
+                // Create Excel exporter
+                ExcelExporter exporter = new ExcelExporter();
+                exporter.exportToExcel(invoiceTable, fileToSave, true);
+                
+                // Show success message
+                JOptionPane.showMessageDialog(this, 
+                    "Xuất Excel thành công:\n" + fileToSave.getAbsolutePath(),
+                    "Xuất Excel", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Lỗi khi xuất Excel: " + e.getMessage(),
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+    
+    private void importFromExcel() {
+        try {
+            // Create file chooser
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Chọn file Excel để nhập");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Excel files (*.xlsx)", "xlsx"));
+            
+            // Show open dialog
+            int userSelection = fileChooser.showOpenDialog(this);
+            
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToOpen = fileChooser.getSelectedFile();
+                
+                // Import from Excel
+                ExcelImporter importer = new ExcelImporter();
+                // Create a file object
+                File excelFile = fileToOpen;
+                
+                // Validate the file
+                if (!ExcelImporter.validateExcelFile(excelFile)) {
+                    throw new IOException("Invalid Excel file format");
+                }
+                
+                // Import data from Excel
+                List<Object[]> importedData = ExcelImporter.importFromExcel(excelFile);
+                
+                // Process each row and create invoices
+                int count = 0;
+                for (Object[] row : importedData) {
+                    try {
+                        // Assuming the Excel has columns: UserId, Total, PaymentStatus, Date
+                        // Create and populate the invoice
+                        if (row.length >= 4) {
+                            int userId = (row[0] instanceof Number) ? ((Number)row[0]).intValue() : Integer.parseInt(row[0].toString());
+                            BigDecimal total = (row[1] instanceof BigDecimal) ? (BigDecimal)row[1] : new BigDecimal(row[1].toString());
+                            String status = (row[2] != null) ? row[2].toString() : "Unpaid";
+                            java.util.Date date = (row[3] instanceof java.util.Date) ? (java.util.Date)row[3] : new java.util.Date();
+                            
+                            // Create invoice and save
+                            Invoice invoice = new Invoice();
+                            invoice.setUsersId(userId);
+                            invoice.setTotal(total);
+                            invoice.setPaymentStatus(status);
+                            invoice.setCreatedAt(date);
+                            
+                            controller.saveInvoice(invoice);
+                            count++;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error importing row: " + e.getMessage());
+                    }
+                }
+                
+                // Show success message
+                JOptionPane.showMessageDialog(this, 
+                    "Đã nhập " + count + " hóa đơn từ Excel.",
+                    "Nhập Excel thành công", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                // Refresh the table
+                loadInvoices();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Lỗi khi nhập Excel: " + e.getMessage(),
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     private JLabel createFormLabel(String text) {
