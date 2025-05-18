@@ -627,47 +627,27 @@ private void showEditDialog() {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.weightx = 0;
         
-        // Product search field with styling
+        // Lấy danh sách sản phẩm từ controller
+        List<Product> products = productController.getAllProducts();
+        
+        // Tạo combobox product
+        JComboBox<String> productCombo = new JComboBox<>();
+        for (Product p : products) {
+            productCombo.addItem(p.getProductId() + ": " + p.getProductName());
+        }
+        productCombo.setPreferredSize(new Dimension(0, 38));
+        productCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        
+        // Product selection label
         gbc.gridx = 0; gbc.gridy = 0;
-        JLabel productIdLabel = createStyledLabel("Mã sản phẩm:");
-        formPanel.add(productIdLabel, gbc);
+        JLabel productLabel = createStyledLabel("Sản phẩm:");
+        formPanel.add(productLabel, gbc);
         
         gbc.gridx = 1; gbc.weightx = 1.0;
-        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
-        searchPanel.setBackground(WHITE_COLOR);
-        
-        JTextField productIdField = new JTextField(10);
-        productIdField.setPreferredSize(new Dimension(150, 38));
-        productIdField.setBorder(BorderFactory.createCompoundBorder(
-            new RoundedBorder(BORDER_COLOR, 8),
-            BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-        
-        JButton searchBtn = createStyledButton("Tìm", PRIMARY_COLOR);
-        searchBtn.setPreferredSize(new Dimension(80, 38));
-        
-        searchPanel.add(productIdField, BorderLayout.CENTER);
-        searchPanel.add(searchBtn, BorderLayout.EAST);
-        formPanel.add(searchPanel, gbc);
-        
-        // Product name (read-only)
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-        JLabel nameLabel = createStyledLabel("Tên sản phẩm:");
-        formPanel.add(nameLabel, gbc);
-        
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        JTextField productNameField = new JTextField();
-        productNameField.setEditable(false);
-        productNameField.setBackground(new Color(245, 245, 245));
-        productNameField.setBorder(BorderFactory.createCompoundBorder(
-            new RoundedBorder(BORDER_COLOR, 8),
-            BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-        productNameField.setPreferredSize(new Dimension(0, 38));
-        formPanel.add(productNameField, gbc);
+        formPanel.add(productCombo, gbc);
         
         // Quantity spinner with styling
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
         JLabel qtyLabel = createStyledLabel("Số lượng:");
         formPanel.add(qtyLabel, gbc);
         
@@ -680,7 +660,7 @@ private void showEditDialog() {
         formPanel.add(qtySpin, gbc);
         
         // Price field with styling
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
         JLabel priceLabel = createStyledLabel("Đơn giá:");
         formPanel.add(priceLabel, gbc);
         
@@ -694,7 +674,7 @@ private void showEditDialog() {
         formPanel.add(priceField, gbc);
         
         // Total price (calculated) with styling
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 3;
         JLabel totalFieldLabel = createStyledLabel("Thành tiền:");
         formPanel.add(totalFieldLabel, gbc);
         
@@ -712,34 +692,34 @@ private void showEditDialog() {
         
         dlg.add(formPanel, BorderLayout.CENTER);
         
-        // Search button action to get product info
-        searchBtn.addActionListener(ev -> {
-            try {
-                int pid = Integer.parseInt(productIdField.getText().trim());
-                Product product = productController.getProductById(pid);
-                
-                if (product != null) {
-                    productNameField.setText(product.getProductName());
-                    priceField.setText(product.getPrice().toString());
+        // Lắng nghe sự kiện thay đổi combobox
+        productCombo.addActionListener(ev -> {
+            if (productCombo.getSelectedItem() != null) {
+                try {
+                    String selected = (String) productCombo.getSelectedItem();
+                    int pid = Integer.parseInt(selected.split(":")[0].trim());
+                    Product product = productController.getProductById(pid);
                     
-                    // Update total
-                    int qty = (int) qtySpin.getValue();
-                    BigDecimal price = product.getPrice();
-                    BigDecimal total = price.multiply(BigDecimal.valueOf(qty));
-                    totalItemField.setText(total.toString());
-                } else {
-                    JOptionPane.showMessageDialog(dlg, 
-                        "Không tìm thấy sản phẩm với mã " + pid,
-                        "Không tìm thấy",
-                        JOptionPane.ERROR_MESSAGE);
+                    if (product != null) {
+                        priceField.setText(product.getPrice().toString());
+                        
+                        // Update total
+                        int qty = (int) qtySpin.getValue();
+                        BigDecimal price = product.getPrice();
+                        BigDecimal total = price.multiply(BigDecimal.valueOf(qty));
+                        totalItemField.setText(total.toString());
+                    }
+                } catch (Exception ex) {
+                    priceField.setText("");
+                    totalItemField.setText("");
                 }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dlg,
-                    "Vui lòng nhập đúng mã sản phẩm",
-                    "Lỗi định dạng",
-                    JOptionPane.ERROR_MESSAGE);
             }
         });
+        
+        // Điền dữ liệu ban đầu nếu có sản phẩm
+        if (productCombo.getItemCount() > 0) {
+            productCombo.setSelectedIndex(0);
+        }
         
         // Update total when quantity changes
         qtySpin.addChangeListener(ev -> {
@@ -753,6 +733,13 @@ private void showEditDialog() {
             } catch (Exception ex) {
                 totalItemField.setText("");
             }
+        });
+        
+        // Update total when price changes
+        priceField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { updateTotal(priceField, qtySpin, totalItemField); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { updateTotal(priceField, qtySpin, totalItemField); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { updateTotal(priceField, qtySpin, totalItemField); }
         });
         
         // Action buttons panel
@@ -775,7 +762,7 @@ private void showEditDialog() {
         // Save button action
         saveItemBtn.addActionListener(ev -> {
             try {
-                if (productNameField.getText().isEmpty()) {
+                if (productCombo.getSelectedItem() == null) {
                     JOptionPane.showMessageDialog(dlg,
                         "Vui lòng chọn sản phẩm trước",
                         "Thiếu thông tin",
@@ -783,7 +770,10 @@ private void showEditDialog() {
                     return;
                 }
                 
-                int pid = Integer.parseInt(productIdField.getText().trim());
+                String selected = (String) productCombo.getSelectedItem();
+                int pid = Integer.parseInt(selected.split(":")[0].trim());
+                String productName = selected.split(":")[1].trim();
+                
                 int qty = (int) qtySpin.getValue();
                 BigDecimal price = new BigDecimal(priceField.getText().trim());
                 BigDecimal total = price.multiply(BigDecimal.valueOf(qty));
@@ -792,7 +782,7 @@ private void showEditDialog() {
                 detailModel.addRow(new Object[]{
                     0,  // detailId = 0 for new items
                     pid,
-                    productNameField.getText(),
+                    productName,
                     qty,
                     price,
                     total
@@ -863,38 +853,42 @@ private void showEditDialog() {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
         
-        // Mã SP
+        // Lấy danh sách sản phẩm từ controller
+        List<Product> products = productController.getAllProducts();
+        
+        // Tạo combobox product với product hiện tại đã được chọn
+        JComboBox<String> productCombo = new JComboBox<>();
+        int selectedIndex = 0;
+        int count = 0;
+        
+        for (Product p : products) {
+            String item = p.getProductId() + ": " + p.getProductName();
+            productCombo.addItem(item);
+            
+            if (p.getProductId() == oldPid) {
+                selectedIndex = count;
+            }
+            count++;
+        }
+        
+        // Set selected product
+        if (productCombo.getItemCount() > 0) {
+            productCombo.setSelectedIndex(selectedIndex);
+        }
+        
+        productCombo.setPreferredSize(new Dimension(0, 38));
+        productCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        
+        // Product selection
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-        JLabel productIdLabel = createStyledLabel("Mã sản phẩm:");
+        JLabel productIdLabel = createStyledLabel("Sản phẩm:");
         formPanel.add(productIdLabel, gbc);
         
         gbc.gridx = 1; gbc.weightx = 1.0;
-        JTextField pidField = new JTextField(String.valueOf(oldPid));
-        pidField.setBorder(BorderFactory.createCompoundBorder(
-            new RoundedBorder(BORDER_COLOR, 8),
-            BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-        pidField.setPreferredSize(new Dimension(0, 38));
-        formPanel.add(pidField, gbc);
-        
-        // Tên sản phẩm (read-only)
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-        JLabel nameLabel = createStyledLabel("Tên sản phẩm:");
-        formPanel.add(nameLabel, gbc);
-        
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        JTextField nameField = new JTextField(productName);
-        nameField.setEditable(false);
-        nameField.setBackground(new Color(245, 245, 245));
-        nameField.setBorder(BorderFactory.createCompoundBorder(
-            new RoundedBorder(BORDER_COLOR, 8),
-            BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-        nameField.setPreferredSize(new Dimension(0, 38));
-        formPanel.add(nameField, gbc);
+        formPanel.add(productCombo, gbc);
         
         // Số lượng
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
         JLabel qtyLabel = createStyledLabel("Số lượng:");
         formPanel.add(qtyLabel, gbc);
         
@@ -907,7 +901,7 @@ private void showEditDialog() {
         formPanel.add(qtySpin, gbc);
         
         // Đơn giá
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
         JLabel priceLabel = createStyledLabel("Đơn giá:");
         formPanel.add(priceLabel, gbc);
         
@@ -921,7 +915,7 @@ private void showEditDialog() {
         formPanel.add(priceField, gbc);
         
         // Thành tiền
-        gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
         JLabel totalItemLabel = createStyledLabel("Thành tiền:");
         formPanel.add(totalItemLabel, gbc);
         
@@ -938,6 +932,27 @@ private void showEditDialog() {
         formPanel.add(totalField, gbc);
         
         dlg.add(formPanel, BorderLayout.CENTER);
+        
+        // Lắng nghe sự kiện thay đổi combobox
+        productCombo.addActionListener(ev -> {
+            if (productCombo.getSelectedItem() != null) {
+                try {
+                    String selected = (String) productCombo.getSelectedItem();
+                    int pid = Integer.parseInt(selected.split(":")[0].trim());
+                    Product product = productController.getProductById(pid);
+                    
+                    if (product != null && oldPid != pid) {
+                        // Chỉ cập nhật giá khi chọn sản phẩm mới
+                        priceField.setText(product.getPrice().toString());
+                    }
+                    
+                    // Update total
+                    updateTotal(priceField, qtySpin, totalField);
+                } catch (Exception ex) {
+                    // Xử lý lỗi
+                }
+            }
+        });
         
         // Update total when quantity or price changes
         qtySpin.addChangeListener(ev -> updateTotal(priceField, qtySpin, totalField));
@@ -967,7 +982,10 @@ private void showEditDialog() {
         // Save button action
         saveItemBtn.addActionListener(ev -> {
             try {
-                int pid = Integer.parseInt(pidField.getText().trim());
+                String selected = (String) productCombo.getSelectedItem();
+                int pid = Integer.parseInt(selected.split(":")[0].trim());
+                String newProductName = selected.split(":")[1].trim();
+                
                 int qty = (int) qtySpin.getValue();
                 BigDecimal price = new BigDecimal(priceField.getText().trim());
                 BigDecimal total = price.multiply(BigDecimal.valueOf(qty));
@@ -985,14 +1003,7 @@ private void showEditDialog() {
                 
                 // Cập nhật lại model
                 detailModel.setValueAt(pid, r, 1);
-                
-                // Cập nhật lại tên sản phẩm nếu mã sản phẩm thay đổi
-                if (pid != oldPid) {
-                    String newProductName = productController.getProductNameById(pid);
-                    if (newProductName == null) newProductName = "Sản phẩm không tồn tại";
-                    detailModel.setValueAt(newProductName, r, 2);
-                }
-                
+                detailModel.setValueAt(newProductName, r, 2);
                 detailModel.setValueAt(qty, r, 3);
                 detailModel.setValueAt(price, r, 4);
                 detailModel.setValueAt(total, r, 5);
