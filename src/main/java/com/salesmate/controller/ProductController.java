@@ -106,6 +106,16 @@ public class ProductController {
         }
     }
 
+    public boolean deleteMultipleProducts(int[] productIds) {
+        try {
+            return productDAO.deleteMultipleProducts(productIds);
+        } catch (Exception e) {
+            System.err.println("Error deleting multiple products: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public Product findProductByBarcode(String barcode) {
         String query = "SELECT * FROM product WHERE barcode = ?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -168,6 +178,16 @@ public class ProductController {
 
     public int countProducts(String category, String search) {
         return productDAO.countProducts(category, search);
+    }
+
+    public boolean updateProductCategory(int productId, String newCategory) {
+        try {
+            return productDAO.updateProductCategory(productId, newCategory);
+        } catch (Exception e) {
+            System.err.println("Error updating product category: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

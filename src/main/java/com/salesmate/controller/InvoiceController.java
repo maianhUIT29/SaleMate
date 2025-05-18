@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+import com.salesmate.dao.DetailDAO;
 import com.salesmate.dao.InvoiceDAO;
 import com.salesmate.dao.PaymentDAO;
 import com.salesmate.dao.UserDAO;
@@ -15,7 +16,9 @@ public class InvoiceController {
     private final InvoiceDAO invoiceDAO = new InvoiceDAO();
     private final UserDAO userDAO = new UserDAO();
     private final PaymentDAO paymentDAO = new PaymentDAO();
+    private final DetailDAO detailDAO   = new DetailDAO();  // ← thêm dòng này
 
+    // Change return type to void since we update the invoice object directly
     public void saveInvoice(Invoice invoice) {
         if (userDAO.getUserById(invoice.getUsersId()) == null) {
             throw new IllegalArgumentException("Invalid users_id: User does not exist");
@@ -47,9 +50,15 @@ public class InvoiceController {
         return handleException(() -> invoiceDAO.updateInvoice(invoice));
     }
 
-    public boolean deleteInvoice(int id) {
-        return handleException(() -> invoiceDAO.deleteInvoice(id));
-    }
+ public boolean deleteInvoice(int id) {
+    return handleException(() -> {
+        // 1) Xoá tất cả detail trước
+        detailDAO.deleteByInvoiceId(id);
+        // 2) Xoá chính hóa đơn
+        return invoiceDAO.deleteInvoice(id);
+    }, false);
+}
+
 
     public List<Invoice> getInvoicesByUserId(int userId) {
         return handleException(() -> invoiceDAO.getInvoicesByUserId(userId));
@@ -156,4 +165,5 @@ public class InvoiceController {
     private interface SupplierWithException<T> {
         T get() throws Exception;
     }
+    
 }
