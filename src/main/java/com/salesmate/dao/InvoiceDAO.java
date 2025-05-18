@@ -105,27 +105,34 @@ public boolean deleteInvoice(int invoiceId) {
     String deleteInvoiceSql = "DELETE FROM invoice WHERE invoice_id = ?";
     try (Connection conn = DBConnection.getConnection()) {
         conn.setAutoCommit(false);
-        // 1) Xóa detail
-        try (PreparedStatement ps = conn.prepareStatement(deleteDetailsSql)) {
-            ps.setInt(1, invoiceId);
-            ps.executeUpdate();
+        try {
+            // 1) Xóa detail
+            try (PreparedStatement ps = conn.prepareStatement(deleteDetailsSql)) {
+                ps.setInt(1, invoiceId);
+                ps.executeUpdate();
+            }
+            
+            // 2) Xóa invoice
+            int rows;
+            try (PreparedStatement ps = conn.prepareStatement(deleteInvoiceSql)) {
+                ps.setInt(1, invoiceId);
+                rows = ps.executeUpdate();
+            }
+            
+            conn.commit();
+            return rows > 0;
+        } catch (SQLException e) {
+            // Nếu có lỗi, thực hiện rollback
+            conn.rollback();
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Reset auto-commit
+            conn.setAutoCommit(true);
         }
-        // 2) Xóa invoice
-        int rows;
-        try (PreparedStatement ps = conn.prepareStatement(deleteInvoiceSql)) {
-            ps.setInt(1, invoiceId);
-            rows = ps.executeUpdate();
-        }
-        conn.commit();
-        return rows > 0;
     } catch (SQLException e) {
         e.printStackTrace();
-        // nếu lỗi rollback
-        try { DBConnection.getConnection().rollback(); } catch (Exception ex) { /*ignore*/ }
         return false;
-    } finally {
-        // reset auto-commit để không ảnh hưởng các giao dịch sau
-        try { DBConnection.getConnection().setAutoCommit(true); } catch (Exception ex) { /*ignore*/ }
     }
 }
 

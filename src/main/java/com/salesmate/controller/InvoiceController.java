@@ -1,10 +1,10 @@
 package com.salesmate.controller;
 
-import com.salesmate.dao.DetailDAO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+import com.salesmate.dao.DetailDAO;
 import com.salesmate.dao.InvoiceDAO;
 import com.salesmate.dao.PaymentDAO;
 import com.salesmate.dao.UserDAO;
@@ -18,6 +18,7 @@ public class InvoiceController {
     private final PaymentDAO paymentDAO = new PaymentDAO();
     private final DetailDAO detailDAO   = new DetailDAO();  // ← thêm dòng này
 
+    // Change return type to void since we update the invoice object directly
     public void saveInvoice(Invoice invoice) {
         if (userDAO.getUserById(invoice.getUsersId()) == null) {
             throw new IllegalArgumentException("Invalid users_id: User does not exist");
