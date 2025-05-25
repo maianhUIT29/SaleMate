@@ -30,7 +30,7 @@ public class Toast extends JDialog {
     private int spinnerAngle = 0;
     private boolean isLoading = false;
 
-    private Toast(JFrame parent) {
+    public Toast(JFrame parent) {
         super(parent);
         setUndecorated(true);
         setBackground(new Color(0, 0, 0, 0));
@@ -177,5 +177,13 @@ public class Toast extends JDialog {
         if (instance != null && instance.isVisible()) {
             instance.fadeTimer.start();
         }
+    }
+
+    public void showMessage(String no_salary_data_available) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public void showMessage(String error_fetching_salary_data, int ERROR) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

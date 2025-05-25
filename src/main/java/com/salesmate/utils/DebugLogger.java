@@ -94,4 +94,8 @@ public class DebugLogger {
     public static String getLogFilePath() {
         return new File(LOG_FILE).getAbsolutePath();
     }
+
+    static void logError(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

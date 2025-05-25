@@ -1,13 +1,18 @@
 package com.salesmate.view;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import javax.swing.UIManager;
-import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import javax.swing.UIManager;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+
 import com.salesmate.component.AdminChatbot;
+import com.salesmate.component.AdUserPanel;
 import com.salesmate.utils.UIHelper;
+import javax.swing.JFrame;
 
 public class AdminView extends javax.swing.JFrame {
 
@@ -15,6 +20,11 @@ public class AdminView extends javax.swing.JFrame {
 
     public AdminView() {
         try {
+            setTitle("Admin Dashboard");
+            setSize(1200, 800);
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setLayout(new BorderLayout());
+            
             // Use our custom look and feel helper
             UIHelper.setupLookAndFeel();
             
@@ -122,7 +132,6 @@ public class AdminView extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         adAccountPopup1 = new com.salesmate.component.AdAccountPopup();
         adminHeader = new com.salesmate.component.AdminHeader();
         panelDisplay = new javax.swing.JPanel();
@@ -138,31 +147,37 @@ public class AdminView extends javax.swing.JFrame {
         getContentPane().add(adminHeader, java.awt.BorderLayout.PAGE_START);
 
         panelCard.setLayout(new java.awt.CardLayout());
-        panelCard.add(cardDashBoard, "card2");
-        panelCard.add(cardInvoicePanel, "card4");
-        panelCard.add(cardProductPanel, "card5");
-        panelCard.add(cardUserPanel, "card6");
-        panelCard.add(cardRevenuePanel, "card6");
+        panelCard.add(cardDashBoard, "cardDashBoard");
+        panelCard.add(cardInvoicePanel, "cardInvoicePanel");
+        panelCard.add(cardProductPanel, "cardProductPanel");
+        panelCard.add(cardUserPanel, "cardUserPanel");
+        panelCard.add(cardRevenuePanel, "cardRevenuePanel");
 
         javax.swing.GroupLayout panelDisplayLayout = new javax.swing.GroupLayout(panelDisplay);
         panelDisplay.setLayout(panelDisplayLayout);
         panelDisplayLayout.setHorizontalGroup(
-                panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(panelDisplayLayout.createSequentialGroup()
-                                .addComponent(adminSidebar, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE))
+            panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelDisplayLayout.createSequentialGroup()
+                .addComponent(adminSidebar, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE))
         );
         panelDisplayLayout.setVerticalGroup(
-                panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelDisplayLayout.createSequentialGroup()
-                                .addGroup(panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(adminSidebar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE))
-                                .addContainerGap())
+            panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelDisplayLayout.createSequentialGroup()
+                .addGroup(panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(adminSidebar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         getContentPane().add(panelDisplay, java.awt.BorderLayout.CENTER);
+
+        // Thêm JTabbedPane để giữ giao diện cũ và bổ sung AdUserPanel
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Dashboard", panelDisplay); // Giao diện cũ
+        tabbedPane.addTab("Quản lý nhân viên", new AdUserPanel()); // Tab mới với AdUserPanel
+        getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
