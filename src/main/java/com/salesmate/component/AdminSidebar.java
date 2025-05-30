@@ -79,9 +79,10 @@ public class AdminSidebar extends javax.swing.JPanel {
         });
 
         buttonGroup1.add(tbtnRevenue);
-        tbtnRevenue.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        tbtnRevenue.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_revenue.png"))); // NOI18N
-        tbtnRevenue.setText("DOANH THU");
+        tbtnRevenue.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+      tbtnRevenue.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons/ic_qlyuser.png")));
+tbtnRevenue.setText("NGƯỜI DÙNG");
+
         tbtnRevenue.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tbtnRevenueActionPerformed(evt);

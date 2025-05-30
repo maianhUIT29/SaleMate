@@ -66,6 +66,7 @@ public class AdUserPanel extends JPanel {
         JButton refreshButton= createStyledButton("Làm mới", new Color(52, 73, 94));
         JButton exportButton = createStyledButton("Xuất Excel", EXPORT_COLOR);
         JButton importButton = createStyledButton("Nhập Excel", IMPORT_COLOR);
+        JButton salaryButton = createStyledButton("Xem lương", PRIMARY_COLOR);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         buttonPanel.setBackground(BACKGROUND_COLOR);
@@ -75,6 +76,7 @@ public class AdUserPanel extends JPanel {
         buttonPanel.add(exportButton);
         buttonPanel.add(importButton);
         buttonPanel.add(refreshButton);
+        buttonPanel.add(salaryButton);
 
         searchField = new JTextField(20);
         searchField.setPreferredSize(new Dimension(200, 35));
@@ -161,6 +163,7 @@ public class AdUserPanel extends JPanel {
             public void changedUpdate(DocumentEvent e){filter();}
             private void filter(){currentSearch=searchField.getText();currentPage=1;pageSpinner.setValue(1);loadEmployees();}
         });
+        salaryButton.addActionListener(e -> showSalaryViewDialog());
 
         // Initial load
         loadEmployees();
@@ -519,5 +522,42 @@ private void showEditDialog() {
     }
 
     private void styleRows(JTable table){ table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer(){@Override public Component getTableCellRendererComponent(JTable t,Object v,boolean s,boolean f,int r,int c){ super.getTableCellRendererComponent(t,v,s,f,r,c); if(!s) setBackground(r%2==0?Color.WHITE:new Color(245,247,250)); setHorizontalAlignment((c==0||c==3||c==4)?JLabel.CENTER:JLabel.LEFT); setBorder(BorderFactory.createEmptyBorder(0,8,0,8)); return this;}});
+    }
+
+    private void showSalaryViewDialog() {
+        // Kiểm tra chọn dòng
+        int row = userTable.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên để xem lương");
+            return;
+        }
+
+        // Lấy ID nhân viên
+        int id = (int) tableModel.getValueAt(row, 0);
+        Employee emp = employeeController.getEmployeeById(id);
+        if (emp == null) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy nhân viên", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Tạo và hiển thị SalaryViewDialog
+        JDialog salaryDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Xem lương nhân viên", true);
+        salaryDialog.setLayout(new BorderLayout());
+        salaryDialog.setSize(400, 300);
+        salaryDialog.setLocationRelativeTo(this);
+
+        JLabel salaryLabel = new JLabel("Lương của " + emp.getFirstName() + " " + emp.getLastName() + ": " + emp.getSalary() + " VND");
+        salaryLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        salaryLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JButton closeButton = new JButton("Đóng");
+        closeButton.addActionListener(e -> salaryDialog.dispose());
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(closeButton);
+
+        salaryDialog.add(salaryLabel, BorderLayout.CENTER);
+        salaryDialog.add(buttonPanel, BorderLayout.SOUTH);
+        salaryDialog.setVisible(true);
     }
 }
