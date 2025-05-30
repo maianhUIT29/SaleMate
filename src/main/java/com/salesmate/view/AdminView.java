@@ -141,7 +141,7 @@ public class AdminView extends javax.swing.JFrame {
         cardInvoicePanel = new com.salesmate.component.AdInvoicePanel();
         cardProductPanel = new com.salesmate.component.AdProductPanel();
         cardUserPanel = new com.salesmate.component.AdUserPanel();
-        cardRevenuePanel = new com.salesmate.component.AdRevenuePanel();
+        cardRevenuePanel = new com.salesmate.component.AdAccountPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().add(adminHeader, java.awt.BorderLayout.PAGE_START);
@@ -223,7 +223,7 @@ public class AdminView extends javax.swing.JFrame {
     private com.salesmate.component.AdDashBoard cardDashBoard;
     private com.salesmate.component.AdInvoicePanel cardInvoicePanel;
     private com.salesmate.component.AdProductPanel cardProductPanel;
-    private com.salesmate.component.AdRevenuePanel cardRevenuePanel;
+    private com.salesmate.component.AdAccountPanel cardRevenuePanel;
     private com.salesmate.component.AdUserPanel cardUserPanel;
     private javax.swing.JPanel panelCard;
     private javax.swing.JPanel panelDisplay;

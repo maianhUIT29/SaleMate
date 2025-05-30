@@ -3,6 +3,7 @@ package com.salesmate.controller;
 import com.salesmate.configs.MailSender;
 import com.salesmate.dao.UserDAO;
 import com.salesmate.model.User;
+import java.util.List;
 
 
 public class UserController {
@@ -57,6 +58,7 @@ public class UserController {
         return basePassword + randomNumber;
     }
 
+    // Cập nhật thông tin người dùng
     public boolean updateUser(User user) {
         return userDAO.updateUser(user);
     }
@@ -79,4 +81,30 @@ public class UserController {
         com.salesmate.dao.UserDAO dao = new com.salesmate.dao.UserDAO();
         return dao.getUserCountByRole();
     }
+    
+     //  Thêm người dùng mới
+    public boolean addUser(User user) {
+        return userDAO.addUser(user);
+    }
+
+    //  softdelete người dùng theo ID
+   public boolean deleteUserById(int userId) {
+        return userDAO.deleteUserById(userId);
+    }
+// Lấy toàn bộ danh sách người dùng
+   public List<User> getAllUsers() {
+    return userDAO.getAllUsers();
+}
+// Tìm kiếm người dùng theo tên (keyword LIKE)
+public List<User> searchUsersByName(String keyword) {
+    return userDAO.searchUsersByName(keyword);
+}
+ //] Lọc người dùng theo vai trò (role)
+ public List<User> filterUsersByRole(String role) {
+        if (!role.equals("Manager") && !role.equals("Warehouse") && !role.equals("Sales")) {
+            return getAllUsers();
+        }
+        return userDAO.filterUsersByRole(role);
+    }
+
 }
