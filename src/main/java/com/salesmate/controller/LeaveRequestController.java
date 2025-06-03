@@ -30,4 +30,19 @@ public class LeaveRequestController {
     public boolean rejectLeaveRequest(int requestId) {
         return leaveRequestDAO.rejectLeaveRequest(requestId);
     }
+      // tạo mới yêu cầu nghỉ
+    public boolean createLeaveRequest(LeaveRequest lr) {
+        return leaveRequestDAO.insertLeaveRequest(lr);
+    }
+
+    // lấy yêu cầu nghỉ theo nhân viên
+    public List<LeaveRequest> getLeaveRequestsByEmployee(int employeeId) {
+        return leaveRequestDAO.getLeaveRequestsByEmployee(employeeId);
+    }
+
+    // lấy yêu cầu nghỉ theo ID
+    public LeaveRequest getLeaveRequestById(int requestId) {
+        return leaveRequestDAO.findById(requestId);
+    }
+
 } 
