@@ -1,78 +1,55 @@
 package com.salesmate.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-
-/* SalaryDetail Schema in oracle
-"SALARY_ID" NUMBER(*,0), 
-	"EMPLOYEE_ID" NUMBER(*,0) NOT NULL ENABLE, 
-	"BASIC_SALARY" NUMBER(10,2) NOT NULL ENABLE, 
-	"PAYMENT_PERIOD" VARCHAR2(7 BYTE) NOT NULL ENABLE, 
-	"PAYMENT_DATE" DATE, 
-	"STATUS" VARCHAR2(20 BYTE) DEFAULT 'Pending', 
-	"TOTAL_SALARY" NUMBER(10,2), 
-	"NOTE" VARCHAR2(255 BYTE), 
-	 CHECK (status IN ('Pending', 'Processed', 'Paid', 'Cancelled')) ENABLE, 
-	 PRIMARY KEY ("SALARY_ID")
-*/
 
 @Entity
 @Table(name = "salary_detail")
 public class SalaryDetail {
     @Id
+    @Column(name = "salary_detail_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "salary_id")
+    private int salaryDetailId;
+
+    @Column(name = "salary_id", nullable = false)
     private int salaryId;
 
+    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
 
-    @Column(name = "employee_id", nullable = false)
-    private int employeeId;
-
-    @Column(name = "basic_salary", nullable = false, precision = 10, scale = 2) 
-    private BigDecimal basicSalary;
-
-    @Column(name = "payment_period", nullable = false, length = 7)
-    private String paymentPeriod;
-
-    @Temporal(TemporalType.DATE)
-    @Column(name = "payment_date")
-    private Date paymentDate;
-
-    @Column(name = "status", length = 20)
-    private String status = "Pending";
-
-    @Column(name = "total_salary", precision = 10, scale = 2)
-    private BigDecimal totalSalary;
+    @Column(name = "calculation_base", precision = 10, scale = 2)
+    private BigDecimal calculationBase;
 
     @Column(name = "note", length = 255)
     private String note;
 
-    // Constructors
-    public SalaryDetail() {
+    @Column(name = "component_name", nullable = false, length = 50)
+    private String componentName;
+
+    @Column(name = "component_type", length = 20)
+    private String componentType;
+
+    @Column(name = "calculation_type", length = 20)
+    private String calculationType;
+
+    @Column(name = "value", precision = 10, scale = 2)
+    private BigDecimal value;
+
+    @Column(name = "description", length = 255)
+    private String description;
+
+    @Column(name = "is_taxable")
+    private int isTaxable = 1;
+
+    // Getters and setters
+    public int getSalaryDetailId() {
+        return salaryDetailId;
     }
 
-    public SalaryDetail(int salaryId, int employeeId, BigDecimal basicSalary, String paymentPeriod,
-                       Date paymentDate, String status, BigDecimal totalSalary, String note) {
-        this.salaryId = salaryId;
-        this.employeeId = employeeId;
-        this.basicSalary = basicSalary;
-        this.paymentPeriod = paymentPeriod;
-        this.paymentDate = paymentDate;
-        this.status = status;
-        this.totalSalary = totalSalary;
-        this.note = note;
+    public void setSalaryDetailId(int salaryDetailId) {
+        this.salaryDetailId = salaryDetailId;
     }
 
-    // Getters and Setters
     public int getSalaryId() {
         return salaryId;
     }
@@ -81,52 +58,20 @@ public class SalaryDetail {
         this.salaryId = salaryId;
     }
 
-    public int getEmployeeId() {
-        return employeeId;
+    public BigDecimal getAmount() {
+        return amount;
     }
 
-    public void setEmployeeId(int employeeId) {
-        this.employeeId = employeeId;
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
-    public BigDecimal getBasicSalary() {
-        return basicSalary;
+    public BigDecimal getCalculationBase() {
+        return calculationBase;
     }
 
-    public void setBasicSalary(BigDecimal basicSalary) {
-        this.basicSalary = basicSalary;
-    }
-
-    public String getPaymentPeriod() {
-        return paymentPeriod;
-    }
-
-    public void setPaymentPeriod(String paymentPeriod) {
-        this.paymentPeriod = paymentPeriod;
-    }
-
-    public Date getPaymentDate() {
-        return paymentDate;
-    }
-
-    public void setPaymentDate(Date paymentDate) {
-        this.paymentDate = paymentDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public BigDecimal getTotalSalary() {
-        return totalSalary;
-    }
-
-    public void setTotalSalary(BigDecimal totalSalary) {
-        this.totalSalary = totalSalary;
+    public void setCalculationBase(BigDecimal calculationBase) {
+        this.calculationBase = calculationBase;
     }
 
     public String getNote() {
@@ -135,5 +80,53 @@ public class SalaryDetail {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public String getComponentName() {
+        return componentName;
+    }
+
+    public void setComponentName(String componentName) {
+        this.componentName = componentName;
+    }
+
+    public String getComponentType() {
+        return componentType;
+    }
+
+    public void setComponentType(String componentType) {
+        this.componentType = componentType;
+    }
+
+    public String getCalculationType() {
+        return calculationType;
+    }
+
+    public void setCalculationType(String calculationType) {
+        this.calculationType = calculationType;
+    }
+
+    public BigDecimal getValue() {
+        return value;
+    }
+
+    public void setValue(BigDecimal value) {
+        this.value = value;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getIsTaxable() {
+        return isTaxable;
+    }
+
+    public void setIsTaxable(int isTaxable) {
+        this.isTaxable = isTaxable;
     }
 }
