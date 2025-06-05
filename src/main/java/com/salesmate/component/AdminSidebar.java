@@ -17,6 +17,7 @@ public class AdminSidebar extends JPanel {
     private JToggleButton tbtnRevenue;
     private JToggleButton tbtnAttendance;
     private JToggleButton tbtnSalary;
+    private JButton btnStockCheck;
 
     public AdminSidebar() {
         initSidebar();
@@ -60,16 +61,29 @@ public class AdminSidebar extends JPanel {
         add(tbtnInvoice);
         add(Box.createVerticalStrut(10));
 
-        tbtnRevenue = createSidebarButton("NGƯỜI DÙNG", "/img/icons/ic_qlyuser.png");
+        tbtnRevenue = createSidebarButton("DOANH THU", "/img/icons/ic_revenue.png");
         tbtnRevenue.addActionListener(evt -> {
             if (parentView != null) parentView.switchCard("cardRevenuePanel");
         });
         add(tbtnRevenue);
         add(Box.createVerticalStrut(10));
 
+        // Thêm nút kiểm tra tồn kho
+        btnStockCheck = new JButton("KIỂM TRA TỒN KHO");
+        btnStockCheck.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnStockCheck.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnStockCheck.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        btnStockCheck.setPreferredSize(new Dimension(180, 50));
+        btnStockCheck.setMinimumSize(new Dimension(100, 50));
+        btnStockCheck.addActionListener(e -> {
+            if (parentView != null) parentView.switchCard("cardStockCheck");
+        });
+        add(btnStockCheck);
+        add(Box.createVerticalStrut(10));
+
         tbtnAttendance = createSidebarButton("CHẤM CÔNG", "/img/icons/ic_attendance.png");
         tbtnAttendance.addActionListener(evt -> {
-            if (parentView != null) parentView.switchCard("cardAttendancePanel"); 
+            if (parentView != null) parentView.switchCard("cardAttendancePanel");
         });
         add(tbtnAttendance);
         add(Box.createVerticalStrut(10));

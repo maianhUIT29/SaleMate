@@ -41,6 +41,7 @@ public class AdminView extends JFrame {
     private JPanel            panelCard;     // chứa CardLayout
     private JPanel            panelDisplay;  // chứa sidebar + panelCard
 
+    private com.salesmate.component.StockCheckPanel cardStockCheckPanel;
     public AdminView() {
         try {
             // 1. Thiết lập tiêu đề và kích thước
@@ -129,6 +130,7 @@ public class AdminView extends JFrame {
         // Khởi tạo hai panel mới
         cardAttendancePanel  = new AdAttendancePanel(); 
         cardSalaryPanel      = new AdSalaryPanel();     
+        cardStockCheckPanel  = new com.salesmate.component.StockCheckPanel();
 
         // 2) Add header lên NORTH
         getContentPane().add(adminHeader, BorderLayout.NORTH);
@@ -141,7 +143,7 @@ public class AdminView extends JFrame {
         panelCard.add(cardRevenuePanel,     "cardRevenuePanel");
         panelCard.add(cardAttendancePanel,  "cardAttendancePanel");
         panelCard.add(cardSalaryPanel,      "cardSalaryPanel");
-
+        panelCard.add(cardStockCheckPanel, "cardStockCheck");
         // 4) Add sidebar và panelCard vào panelDisplay
         panelDisplay.add(adminSidebar, BorderLayout.WEST);
         panelDisplay.add(panelCard,    BorderLayout.CENTER);
