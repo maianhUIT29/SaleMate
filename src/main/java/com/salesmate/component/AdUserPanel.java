@@ -66,6 +66,7 @@ public class AdUserPanel extends JPanel {
         JButton refreshButton= createStyledButton("Làm mới", new Color(52, 73, 94));
         JButton exportButton = createStyledButton("Xuất Excel", EXPORT_COLOR);
         JButton importButton = createStyledButton("Nhập Excel", IMPORT_COLOR);
+      
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         buttonPanel.setBackground(BACKGROUND_COLOR);
@@ -75,6 +76,7 @@ public class AdUserPanel extends JPanel {
         buttonPanel.add(exportButton);
         buttonPanel.add(importButton);
         buttonPanel.add(refreshButton);
+       
 
         searchField = new JTextField(20);
         searchField.setPreferredSize(new Dimension(200, 35));
@@ -520,4 +522,6 @@ private void showEditDialog() {
 
     private void styleRows(JTable table){ table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer(){@Override public Component getTableCellRendererComponent(JTable t,Object v,boolean s,boolean f,int r,int c){ super.getTableCellRendererComponent(t,v,s,f,r,c); if(!s) setBackground(r%2==0?Color.WHITE:new Color(245,247,250)); setHorizontalAlignment((c==0||c==3||c==4)?JLabel.CENTER:JLabel.LEFT); setBorder(BorderFactory.createEmptyBorder(0,8,0,8)); return this;}});
     }
+
+   
 }

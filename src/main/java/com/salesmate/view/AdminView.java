@@ -1,84 +1,91 @@
 package com.salesmate.view;
 
-import java.awt.CardLayout;
-import javax.swing.UIManager;
-import javax.swing.JPanel;
-import java.awt.Dimension;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import com.salesmate.component.AdminChatbot;
+import com.salesmate.component.AdAccountPopup;
+import com.salesmate.component.AdAttendancePanel;
+import com.salesmate.component.AdAccountPanel;
+import com.salesmate.component.AdDashBoard;
+import com.salesmate.component.AdInvoicePanel;
+import com.salesmate.component.AdProductPanel;
+import com.salesmate.component.AdSalaryPanel;
+import com.salesmate.component.AdUserPanel;
+import com.salesmate.component.AdminHeader;
+import com.salesmate.component.AdminSidebar;
 import com.salesmate.utils.UIHelper;
 
-public class AdminView extends javax.swing.JFrame {
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.beans.Beans;
 
-    private AdminChatbot anAnChatbot; // Renamed to reflect the chatbot's identity
+public class AdminView extends JFrame {
+
+    private AdminChatbot      anAnChatbot;
+
+    // --- Các card do bạn tự tạo hoặc Form Editor cũ từng sinh ra ---
+    private AdDashBoard       cardDashBoard;
+    private AdInvoicePanel    cardInvoicePanel;
+    private AdProductPanel    cardProductPanel;
+    private AdAccountPanel    cardRevenuePanel;
+    private AdUserPanel       cardUserPanel;
+
+    // --- Hai panel mới (bạn tạo riêng) ---
+    private AdAttendancePanel cardAttendancePanel;
+    private AdSalaryPanel     cardSalaryPanel;
+
+    // --- Sidebar, header, popup, container ---
+    private AdminSidebar      adminSidebar;
+    private AdminHeader       adminHeader;
+    private AdAccountPopup    adAccountPopup1;
+    private JPanel            panelCard;     // chứa CardLayout
+    private JPanel            panelDisplay;  // chứa sidebar + panelCard
 
     public AdminView() {
         try {
-            // Use our custom look and feel helper
+            // 1. Thiết lập tiêu đề và kích thước
+            setTitle("Admin Dashboard");
+            setSize(1200, 800);
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            // 2. Thiết lập chung Look & Feel
             UIHelper.setupLookAndFeel();
-            
-            // Set system look and feel but exclude buttons
             try {
-                // Capture existing button UI before setting look and feel
-                javax.swing.LookAndFeel oldLF = UIManager.getLookAndFeel();
+                LookAndFeel oldLF = UIManager.getLookAndFeel();
                 Object buttonUI = UIManager.get("ButtonUI");
-                
-                javax.swing.UIManager.setLookAndFeel(
-                    javax.swing.UIManager.getSystemLookAndFeelClassName());
-                
-                // Preserve button UI to keep their appearance
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 if (buttonUI != null) {
                     UIManager.put("ButtonUI", buttonUI);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            
+
+            // 3. Gọi initComponents để khởi tạo UI
             initComponents();
-            
-            if (!java.beans.Beans.isDesignTime()) { 
-                // Initialize UI components
+
+            // 4. Nếu không phải ở chế độ thiết kế, gán reference và khởi tạo chatbot
+            if (!Beans.isDesignTime()) {
                 adminSidebar.setParentView(this);
                 adAccountPopup1.setParentView(this);
-
-                // Set up card layout
-                CardLayout cl = (CardLayout) panelCard.getLayout();
-                panelCard.add(cardDashBoard,    "cardDashBoard");
-                panelCard.add(cardRevenuePanel, "cardRevenuePanel");
-                panelCard.add(cardInvoicePanel, "cardInvoicePanel");
-                panelCard.add(cardProductPanel, "cardProductPanel");
-                panelCard.add(cardUserPanel,    "cardUserPanel");
-                
-                // Make sure to show a default card
-                cl.show(panelCard, "cardDashBoard");
-                
-                // Add chatbot
                 setupChatbot();
             }
-            
-            // Apply no-focus styling to all components
+
+            // 5. Loại bỏ focus highlight, căn giữa, validate/repaint
             UIHelper.removeFocusFromAll(this);
-            
-            // Set preferred size for better initial display
-            setPreferredSize(new java.awt.Dimension(1024, 768));
-            
-            // Center the window on the screen
             setLocationRelativeTo(null);
-            
-            // Perform a complete layout of all components
             invalidate();
             validate();
             repaint();
-            
-            // Add a component listener to handle window resize events
+
+            // 6. Resize listener để reposition chatbot
             addComponentListener(new ComponentAdapter() {
                 @Override
                 public void componentResized(ComponentEvent e) {
                     repositionChatbot();
                 }
             });
-            
+
             System.out.println("AdminView constructor completed successfully");
         } catch (Exception e) {
             System.err.println("Error initializing AdminView: " + e.getMessage());
@@ -86,131 +93,96 @@ public class AdminView extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Sets up the chatbot in the bottom right corner
-     */
+    // Thiết lập chatbot
     private void setupChatbot() {
         try {
-            // Create the chatbot instance
             anAnChatbot = new AdminChatbot();
-            
-            // Add it to the layered pane to make it float over other components
-            getLayeredPane().add(anAnChatbot, new Integer(100)); // High layer number to be on top
-            
-            // Position it properly
+            getLayeredPane().add(anAnChatbot, new Integer(100));
             repositionChatbot();
         } catch (Exception e) {
             System.err.println("Error setting up chatbot: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
-    /**
-     * Repositions the chatbot to the bottom right corner of the window
-     */
+
+    // Đặt lại vị trí chatbot
     private void repositionChatbot() {
         if (anAnChatbot != null && isVisible()) {
             anAnChatbot.positionInBottomRight();
         }
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        // 1) Khởi tạo các component
+        adAccountPopup1      = new AdAccountPopup();
+        adminHeader          = new AdminHeader();
+        panelDisplay         = new JPanel(new BorderLayout());
+        adminSidebar         = new AdminSidebar();
+        panelCard            = new JPanel(new CardLayout());
+        cardDashBoard        = new AdDashBoard();
+        cardInvoicePanel     = new AdInvoicePanel();
+        cardProductPanel     = new AdProductPanel();
+        cardUserPanel        = new AdUserPanel();
+        cardRevenuePanel     = new AdAccountPanel();
 
-        adAccountPopup1 = new com.salesmate.component.AdAccountPopup();
-        adminHeader = new com.salesmate.component.AdminHeader();
-        panelDisplay = new javax.swing.JPanel();
-        adminSidebar = new com.salesmate.component.AdminSidebar();
-        panelCard = new javax.swing.JPanel();
-        cardDashBoard = new com.salesmate.component.AdDashBoard();
-        cardInvoicePanel = new com.salesmate.component.AdInvoicePanel();
-        cardProductPanel = new com.salesmate.component.AdProductPanel();
-        cardUserPanel = new com.salesmate.component.AdUserPanel();
-        cardRevenuePanel = new com.salesmate.component.AdRevenuePanel();
+        // Khởi tạo hai panel mới
+        cardAttendancePanel  = new AdAttendancePanel(); 
+        cardSalaryPanel      = new AdSalaryPanel();     
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        getContentPane().add(adminHeader, java.awt.BorderLayout.PAGE_START);
+        // 2) Add header lên NORTH
+        getContentPane().add(adminHeader, BorderLayout.NORTH);
 
-        panelCard.setLayout(new java.awt.CardLayout());
-        panelCard.add(cardDashBoard, "card2");
-        panelCard.add(cardInvoicePanel, "card4");
-        panelCard.add(cardProductPanel, "card5");
-        panelCard.add(cardUserPanel, "card6");
-        panelCard.add(cardRevenuePanel, "card6");
+        // 3) Add các card vào panelCard (CardLayout)
+        panelCard.add(cardDashBoard,        "cardDashBoard");
+        panelCard.add(cardInvoicePanel,     "cardInvoicePanel");
+        panelCard.add(cardProductPanel,     "cardProductPanel");
+        panelCard.add(cardUserPanel,        "cardUserPanel");
+        panelCard.add(cardRevenuePanel,     "cardRevenuePanel");
+        panelCard.add(cardAttendancePanel,  "cardAttendancePanel");
+        panelCard.add(cardSalaryPanel,      "cardSalaryPanel");
 
-        javax.swing.GroupLayout panelDisplayLayout = new javax.swing.GroupLayout(panelDisplay);
-        panelDisplay.setLayout(panelDisplayLayout);
-        panelDisplayLayout.setHorizontalGroup(
-                panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(panelDisplayLayout.createSequentialGroup()
-                                .addComponent(adminSidebar, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE))
-        );
-        panelDisplayLayout.setVerticalGroup(
-                panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelDisplayLayout.createSequentialGroup()
-                                .addGroup(panelDisplayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(adminSidebar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(panelCard, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE))
-                                .addContainerGap())
-        );
+        // 4) Add sidebar và panelCard vào panelDisplay
+        panelDisplay.add(adminSidebar, BorderLayout.WEST);
+        panelDisplay.add(panelCard,    BorderLayout.CENTER);
 
-        getContentPane().add(panelDisplay, java.awt.BorderLayout.CENTER);
+        // 5) Add panelDisplay lên CENTER của JFrame
+        getContentPane().add(panelDisplay, BorderLayout.CENTER);
 
+        // 6) Show card "cardDashBoard" làm mặc định
+        ((CardLayout) panelCard.getLayout()).show(panelCard, "cardDashBoard");
+
+        // 7) Gọi pack()
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }
+
+    // Chuyển card
+    public void switchCard(String cardName) {
+        CardLayout cl = (CardLayout) panelCard.getLayout();
+        cl.show(panelCard, cardName);
+    }
 
     public static void main(String args[]) {
-        // Use our custom look and feel helper
         UIHelper.setupLookAndFeel();
-        
-        // Set up look and feel
         try {
-            javax.swing.UIManager.setLookAndFeel(
-                javax.swing.UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        
-        // Create and display the form
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    AdminView view = new AdminView();
-                    view.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH); // Maximize
-                    view.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    javax.swing.JOptionPane.showMessageDialog(null,
-                        "Error initializing AdminView: " + e.getMessage(),
-                        "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
-                }
+
+        EventQueue.invokeLater(() -> {
+            try {
+                AdminView view = new AdminView();
+                view.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                view.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null,
+                    "Error initializing AdminView: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
 
-    //phuong thuc chuyen Card
-    public void switchCard(String cardName) {
-        CardLayout cl = (CardLayout) panelCard.getLayout();
-        cl.show(panelCard, cardName); // Chuyển sang card tương ứng
-    }
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private com.salesmate.component.AdAccountPopup adAccountPopup1;
-    private com.salesmate.component.AdminHeader adminHeader;
-    private com.salesmate.component.AdminSidebar adminSidebar;
-    private com.salesmate.component.AdDashBoard cardDashBoard;
-    private com.salesmate.component.AdInvoicePanel cardInvoicePanel;
-    private com.salesmate.component.AdProductPanel cardProductPanel;
-    private com.salesmate.component.AdRevenuePanel cardRevenuePanel;
-    private com.salesmate.component.AdUserPanel cardUserPanel;
-    private javax.swing.JPanel panelCard;
-    private javax.swing.JPanel panelDisplay;
-    // End of variables declaration//GEN-END:variables
+    
 }

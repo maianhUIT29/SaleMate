@@ -1,5 +1,7 @@
 package com.salesmate.model;
 
+import com.salesmate.dao.SalaryDAO;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import jakarta.persistence.Column;
@@ -160,4 +162,6 @@ public class Employee {
     public void setRole(String role) {
         this.role = role;
     }
+
+   
 }

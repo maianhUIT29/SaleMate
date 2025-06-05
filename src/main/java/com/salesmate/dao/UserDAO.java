@@ -120,22 +120,34 @@ public class UserDAO {
     }
 
     public boolean updateUser(User user) {
-        String query = "UPDATE users SET username = ?, email = ?, status = ?, avatar = ? WHERE users_id = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(query)) {
-
-            stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getEmail());
-            stmt.setString(3, user.getStatus());
-            stmt.setString(4, user.getAvatar()); // Add avatar update
-            stmt.setInt(5, user.getUsersId());
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    String role = user.getRole();
+    if (!role.equals("Manager") && !role.equals("Warehouse") && !role.equals("Sales")) {
+        throw new IllegalArgumentException("Invalid role: " + role);
     }
+    String query =
+        "UPDATE users SET " +
+        "username = ?, " +
+        "email    = ?, " +
+        "status   = ?, " +
+        "avatar   = ?, " +
+        "role     = ? " +
+        "WHERE users_id = ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+
+        stmt.setString(1, user.getUsername());
+        stmt.setString(2, user.getEmail());
+        stmt.setString(3, user.getStatus());
+        stmt.setString(4, user.getAvatar());
+        stmt.setString(5, user.getRole());
+        stmt.setInt(6, user.getUsersId());
+
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 
     // Get user by ID
     public User getUserById(int userId) {
@@ -190,6 +202,107 @@ public int countUser() {
             e.printStackTrace();
         }
         return result;
+    }
+
+    // NEW: Thêm người dùng
+public boolean addUser(User user) {
+    String role = user.getRole();
+    if (!role.equals("Manager") && !role.equals("Warehouse") && !role.equals("Sales")) {
+        throw new IllegalArgumentException("Invalid role: " + role);
+    }
+    String sql =
+        "INSERT INTO users " +
+        "(username, email, password, role, status, avatar, created_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, user.getUsername());
+        stmt.setString(2, user.getEmail());
+        stmt.setString(3, user.getPassword());
+        stmt.setString(4, user.getRole());
+        stmt.setString(5, user.getStatus());
+        stmt.setString(6, user.getAvatar());
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+  
+
+    
+     // Soft‐delete user: doi status thanh  'Inactive'
+    public boolean deleteUserById(int userId) {
+        String sql = "UPDATE users SET status = 'Inactive' WHERE users_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // NEW: Lấy danh sách toàn bộ user
+    public List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users ORDER BY created_at DESC";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // NEW: Tìm kiếm user theo tên
+    public List<User> searchUsersByName(String keyword) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE username LIKE ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + keyword + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // NEW: Lọc user theo role
+    public List<User> filterUsersByRole(String role) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE role = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, role);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // Hàm tiện ích tái sử dụng đọc từ ResultSet
+    private User extractUserFromResultSet(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setUsersId(rs.getInt("users_id"));
+        user.setUsername(rs.getString("username"));
+        user.setRole(rs.getString("role"));
+        user.setCreatedAt(rs.getTimestamp("created_at"));
+        user.setAvatar(rs.getString("avatar"));
+        user.setEmail(rs.getString("email"));
+        user.setStatus(rs.getString("status"));
+        user.setPassword(rs.getString("password"));
+        return user;
     }
 
 }

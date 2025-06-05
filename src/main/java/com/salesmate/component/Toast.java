@@ -30,7 +30,7 @@ public class Toast extends JDialog {
     private int spinnerAngle = 0;
     private boolean isLoading = false;
 
-    private Toast(JFrame parent) {
+    public Toast(JFrame parent) {
         super(parent);
         setUndecorated(true);
         setBackground(new Color(0, 0, 0, 0));
@@ -178,4 +178,6 @@ public class Toast extends JDialog {
             instance.fadeTimer.start();
         }
     }
+
+   
 }
