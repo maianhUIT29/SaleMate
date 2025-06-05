@@ -163,15 +163,5 @@ public class Employee {
         this.role = role;
     }
 
-    public BigDecimal getSalary() {
-        // Giả sử bạn có một lớp DAO để truy xuất dữ liệu từ bảng SALARY
-        try {
-            SalaryDAO salaryDAO = new SalaryDAO();
-            BigDecimal salary = salaryDAO.getSalaryByEmployeeId(this.employeeId);
-            return salary;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Không thể lấy thông tin lương cho nhân viên ID: " + this.employeeId);
-        }
-    }
+   
 }

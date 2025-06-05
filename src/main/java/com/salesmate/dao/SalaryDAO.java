@@ -191,25 +191,7 @@ public class SalaryDAO {
         return false;
     }
 
-    /**
-     * Lấy lương theo employee_id. (Không liên quan xóa mềm, nhưng sẽ chỉ tìm record chưa bị xóa nếu muốn)
-     */
-    public BigDecimal getSalaryByEmployeeId(int employeeId) {
-        String query = "SELECT total_salary FROM salary WHERE employee_id = ? AND status <> 'Cancelled'";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, employeeId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getBigDecimal("total_salary");
-            } else {
-                throw new RuntimeException("Không tìm thấy lương (hoặc đã bị hủy) cho nhân viên ID: " + employeeId);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Lỗi khi truy vấn lương từ cơ sở dữ liệu.");
-        }
-    }
+   
 
     /**
      * Lấy danh sách bản ghi lương (Object[]) kèm tên nhân viên, có phân trang + tìm kiếm,
