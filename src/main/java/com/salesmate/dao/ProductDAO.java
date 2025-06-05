@@ -485,4 +485,78 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         }
     }
 
+    public boolean updateProductInfo(Product product) {
+        String sql = "UPDATE PRODUCT SET product_name=?, price=? WHERE product_id=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, product.getProductName());
+            stmt.setBigDecimal(2, product.getPrice());
+            stmt.setInt(3, product.getProductId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Lấy tổng số lượng đã bán của sản phẩm
+    public int getSoldQuantity(int productId) {
+        String sql = "SELECT NVL(SUM(quantity),0) AS sold FROM DETAIL WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("sold");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // Tìm kiếm sản phẩm theo tên (không phân biệt hoa thường)
+    public List<Product> searchProductsByName(String name) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM PRODUCT WHERE LOWER(product_name) LIKE ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + name.toLowerCase() + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Product p = new Product();
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setQuantity(rs.getInt("quantity"));
+                // ... set các thuộc tính khác nếu cần
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // Lấy danh sách sản phẩm tồn kho thấp hơn ngưỡng
+    public List<Product> getLowStockProducts(int threshold) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM PRODUCT WHERE quantity <= ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, threshold);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Product p = new Product();
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setQuantity(rs.getInt("quantity"));
+                // ... set các thuộc tính khác nếu cần
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 }
