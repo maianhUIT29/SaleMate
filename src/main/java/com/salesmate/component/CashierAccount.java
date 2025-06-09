@@ -1,1047 +1,863 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.salesmate.component;
 
-import com.salesmate.controller.UserController;
-import com.salesmate.model.User;
-import com.salesmate.utils.SessionManager;
-
-import javax.swing.JOptionPane;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import java.awt.Image;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.FontMetrics;
+import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.BasicStroke;
-import java.awt.Point;
-import java.awt.image.BufferedImage;
-import java.awt.GradientPaint;
+import java.text.SimpleDateFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import javax.swing.SwingConstants;
 
-import java.beans.Beans;
+import com.salesmate.controller.EmployeeController;
+import com.salesmate.controller.UserController;
+import com.salesmate.model.Employee;
+import com.salesmate.model.User;
+import com.salesmate.utils.SessionManager;
 
-import javax.imageio.ImageIO;
-import javax.swing.Timer;
-
-public class CashierAccount extends javax.swing.JPanel {
-
-    private final UserController userController = new UserController();
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-    private String selectedAvatarPath = null;
-    private int avatarSize = 120; // Reduced from 150 to 120 for an even smaller avatar
-    private JDialog imageEditorDialog;
-    private ImageIcon editingImage;
-    private double zoomFactor = 1.0;
-    private int rotationAngle = 0;
-    private Point dragStart;
-    private Point imagePosition = new Point(0, 0);
-    private Point lastMousePoint;
-
-    private String originalUsername;
-    private String originalCCCD;
-    private JDialog toastDialog;
-
+public class CashierAccount extends JPanel {
+    
+    // Modern vibrant color scheme
+    private static final Color PRIMARY_COLOR = new Color(102, 51, 153);       // Deep Purple
+    private static final Color SECONDARY_COLOR = new Color(0, 123, 255);      // Bright Blue
+    private static final Color SUCCESS_COLOR = new Color(40, 167, 69);        // Green
+    private static final Color WARNING_COLOR = new Color(255, 193, 7);        // Amber
+    private static final Color DANGER_COLOR = new Color(220, 53, 69);         // Red
+    private static final Color INFO_COLOR = new Color(23, 162, 184);          // Cyan
+    private static final Color LIGHT_COLOR = new Color(248, 249, 250);        // Light Gray
+    private static final Color DARK_COLOR = new Color(52, 58, 64);            // Dark Gray
+    private static final Color BACKGROUND_COLOR = new Color(240, 242, 247);   // Light Blue Gray
+    private static final Color CARD_COLOR = Color.WHITE;
+    private static final Color TEXT_PRIMARY = new Color(33, 37, 41);
+    private static final Color TEXT_SECONDARY = new Color(108, 117, 125);
+    private static final Color BORDER_COLOR = new Color(222, 226, 230);
+    private static final Color ACCENT_COLOR = new Color(255, 87, 34);         // Deep Orange
+    private static final Color PURPLE_LIGHT = new Color(155, 89, 182);        // Light Purple
+    
+    private UserController userController;
+    private EmployeeController employeeController;
+    
+    // User info components
+    private JTextField txtUsername;
+    private JTextField txtEmail;
+    private JComboBox<String> cbRole;
+    private JComboBox<String> cbStatus;
+    private JLabel lblCreatedAt;
+    private JPasswordField txtCurrentPassword;
+    private JPasswordField txtNewPassword;
+    private JPasswordField txtConfirmPassword;
+    
+    // Employee info components
+    private JTextField txtFirstName;
+    private JTextField txtLastName;
+    private JTextField txtPhone;
+    private JTextArea txtAddress;
+    private JTextField txtEmergencyContact;
+    private JTextField txtEmergencyPhone;
+    private JLabel lblBirthDate;
+    private JLabel lblHireDate;
+    private JLabel lblEmployeeRole;
+    
+    // Account buttons
+    private JButton btnUpdateAccount;
+    private JButton btnSaveAccount;
+    private JButton btnCancelAccount;
+    
+    // Employee buttons
+    private JButton btnUpdateEmployee;
+    private JButton btnSaveEmployee;
+    private JButton btnCancelEmployee;
+    
+    // Password button
+    private JButton btnChangePassword;
+    private JButton btnRefresh;
+    
+    // Edit states
+    private boolean isEditingAccount = false;
+    private boolean isEditingEmployee = false;
+    
+    // Backup data for cancel functionality
+    private User originalUser;
+    private Employee originalEmployee;
+    
     public CashierAccount() {
+        initializeControllers();
         initComponents();
-        if (!Beans.isDesignTime()) {
-            setupComponents();
-            loadUserData(); // Load dữ liệu user khi khởi tạo
-        }
+        loadUserData();
+        setupEventHandlers();
     }
-
-    private void setupComponents() {
-        // Style cho buttons với kích thước cụ thể và màu mới
-        styleButton(btnUpdate, new Color(255, 193, 7));  // Warning yellow
-        styleButton(btnSave, new Color(40, 167, 69));    // Success green 
-        styleButton(btnResetPW, new Color(0, 150, 136)); // Teal color
-        styleButton(btnUpdateAvatar, new Color(0, 123, 255)); // Primary blue
-
-        // Ban đầu disable các field và nút Save
-        setFieldsEditable(false);
-        btnSave.setEnabled(false);
-
-        // Fix hiển thị avatar
-        lblAvatar.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                loadAvatar();
-            }
-        });
-
-        // Thêm action listeners với chức năng cancel
-        btnUpdate.addActionListener(e -> {
-            if (btnUpdate.getText().equals("Cập nhật")) {
-                handleUpdate();
-                btnUpdate.setText("Huỷ");
-                btnUpdate.setBackground(new Color(220, 53, 69)); // Màu đỏ cho nút huỷ
-            } else {
-                handleCancel();
-                btnUpdate.setText("Cập nhật"); 
-                btnUpdate.setBackground(new Color(255, 193, 7)); // Màu vàng cho nút cập nhật
-            }
-        });
-
-        btnSave.addActionListener(e -> handleSave());
-        btnResetPW.addActionListener(e -> showChangePasswordDialog());
-
-        // Xử lý sự kiện chọn ảnh - chỉ để một handler
-        btnUpdateAvatar.addActionListener(e -> showImagePicker());
+    
+    private void initializeControllers() {
+        userController = new UserController();
+        employeeController = new EmployeeController();
     }
-
-    private void styleButton(JButton button, Color bgColor) {
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    
+    private void initComponents() {
+        setLayout(new BorderLayout());
+        setBackground(BACKGROUND_COLOR);
         
-        // Make sure opacity is set correctly for the button to show its background color
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        
-        // Fix the button UI to use the system default button UI
-        button.setUI(new javax.swing.plaf.basic.BasicButtonUI());
-        
-        button.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(bgColor.darker());
-            }
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(bgColor);
-            }
-        });
-    }
-
-    private void styleTextField(JTextField field) {
-        field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(5, 0, 5, 0)
-        ));
-        field.setBackground(Color.WHITE);
-    }
-
-    private void handleUpdate() {
-        setFieldsEditable(true);
-        btnSave.setEnabled(true);
-        // Lưu lại giá trị ban đầu để có thể khôi phục
-        originalUsername = txtUsername.getText();
-        originalCCCD = txtCCCD.getText();
-    }
-
-    private void handleCancel() {
-        // Khôi phục các giá trị ban đầu
-        txtUsername.setText(originalUsername);
-        txtCCCD.setText(originalCCCD);
-        
-        setFieldsEditable(false);
-        btnSave.setEnabled(false);
-    }
-
-    private void handleSave() {
-        User user = SessionManager.getInstance().getLoggedInUser();
-        if (user != null) {
-            // Update only allowed fields
-            user.setUsername(txtUsername.getText());
-            user.setStatus(txtCCCD.getText());
-
-            if (userController.updateUser(user)) {
-                showToast("Cập nhật thông tin thành công!", new Color(40, 167, 69));
-                setFieldsEditable(false);
-                btnSave.setEnabled(false);
-                btnUpdate.setText("Cập nhật");
-                btnUpdate.setBackground(new Color(255, 193, 7));
-                loadUserData(); // Reload data
-            } else {
-                showToast("Cập nhật thất bại!", new Color(220, 53, 69));
-            }
-        }
-    }
-
-    private void loadAvatar() {
-        if (lblAvatar.getWidth() <= 0 || lblAvatar.getHeight() <= 0) return;
-
-        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-        try {
-            // Create default avatar as fallback
-            BufferedImage defaultAvatar = createDefaultAvatar(loggedInUser);
-            
-            // Try to load user's actual avatar if available
-            if (loggedInUser != null && loggedInUser.getAvatar() != null && !loggedInUser.getAvatar().isEmpty()) {
-                String avatarPath = "/img/avt/" + loggedInUser.getAvatar();
-                URL imageUrl = getClass().getResource(avatarPath);
-                if (imageUrl != null) {
-                    ImageIcon originalIcon = new ImageIcon(imageUrl);
-                    Image originalImage = originalIcon.getImage();
-
-                    // Scale image to fit in label but not exceed avatarSize
-                    int labelWidth = Math.min(lblAvatar.getWidth(), avatarSize);
-                    int labelHeight = Math.min(lblAvatar.getHeight(), avatarSize);
-                    Image scaledImage = originalImage.getScaledInstance(
-                        labelWidth, labelHeight, Image.SCALE_SMOOTH);
-                    
-                    lblAvatar.setIcon(new ImageIcon(scaledImage));
-                    return; // Exit if successful
-                }
-            }
-            
-            // If we get here, use the default avatar
-            int labelWidth = Math.min(lblAvatar.getWidth(), avatarSize);
-            int labelHeight = Math.min(lblAvatar.getHeight(), avatarSize);
-            Image scaledDefault = defaultAvatar.getScaledInstance(
-                labelWidth, labelHeight, Image.SCALE_SMOOTH);
-            lblAvatar.setIcon(new ImageIcon(scaledDefault));
-            
-        } catch (Exception e) {
-            System.out.println("Error loading avatar: " + e.getMessage());
-            e.printStackTrace();
-            
-            // Create and set a simple colored circle as avatar on error
-            try {
-                BufferedImage emptyImage = createDefaultAvatar(loggedInUser);
-                lblAvatar.setIcon(new ImageIcon(emptyImage));
-            } catch (Exception ex) {
-                lblAvatar.setText("Avatar");
-                lblAvatar.setIcon(null);
-            }
-        }
-    }
-
-    /**
-     * Creates a default avatar image with the first initial of the user's name
-     * @param user The user for whom to create the avatar
-     * @return A BufferedImage containing the default avatar
-     */
-    private BufferedImage createDefaultAvatar(User user) {
-        BufferedImage avatar = new BufferedImage(avatarSize, avatarSize, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = avatar.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
-        // Fill background with a gradient
-        GradientPaint gradient = new GradientPaint(
-            0, 0, new Color(100, 180, 255),
-            avatarSize, avatarSize, new Color(80, 150, 230)
-        );
-        g2d.setPaint(gradient);
-        g2d.fillOval(0, 0, avatarSize, avatarSize);
-        
-        // Add border
-        g2d.setColor(new Color(70, 130, 200));
-        g2d.setStroke(new BasicStroke(2));
-        g2d.drawOval(1, 1, avatarSize-2, avatarSize-2);
-        
-        // Add user's initial if available
-        if (user != null && user.getUsername() != null && !user.getUsername().isEmpty()) {
-            String initial = user.getUsername().substring(0, 1).toUpperCase();
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, avatarSize/2));
-            FontMetrics fm = g2d.getFontMetrics();
-            int textWidth = fm.stringWidth(initial);
-            int textHeight = fm.getHeight();
-            g2d.drawString(initial, (avatarSize - textWidth) / 2, 
-                          (avatarSize + textHeight / 3) / 2);
-        }
-        
-        g2d.dispose();
-        return avatar;
-    }
-
-    private void showImagePicker() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter(
-            "Image files", "jpg", "jpeg", "png"));
-
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            showImageEditor(file);
-        }
-    }
-
-    private void showImageEditor(File imageFile) {
-        imageEditorDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Chỉnh sửa ảnh", JDialog.ModalityType.APPLICATION_MODAL);
-        imageEditorDialog.setSize(800, 600);
-        imageEditorDialog.setLocationRelativeTo(this);
-
-        // Panel chính
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBackground(Color.WHITE);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Panel chứa ảnh với khung crop 150x150
-        JPanel imagePanel = new JPanel() {
+        // Main container with gradient background
+        JPanel mainContainer = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // Vẽ ảnh
-                if (editingImage != null) {
-                    Image img = editingImage.getImage();
-                    int newWidth = (int)(img.getWidth(null) * zoomFactor);
-                    int newHeight = (int)(img.getHeight(null) * zoomFactor);
-                    
-                    // Xoay ảnh nếu cần
-                    g2d.translate(getWidth()/2, getHeight()/2);
-                    g2d.rotate(Math.toRadians(rotationAngle));
-                    g2d.translate(-getWidth()/2, -getHeight()/2);
-                    
-                    // Vẽ ảnh với vị trí và zoom
-                    g2d.drawImage(img, 
-                        imagePosition.x, imagePosition.y, 
-                        newWidth, newHeight, null);
-                }
-
-                // Vẽ khung crop 150x150 ở giữa
-                int frameX = (getWidth() - 150) / 2;
-                int frameY = (getHeight() - 150) / 2;
-                g2d.setColor(new Color(0, 0, 0, 100));
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRect(frameX, frameY, 150, 150);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(240, 242, 247), 
+                                                   getWidth(), getHeight(), new Color(225, 235, 245));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-
-        // Thêm mouse listeners để kéo ảnh
-        imagePanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                dragStart = e.getPoint();
-                lastMousePoint = e.getPoint();
-                
-                // Right click to rotate
-                if (e.getButton() == MouseEvent.BUTTON3) {
-                    lastMousePoint = e.getPoint();
-                }
-            }
-            
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                dragStart = null;
-                lastMousePoint = null;
-            }
-        });
-
-        imagePanel.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (e.getModifiersEx() == MouseEvent.BUTTON3_DOWN_MASK) {
-                    // Rotate with right click drag
-                    if (lastMousePoint != null) {
-                        int dx = e.getX() - lastMousePoint.x;
-                        rotationAngle += dx * 0.5; // Adjust rotation sensitivity
-                        imagePanel.repaint();
-                    }
-                    lastMousePoint = e.getPoint();
-                } else if (dragStart != null) {
-                    // Move image with left click drag
-                    int dx = e.getX() - dragStart.x;
-                    int dy = e.getY() - dragStart.y;
-                    imagePosition.translate(dx, dy);
-                    dragStart = e.getPoint();
-                    imagePanel.repaint();
-                }
-            }
-        });
-
-        // Panel controls
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        mainContainer.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
         
-        // Zoom controls
-        JButton zoomInBtn = new JButton("+");
-        JButton zoomOutBtn = new JButton("-");
+        // Title with modern gradient styling
+        JPanel titlePanel = createTitlePanel();
         
-        zoomInBtn.addActionListener(e -> {
-            zoomFactor *= 1.1;
-            imagePanel.repaint();
-        });
+        // Content panel with modern card design
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 25, 0));
+        contentPanel.setOpaque(false);
         
-        zoomOutBtn.addActionListener(e -> {
-            zoomFactor *= 0.9;
-            imagePanel.repaint();
-        });
-
-        // Rotation controls
-        JButton rotateLeftBtn = new JButton("⟲");
-        JButton rotateRightBtn = new JButton("⟳");
+        // Left panel - User Account Info
+        JPanel userPanel = createUserInfoPanel();
         
-        rotateLeftBtn.addActionListener(e -> {
-            rotationAngle -= 90;
-            imagePanel.repaint();
-        });
+        // Right panel - Employee Info
+        JPanel employeePanel = createEmployeeInfoPanel();
         
-        rotateRightBtn.addActionListener(e -> {
-            rotationAngle += 90;
-            imagePanel.repaint();
-        });
-
-        // Buttons
-        JButton saveBtn = new JButton("Lưu");
-        JButton cancelBtn = new JButton("Huỷ");
-
-        styleButton(saveBtn, new Color(40, 167, 69));
-        styleButton(cancelBtn, new Color(220, 53, 69));
-
-        saveBtn.addActionListener(e -> saveEditedImage());
-        cancelBtn.addActionListener(e -> imageEditorDialog.dispose());
-
-        // Add controls
-        controlPanel.add(zoomInBtn);
-        controlPanel.add(zoomOutBtn);
-        controlPanel.add(rotateLeftBtn);
-        controlPanel.add(rotateRightBtn);
-        controlPanel.add(saveBtn);
-        controlPanel.add(cancelBtn);
-
-        // Load image
-        try {
-            editingImage = new ImageIcon(imageFile.getAbsolutePath());
-            // Center image initially
-            imagePosition.x = (800 - editingImage.getIconWidth()) / 2;
-            imagePosition.y = (600 - editingImage.getIconHeight()) / 2;
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                "Không thể tải ảnh: " + ex.getMessage(),
-                "Lỗi",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        mainPanel.add(imagePanel, BorderLayout.CENTER);
-        mainPanel.add(controlPanel, BorderLayout.SOUTH);
-
-        imageEditorDialog.add(mainPanel);
-        imageEditorDialog.setVisible(true);
+        contentPanel.add(userPanel);
+        contentPanel.add(employeePanel);
+        
+        // Bottom panel with refresh button
+        JPanel bottomPanel = createBottomPanel();
+        
+        mainContainer.add(titlePanel, BorderLayout.NORTH);
+        mainContainer.add(contentPanel, BorderLayout.CENTER);
+        mainContainer.add(bottomPanel, BorderLayout.SOUTH);
+        
+        add(mainContainer, BorderLayout.CENTER);
     }
-
-    private void saveEditedImage() {
-        try {
-            // Get current user ID
-            User user = SessionManager.getInstance().getLoggedInUser();
-            if (user == null) return;
-            
-            // Create buffered image from editor view
-            int width = 150; // Reduced from 200 to 150
-            int height = 150; // Reduced from 200 to 150
-            BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2d = result.createGraphics();
-            
-            // Set background
-            g2d.setColor(Color.WHITE);
-            g2d.fillRect(0, 0, width, height);
-            
-            // Get center point of crop frame
-            JPanel imagePanel = (JPanel) imageEditorDialog.getContentPane()
-                .getComponent(0);
-            int centerX = imagePanel.getWidth() / 2;
-            int centerY = imagePanel.getHeight() / 2;
-            
-            // Setup transformation
-            g2d.translate(width/2, height/2);
-            g2d.rotate(Math.toRadians(rotationAngle));
-            g2d.translate(-width/2, -height/2);
-            
-            // Calculate image drawing position
-            int drawX = width/2 - (centerX - imagePosition.x);
-            int drawY = height/2 - (centerY - imagePosition.y);
-            
-            // Draw scaled and positioned image
-            Image img = editingImage.getImage();
-            int newWidth = (int)(img.getWidth(null) * zoomFactor);
-            int newHeight = (int)(img.getHeight(null) * zoomFactor);
-            g2d.drawImage(img, drawX, drawY, newWidth, newHeight, null);
-            
-            g2d.dispose();
-
-            // Save file with userId as name
-            String fileName = user.getUsersId() + ".jpg";
-            String resourcePath = "src/main/resources/img/avt/" + fileName;
-            File outputFile = new File(resourcePath);
-            ImageIO.write(result, "jpg", outputFile);
-
-            // Update database
-            user.setAvatar(fileName);
-            if (userController.updateUser(user)) {
-                showToast("Cập nhật ảnh đại diện thành công!", new Color(40, 167, 69));
-                loadAvatar(); // Reload avatar
-                imageEditorDialog.dispose();
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(imageEditorDialog,
-                "Lỗi khi lưu ảnh: " + ex.getMessage(),
-                "Lỗi",
-                JOptionPane.ERROR_MESSAGE);
-        }
+    
+    private JPanel createTitlePanel() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        
+        JLabel titleLabel = new JLabel("Quản Lý Tài Khoản Nhân Viên", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        titleLabel.setForeground(PRIMARY_COLOR);
+        
+        // Add subtitle
+        JLabel subtitleLabel = new JLabel("Cập nhật thông tin cá nhân và tài khoản của bạn", SwingConstants.CENTER);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setForeground(TEXT_SECONDARY);
+        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        
+        panel.setLayout(new BorderLayout());
+        panel.add(titleLabel, BorderLayout.CENTER);
+        panel.add(subtitleLabel, BorderLayout.SOUTH);
+        
+        return panel;
     }
-
-    private void showToast(String message, Color bgColor) {
-        if (toastDialog != null && toastDialog.isVisible()) {
-            toastDialog.dispose();
-        }
-
-        toastDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this));
-        toastDialog.setUndecorated(true);
-        toastDialog.setBackground(new Color(0, 0, 0, 0));
-
-        // Create panel with rounded corners
-        JPanel toastPanel = new JPanel() {
+    
+    private JPanel createUserInfoPanel() {
+        JPanel panel = createModernCard(SECONDARY_COLOR);
+        
+        // Header with gradient background
+        JPanel headerPanel = createSectionHeader("👤 Thông Tin Tài Khoản", SECONDARY_COLOR);
+        
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(CARD_COLOR);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(12, 0, 12, 20);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // Username
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(createModernLabel("🏷️ Tên đăng nhập:", SECONDARY_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtUsername = createModernTextField(SECONDARY_COLOR);
+        formPanel.add(txtUsername, gbc);
+        
+        // Email
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("📧 Email:", SECONDARY_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtEmail = createModernTextField(SECONDARY_COLOR);
+        formPanel.add(txtEmail, gbc);
+        
+        // Role
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("🎭 Vai trò:", SECONDARY_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        cbRole = createModernComboBox(new String[]{"Manager", "Warehouse", "Sales"}, SECONDARY_COLOR);
+        cbRole.setEnabled(false);
+        formPanel.add(cbRole, gbc);
+        
+        // Status
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("📊 Trạng thái:", SECONDARY_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        cbStatus = createModernComboBox(new String[]{"Active", "Inactive"}, SUCCESS_COLOR);
+        cbStatus.setEnabled(false);
+        formPanel.add(cbStatus, gbc);
+        
+        // Created At
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("📅 Ngày tạo:", SECONDARY_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        lblCreatedAt = createInfoLabel();
+        formPanel.add(lblCreatedAt, gbc);
+        
+        // Password change section
+        JPanel passwordPanel = createPasswordChangePanel();
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.insets = new Insets(25, 0, 0, 0);
+        formPanel.add(passwordPanel, gbc);
+        
+        // Account buttons
+        JPanel accountButtonsPanel = createAccountButtonsPanel();
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.insets = new Insets(20, 0, 0, 0);
+        formPanel.add(accountButtonsPanel, gbc);
+        
+        panel.setLayout(new BorderLayout());
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(formPanel, BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JPanel createPasswordChangePanel() {
+        JPanel panel = createModernCard(WARNING_COLOR);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(WARNING_COLOR, 2),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+        
+        JPanel headerPanel = createSectionHeader("🔐 Đổi Mật Khẩu", WARNING_COLOR);
+        
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(CARD_COLOR);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 0, 8, 15);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // Current Password
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(createModernLabel("🔑 Mật khẩu hiện tại:", WARNING_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtCurrentPassword = createModernPasswordField(WARNING_COLOR);
+        formPanel.add(txtCurrentPassword, gbc);
+        
+        // New Password
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("🆕 Mật khẩu mới:", WARNING_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtNewPassword = createModernPasswordField(WARNING_COLOR);
+        formPanel.add(txtNewPassword, gbc);
+        
+        // Confirm Password
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("✅ Xác nhận mật khẩu:", WARNING_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtConfirmPassword = createModernPasswordField(WARNING_COLOR);
+        formPanel.add(txtConfirmPassword, gbc);
+        
+        // Change password button
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(15, 0, 0, 0);
+        btnChangePassword = createModernButton("🔐 Đổi Mật Khẩu", WARNING_COLOR);
+        formPanel.add(btnChangePassword, gbc);
+        
+        panel.setLayout(new BorderLayout());
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(formPanel, BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JPanel createEmployeeInfoPanel() {
+        JPanel panel = createModernCard(SUCCESS_COLOR);
+        
+        // Header with gradient background
+        JPanel headerPanel = createSectionHeader("👨‍💼 Thông Tin Nhân Viên", SUCCESS_COLOR);
+        
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(CARD_COLOR);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(12, 0, 12, 20);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // First Name
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(createModernLabel("👤 Họ:", SUCCESS_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtFirstName = createModernTextField(SUCCESS_COLOR);
+        formPanel.add(txtFirstName, gbc);
+        
+        // Last Name
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("📝 Tên:", SUCCESS_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtLastName = createModernTextField(SUCCESS_COLOR);
+        formPanel.add(txtLastName, gbc);
+        
+        // Phone
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("📱 Số điện thoại:", SUCCESS_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtPhone = createModernTextField(SUCCESS_COLOR);
+        formPanel.add(txtPhone, gbc);
+        
+        // Address
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        formPanel.add(createModernLabel("🏠 Địa chỉ:", SUCCESS_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtAddress = createModernTextArea(SUCCESS_COLOR);
+        JScrollPane scrollAddress = new JScrollPane(txtAddress);
+        scrollAddress.setPreferredSize(new Dimension(250, 80));
+        scrollAddress.setBorder(BorderFactory.createLineBorder(SUCCESS_COLOR, 2));
+        formPanel.add(scrollAddress, gbc);
+        
+        // Emergency Contact
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        formPanel.add(createModernLabel("🚨 Liên hệ khẩn cấp:", ACCENT_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtEmergencyContact = createModernTextField(ACCENT_COLOR);
+        formPanel.add(txtEmergencyContact, gbc);
+        
+        // Emergency Phone
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("☎️ SĐT khẩn cấp:", ACCENT_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        txtEmergencyPhone = createModernTextField(ACCENT_COLOR);
+        formPanel.add(txtEmergencyPhone, gbc);
+        
+        // Birth Date (read-only)
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("🎂 Ngày sinh:", INFO_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        lblBirthDate = createInfoLabel();
+        formPanel.add(lblBirthDate, gbc);
+        
+        // Hire Date (read-only)
+        gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("🗓️ Ngày tuyển dụng:", INFO_COLOR), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        lblHireDate = createInfoLabel();
+        formPanel.add(lblHireDate, gbc);
+        
+        // Employee Role (read-only)
+        gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(createModernLabel("💼 Chức vụ:", PURPLE_LIGHT), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        lblEmployeeRole = createInfoLabel();
+        formPanel.add(lblEmployeeRole, gbc);
+        
+        // Employee buttons
+        JPanel employeeButtonsPanel = createEmployeeButtonsPanel();
+        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.insets = new Insets(20, 0, 0, 0);
+        formPanel.add(employeeButtonsPanel, gbc);
+        
+        panel.setLayout(new BorderLayout());
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(formPanel, BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JPanel createAccountButtonsPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        panel.setOpaque(false);
+        
+        btnUpdateAccount = createModernButton("✏️ Cập Nhật", INFO_COLOR);
+        btnSaveAccount = createModernButton("💾 Lưu", SUCCESS_COLOR);
+        btnCancelAccount = createModernButton("❌ Hủy", DANGER_COLOR);
+        
+        // Initially only show update button
+        btnSaveAccount.setVisible(false);
+        btnCancelAccount.setVisible(false);
+        
+        panel.add(btnUpdateAccount);
+        panel.add(btnSaveAccount);
+        panel.add(btnCancelAccount);
+        
+        return panel;
+    }
+    
+    private JPanel createEmployeeButtonsPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        panel.setOpaque(false);
+        
+        btnUpdateEmployee = createModernButton("✏️ Cập Nhật", INFO_COLOR);
+        btnSaveEmployee = createModernButton("💾 Lưu", SUCCESS_COLOR);
+        btnCancelEmployee = createModernButton("❌ Hủy", DANGER_COLOR);
+        
+        // Initially only show update button
+        btnSaveEmployee.setVisible(false);
+        btnCancelEmployee.setVisible(false);
+        
+        panel.add(btnUpdateEmployee);
+        panel.add(btnSaveEmployee);
+        panel.add(btnCancelEmployee);
+        
+        return panel;
+    }
+    
+    private JPanel createBottomPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
+        panel.setOpaque(false);
+        
+        btnRefresh = createModernButton("🔄 Làm Mới Dữ Liệu", PRIMARY_COLOR);
+        btnRefresh.setPreferredSize(new Dimension(200, 50));
+        
+        panel.add(btnRefresh);
+        return panel;
+    }
+    
+    // Helper methods for creating modern UI components
+    private JPanel createModernCard(Color borderColor) {
+        JPanel panel = new JPanel();
+        panel.setBackground(CARD_COLOR);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(borderColor, 3),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+        
+        // Add shadow effect
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createRaisedSoftBevelBorder(),
+            BorderFactory.createLineBorder(borderColor, 2)
+        ));
+        
+        return panel;
+    }
+    
+    private JPanel createSectionHeader(String text, Color color) {
+        JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(bgColor);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, color, getWidth(), getHeight(), color.brighter());
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        toastPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        toastPanel.setOpaque(false);
-
-        // Create message label
-        JLabel messageLabel = new JLabel(message);
-        messageLabel.setForeground(Color.WHITE);
-        messageLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        toastPanel.add(messageLabel);
-
-        toastDialog.add(toastPanel);
-        toastDialog.pack();
-
-        // Center on parent window
-        Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
-        int x = parent.getX() + (parent.getWidth() - toastDialog.getWidth()) / 2;
-        int y = parent.getY() + parent.getHeight() - toastDialog.getHeight() - 50;
-        toastDialog.setLocation(x, y);
-
-        // Show toast and set timer to hide
-        toastDialog.setVisible(true);
-        new Timer(2000, (e) -> {
-            toastDialog.dispose();
-        }).start();
-    }
-
-    private void showChangePasswordDialog() {
-        JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), 
-                                   "Đổi mật khẩu", true);
-        // Đặt dialog ở giữa frame chính
-        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         
-        dialog.setLayout(new BorderLayout());
-        dialog.setSize(400, 250);
-        dialog.setLocationRelativeTo(this);
-
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        // Add password fields
-        JPasswordField oldPwField = new JPasswordField(20);
-        JPasswordField newPwField = new JPasswordField(20);
-        JPasswordField confirmPwField = new JPasswordField(20);
-
-        // Style fields
-        styleTextField(oldPwField);
-        styleTextField(newPwField);
-        styleTextField(confirmPwField);
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Mật khẩu cũ:"), gbc);
-        gbc.gridx = 1;
-        panel.add(oldPwField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Mật khẩu mới:"), gbc);
-        gbc.gridx = 1;
-        panel.add(newPwField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(new JLabel("Xác nhận mật khẩu:"), gbc);
-        gbc.gridx = 1;
-        panel.add(confirmPwField, gbc);
-
-        // Buttons panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton okButton = new JButton("Xác nhận");
-        JButton cancelButton = new JButton("Hủy");
-
-        styleButton(okButton, new Color(40, 167, 69));
-        styleButton(cancelButton, new Color(108, 117, 125));
-
-        okButton.addActionListener(e -> {
-            String oldPw = new String(oldPwField.getPassword());
-            String newPw = new String(newPwField.getPassword());
-            String confirmPw = new String(confirmPwField.getPassword());
-
-            if (!newPw.equals(confirmPw)) {
-                JOptionPane.showMessageDialog(dialog,
-                    "Mật khẩu xác nhận không khớp!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        label.setForeground(Color.WHITE);
+        
+        panel.add(label);
+        return panel;
+    }
+    
+    private JLabel createModernLabel(String text, Color color) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(color);
+        return label;
+    }
+    
+    private JLabel createInfoLabel() {
+        JLabel label = new JLabel();
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        label.setForeground(TEXT_SECONDARY);
+        label.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 2),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        label.setOpaque(true);
+        label.setBackground(LIGHT_COLOR);
+        return label;
+    }
+    
+    private JTextField createModernTextField(Color borderColor) {
+        JTextField field = new JTextField();
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(borderColor, 2),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        field.setPreferredSize(new Dimension(280, 40));
+        field.setBackground(Color.WHITE);
+        return field;
+    }
+    
+    private JPasswordField createModernPasswordField(Color borderColor) {
+        JPasswordField field = new JPasswordField();
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(borderColor, 2),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        field.setPreferredSize(new Dimension(250, 40));
+        field.setBackground(Color.WHITE);
+        return field;
+    }
+    
+    private JTextArea createModernTextArea(Color borderColor) {
+        JTextArea area = new JTextArea(3, 20);
+        area.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        area.setBackground(Color.WHITE);
+        return area;
+    }
+    
+    private JComboBox<String> createModernComboBox(String[] items, Color borderColor) {
+        JComboBox<String> combo = new JComboBox<>(items);
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        combo.setBorder(BorderFactory.createLineBorder(borderColor, 2));
+        combo.setPreferredSize(new Dimension(280, 40));
+        combo.setBackground(Color.WHITE);
+        return combo;
+    }
+    
+    private JButton createModernButton(String text, Color bgColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                Color color1, color2;
+                if (getModel().isPressed()) {
+                    color1 = bgColor.darker();
+                    color2 = bgColor.darker().darker();
+                } else if (getModel().isRollover()) {
+                    color1 = bgColor.brighter();
+                    color2 = bgColor;
+                } else {
+                    color1 = bgColor;
+                    color2 = bgColor.darker();
+                }
+                
+                GradientPaint gp = new GradientPaint(0, 0, color1, 0, getHeight(), color2);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                
+                // Add inner shadow
+                g2.setColor(new Color(0, 0, 0, 30));
+                g2.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 10, 10);
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setPreferredSize(new Dimension(120, 40));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Add hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.repaint();
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.repaint();
+            }
+        });
+        
+        return button;
+    }
+    
+    private void setupEventHandlers() {
+        btnUpdateAccount.addActionListener(e -> toggleAccountEdit(true));
+        btnSaveAccount.addActionListener(e -> saveAccountChanges());
+        btnCancelAccount.addActionListener(e -> cancelAccountChanges());
+        
+        btnUpdateEmployee.addActionListener(e -> toggleEmployeeEdit(true));
+        btnSaveEmployee.addActionListener(e -> saveEmployeeChanges());
+        btnCancelEmployee.addActionListener(e -> cancelEmployeeChanges());
+        
+        btnChangePassword.addActionListener(e -> changePassword());
+        btnRefresh.addActionListener(e -> loadUserData());
+    }
+    
+    private void toggleAccountEdit(boolean editing) {
+        isEditingAccount = editing;
+        txtUsername.setEnabled(editing);
+        txtEmail.setEnabled(editing);
+        
+        btnUpdateAccount.setVisible(!editing);
+        btnSaveAccount.setVisible(editing);
+        btnCancelAccount.setVisible(editing);
+        
+        if (editing) {
+            // Backup original data
+            originalUser = SessionManager.getInstance().getLoggedInUser();
+        }
+    }
+    
+    private void toggleEmployeeEdit(boolean editing) {
+        isEditingEmployee = editing;
+        txtFirstName.setEnabled(editing);
+        txtLastName.setEnabled(editing);
+        txtPhone.setEnabled(editing);
+        txtAddress.setEnabled(editing);
+        txtEmergencyContact.setEnabled(editing);
+        txtEmergencyPhone.setEnabled(editing);
+        
+        btnUpdateEmployee.setVisible(!editing);
+        btnSaveEmployee.setVisible(editing);
+        btnCancelEmployee.setVisible(editing);
+        
+        if (editing) {
+            // Backup original data
+            try {
+                originalEmployee = employeeController.getEmployeeByUserId(originalUser.getUsersId());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void saveAccountChanges() {
+        try {
+            User currentUser = SessionManager.getInstance().getLoggedInUser();
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin người dùng đăng nhập.", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-            User user = SessionManager.getInstance().getLoggedInUser();
-            if (userController.resetPassword(user.getEmail(), oldPw, newPw)) {
-                JOptionPane.showMessageDialog(dialog,
-                    "Đổi mật khẩu thành công!",
-                    "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
-                dialog.dispose();
+            
+            // Update user info
+            currentUser.setUsername(txtUsername.getText().trim());
+            currentUser.setEmail(txtEmail.getText().trim());
+            
+            boolean userUpdated = userController.updateUser(currentUser);
+            
+            if (userUpdated) {
+                SessionManager.getInstance().setLoggedInUser(currentUser);
+                JOptionPane.showMessageDialog(this, "✅ Cập nhật thông tin tài khoản thành công!", 
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                toggleAccountEdit(false);
             } else {
-                JOptionPane.showMessageDialog(dialog,
-                    "Mật khẩu cũ không đúng!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        cancelButton.addActionListener(e -> dialog.dispose());
-
-        buttonPanel.add(okButton);
-        buttonPanel.add(cancelButton);
-
-        dialog.add(panel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-        dialog.setVisible(true);
-    }
-
-    private void setFieldsEditable(boolean editable) {
-        txtUsername.setEditable(editable);
-        txtCCCD.setEditable(editable);
-        // Always keep these fields non-editable
-        txtEmail.setEditable(false);
-        txtPW.setEditable(false);
-        
-        // Update background color based on editable state
-        Color bgColor = editable ? Color.WHITE : new Color(240, 240, 240);
-        txtUsername.setBackground(bgColor);
-        txtCCCD.setBackground(bgColor);
-        // Keep email and password fields always grey
-        txtEmail.setBackground(new Color(240, 240, 240));
-        txtPW.setBackground(new Color(240, 240, 240));
-    }
-
-    private void loadUserData() {
-        User loggedInUser = SessionManager.getInstance().getLoggedInUser();
-        if (loggedInUser != null) {
-            txtUsername.setText(loggedInUser.getUsername());
-            txtEmail.setText(loggedInUser.getEmail());
-            txtDOB.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
-            txtCCCD.setText(loggedInUser.getStatus());
-            lblStatusValue.setText(loggedInUser.getStatus());
-            lblCreateAtValue.setText(loggedInUser.getCreatedAt() != null ? dateFormat.format(loggedInUser.getCreatedAt()) : "");
-            loadAvatar(); // Ensure the avatar is loaded when loading user data
-        } else {
-            JOptionPane.showMessageDialog(this, "No user is logged in.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        ConfirmUpdateDialog = new javax.swing.JDialog();
-        AccountPanel = new javax.swing.JPanel();
-        UserInfoPanel = new javax.swing.JPanel();
-        lblUsername = new javax.swing.JLabel();
-        txtCCCD = new javax.swing.JTextField();
-        lblEmail = new javax.swing.JLabel();
-        txtUsername = new javax.swing.JTextField();
-        txtEmail = new javax.swing.JTextField();
-        lblPW = new javax.swing.JLabel();
-        btnUpdate = new javax.swing.JButton();
-        btnSave = new javax.swing.JButton();
-        HeaderSPR = new javax.swing.JSeparator();
-        lblUserHeader = new javax.swing.JLabel();
-        lblDOB = new javax.swing.JLabel();
-        lblCCCD = new javax.swing.JLabel();
-        txtDOB = new javax.swing.JTextField();
-        txtPW = new javax.swing.JPasswordField();
-        InfoSPR = new javax.swing.JSeparator();
-        btnResetPW = new javax.swing.JButton();
-        UserAvatarPanel = new javax.swing.JPanel();
-        ActionPanel = new javax.swing.JPanel();
-        btnUpdateAvatar = new javax.swing.JButton();
-        lblStatus = new javax.swing.JLabel();
-        lblCreateAt = new javax.swing.JLabel();
-        AvatarSpt = new javax.swing.JSeparator();
-        lblCreateAtValue = new javax.swing.JLabel();
-        lblStatusValue = new javax.swing.JLabel();
-        lblAvatar = new javax.swing.JLabel();
-
-        lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        try {
-            URL defaultImageUrl = getClass().getResource("/img/icons/ic_default_avt.png");
-            if (defaultImageUrl != null) {
-                lblAvatar.setIcon(new ImageIcon(defaultImageUrl));
-            } else {
-                BufferedImage defaultAvatar = new BufferedImage(avatarSize, avatarSize, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2d = defaultAvatar.createGraphics();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(100, 180, 255));
-                g2d.fillOval(0, 0, avatarSize, avatarSize);
-                g2d.dispose();
-                lblAvatar.setIcon(new ImageIcon(defaultAvatar));
+                JOptionPane.showMessageDialog(this, "❌ Có lỗi xảy ra khi cập nhật thông tin tài khoản.", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception e) {
-            System.out.println("Could not load default avatar: " + e.getMessage());
-            lblAvatar.setText("Avatar");
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "❌ Lỗi khi cập nhật thông tin: " + e.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
-
-        javax.swing.GroupLayout ConfirmUpdateDialogLayout = new javax.swing.GroupLayout(ConfirmUpdateDialog.getContentPane());
-        ConfirmUpdateDialog.getContentPane().setLayout(ConfirmUpdateDialogLayout);
-        ConfirmUpdateDialogLayout.setHorizontalGroup(
-            ConfirmUpdateDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        ConfirmUpdateDialogLayout.setVerticalGroup(
-            ConfirmUpdateDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
-
-        setLayout(new java.awt.BorderLayout());
-
-        AccountPanel.setBackground(new java.awt.Color(220, 240, 242));
-
-        UserInfoPanel.setBackground(new java.awt.Color(255, 255, 255));
-        UserInfoPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null));
-
-        lblUsername.setBackground(new java.awt.Color(241, 241, 241));
-        lblUsername.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
-        lblUsername.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        lblUsername.setText("Tên người dùng");
-
-        txtCCCD.setBackground(new java.awt.Color(204, 204, 204));
-        txtCCCD.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtCCCD.setText("0123456789");
-        txtCCCD.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtCCCDActionPerformed(evt);
+    }
+    
+    private void cancelAccountChanges() {
+        if (originalUser != null) {
+            populateUserFields(originalUser);
+        }
+        toggleAccountEdit(false);
+    }
+    
+    private void saveEmployeeChanges() {
+        try {
+            User currentUser = SessionManager.getInstance().getLoggedInUser();
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin người dùng đăng nhập.", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        });
-
-        lblEmail.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
-        lblEmail.setText("Email");
-
-        txtUsername.setBackground(new java.awt.Color(204, 204, 204));
-        txtUsername.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtUsername.setText("Unknown");
-        txtUsername.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtUsernameActionPerformed(evt);
+            
+            Employee employee = employeeController.getEmployeeByUserId(currentUser.getUsersId());
+            if (employee != null) {
+                employee.setFirstName(txtFirstName.getText().trim());
+                employee.setLastName(txtLastName.getText().trim());
+                employee.setPhone(txtPhone.getText().trim());
+                employee.setAddress(txtAddress.getText().trim());
+                employee.setEmergencyContact(txtEmergencyContact.getText().trim());
+                employee.setEmergencyPhone(txtEmergencyPhone.getText().trim());
+                
+                boolean employeeUpdated = employeeController.updateEmployee(employee);
+                
+                if (employeeUpdated) {
+                    JOptionPane.showMessageDialog(this, "✅ Cập nhật thông tin nhân viên thành công!", 
+                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    toggleEmployeeEdit(false);
+                } else {
+                    JOptionPane.showMessageDialog(this, "❌ Có lỗi xảy ra khi cập nhật thông tin nhân viên.", 
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
             }
-        });
-
-        txtEmail.setBackground(new java.awt.Color(204, 204, 204));
-        txtEmail.setFont(new java.awt.Font("Times New Roman", 0, 18)); // NOI18N
-        txtEmail.setText("Forexample@gmail.com");
-
-        lblPW.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
-        lblPW.setText("Mật khẩu");
-
-        btnUpdate.setBackground(new java.awt.Color(255, 255, 51));
-        btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnUpdate.setText("Cập nhật");
-
-        btnSave.setBackground(new java.awt.Color(0, 204, 0));
-        btnSave.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnSave.setForeground(new java.awt.Color(255, 255, 255));
-        btnSave.setText("Lưu");
-
-        lblUserHeader.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblUserHeader.setForeground(new java.awt.Color(0, 0, 255));
-        lblUserHeader.setText("THÔNG TIN TÀI KHOẢN");
-
-        lblDOB.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
-        lblDOB.setText("Ngày sinh");
-
-        lblCCCD.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
-        lblCCCD.setText("CCCD");
-
-        txtDOB.setBackground(new java.awt.Color(204, 204, 204));
-        txtDOB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        txtDOB.setText("01/01/2003");
-        txtDOB.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtDOBActionPerformed(evt);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "❌ Lỗi khi cập nhật thông tin nhân viên: " + e.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void cancelEmployeeChanges() {
+        if (originalEmployee != null) {
+            populateEmployeeFields(originalEmployee);
+        }
+        toggleEmployeeEdit(false);
+    }
+    
+    private void loadUserData() {
+        try {
+            User currentUser = SessionManager.getInstance().getLoggedInUser();
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin người dùng đăng nhập.", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        });
-
-        txtPW.setBackground(new java.awt.Color(204, 204, 204));
-        txtPW.setText("jPasswordField1");
-
-        btnResetPW.setBackground(new java.awt.Color(255, 51, 51));
-        btnResetPW.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnResetPW.setForeground(new java.awt.Color(255, 255, 255));
-        btnResetPW.setText("Đổi mật khẩu");
-
-        javax.swing.GroupLayout UserInfoPanelLayout = new javax.swing.GroupLayout(UserInfoPanel);
-        UserInfoPanel.setLayout(UserInfoPanelLayout);
-        UserInfoPanelLayout.setHorizontalGroup(
-            UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserInfoPanelLayout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(HeaderSPR)
-                    .addComponent(InfoSPR, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblCCCD, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblUsername, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblEmail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblPW, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblDOB, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtCCCD)
-                            .addComponent(txtEmail)
-                            .addComponent(txtPW)
-                            .addComponent(txtDOB)
-                            .addComponent(txtUsername)))
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                                .addComponent(lblUserHeader)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, UserInfoPanelLayout.createSequentialGroup()
-                                .addGap(189, 189, 189)
-                                .addComponent(btnResetPW, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnUpdate, javax.swing.GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)))
-                        .addGap(18, 18, 18)
-                        .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)))
-                .addGap(25, 25, 25))
-        );
-        UserInfoPanelLayout.setVerticalGroup(
-            UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addComponent(lblUserHeader)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(HeaderSPR)
-                .addGap(3, 3, 3)
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addComponent(lblUsername, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(17, 17, 17))
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addGap(2, 2, 2)
-                        .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lblEmail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(16, 16, 16)
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(txtPW, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lblPW, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(16, 16, 16)
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(UserInfoPanelLayout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(txtDOB, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lblDOB, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(16, 16, 16)
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblCCCD, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(txtCCCD, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE))
-                .addGap(15, 15, 15)
-                .addComponent(InfoSPR, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(UserInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnUpdate, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
-                    .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
-                    .addComponent(btnResetPW, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))
-                .addGap(15, 15, 15))
-        );
-
-        UserAvatarPanel.setBackground(new java.awt.Color(255, 255, 255));
-
-        ActionPanel.setBackground(new java.awt.Color(255, 255, 255));
-
-        btnUpdateAvatar.setBackground(java.awt.SystemColor.textHighlight);
-        btnUpdateAvatar.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        btnUpdateAvatar.setForeground(new java.awt.Color(255, 255, 255));
-        btnUpdateAvatar.setText("Đổi ảnh đại diện");
-
-        javax.swing.GroupLayout ActionPanelLayout = new javax.swing.GroupLayout(ActionPanel);
-        ActionPanel.setLayout(ActionPanelLayout);
-        ActionPanelLayout.setHorizontalGroup(
-            ActionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-            .addGroup(ActionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(ActionPanelLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
-                    .addComponent(btnUpdateAvatar)
-                    .addGap(0, 0, Short.MAX_VALUE)))
-        );
-        ActionPanelLayout.setVerticalGroup(
-            ActionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 35, Short.MAX_VALUE)
-            .addGroup(ActionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(ActionPanelLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
-                    .addComponent(btnUpdateAvatar)
-                    .addGap(0, 0, Short.MAX_VALUE)))
-        );
-
-        lblStatus.setText("Trạng thái");
-
-        lblCreateAt.setText("Ngày tạo");
-
-        lblCreateAtValue.setText("01/01/2003");
-
-        lblStatusValue.setText("Hoạt động");
-
-        javax.swing.GroupLayout UserAvatarPanelLayout = new javax.swing.GroupLayout(UserAvatarPanel);
-        UserAvatarPanel.setLayout(UserAvatarPanelLayout);
-        UserAvatarPanelLayout.setHorizontalGroup(
-            UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(UserAvatarPanelLayout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblAvatar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(ActionPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(AvatarSpt, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(UserAvatarPanelLayout.createSequentialGroup()
-                        .addGroup(UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(UserAvatarPanelLayout.createSequentialGroup()
-                                .addComponent(lblCreateAt, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
-                                .addGap(9, 9, 9))
-                            .addComponent(lblStatus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblCreateAtValue, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
-                            .addComponent(lblStatusValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addGap(30, 30, 30))
-        );
-        UserAvatarPanelLayout.setVerticalGroup(
-            UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(UserAvatarPanelLayout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(lblAvatar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE) // Fixed height to 120px
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(ActionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(AvatarSpt, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblCreateAtValue)
-                    .addComponent(lblCreateAt))
-                .addGap(6, 6, 6)
-                .addGroup(UserAvatarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblStatus)
-                    .addComponent(lblStatusValue))
-                .addGap(20, 20, 20))
-        );
-
-        javax.swing.GroupLayout AccountPanelLayout = new javax.swing.GroupLayout(AccountPanel);
-        AccountPanel.setLayout(AccountPanelLayout);
-        AccountPanelLayout.setHorizontalGroup(
-            AccountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(AccountPanelLayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(UserAvatarPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(UserInfoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(20, 20, 20))
-        );
-        AccountPanelLayout.setVerticalGroup(
-            AccountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(AccountPanelLayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(AccountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(UserInfoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(UserAvatarPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(20, 20, 20))
-        );
-
-        add(AccountPanel, java.awt.BorderLayout.CENTER);
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void txtDOBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDOBActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtDOBActionPerformed
-
-    private void txtCCCDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCCCDActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtCCCDActionPerformed
-
-    private void txtUsernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUsernameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtUsernameActionPerformed
-
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel AccountPanel;
-    private javax.swing.JPanel ActionPanel;
-    private javax.swing.JSeparator AvatarSpt;
-    private javax.swing.JDialog ConfirmUpdateDialog;
-    private javax.swing.JSeparator HeaderSPR;
-    private javax.swing.JSeparator InfoSPR;
-    private javax.swing.JPanel UserAvatarPanel;
-    private javax.swing.JPanel UserInfoPanel;
-    private javax.swing.JButton btnResetPW;
-    private javax.swing.JButton btnSave;
-    private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton btnUpdateAvatar;
-    private javax.swing.JLabel lblAvatar;
-    private javax.swing.JLabel lblCCCD;
-    private javax.swing.JLabel lblCreateAt;
-    private javax.swing.JLabel lblCreateAtValue;
-    private javax.swing.JLabel lblDOB;
-    private javax.swing.JLabel lblEmail;
-    private javax.swing.JLabel lblPW;
-    private javax.swing.JLabel lblStatus;
-    private javax.swing.JLabel lblStatusValue;
-    private javax.swing.JLabel lblUserHeader;
-    private javax.swing.JLabel lblUsername;
-    private javax.swing.JTextField txtCCCD;
-    private javax.swing.JTextField txtDOB;
-    private javax.swing.JTextField txtEmail;
-    private javax.swing.JPasswordField txtPW;
-    private javax.swing.JTextField txtUsername;
-    // End of variables declaration//GEN-END:variables
+            
+            // Load user data
+            populateUserFields(currentUser);
+            
+            // Load employee data
+            Employee employee = employeeController.getEmployeeByUserId(currentUser.getUsersId());
+            if (employee != null) {
+                populateEmployeeFields(employee);
+            } else {
+                clearEmployeeFields();
+                JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin nhân viên liên kết với tài khoản này.", 
+                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+            // Reset edit states
+            toggleAccountEdit(false);
+            toggleEmployeeEdit(false);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu: " + e.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void populateUserFields(User user) {
+        txtUsername.setText(user.getUsername());
+        txtEmail.setText(user.getEmail());
+        cbRole.setSelectedItem(user.getRole());
+        cbStatus.setSelectedItem(user.getStatus());
+        
+        if (user.getCreatedAt() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            lblCreatedAt.setText(sdf.format(user.getCreatedAt()));
+        }
+    }
+    
+    private void populateEmployeeFields(Employee employee) {
+        txtFirstName.setText(employee.getFirstName());
+        txtLastName.setText(employee.getLastName());
+        txtPhone.setText(employee.getPhone());
+        txtAddress.setText(employee.getAddress());
+        txtEmergencyContact.setText(employee.getEmergencyContact());
+        txtEmergencyPhone.setText(employee.getEmergencyPhone());
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        if (employee.getBirthDate() != null) {
+            lblBirthDate.setText(sdf.format(employee.getBirthDate()));
+        }
+        if (employee.getHireDate() != null) {
+            lblHireDate.setText(sdf.format(employee.getHireDate()));
+        }
+        
+        lblEmployeeRole.setText(employee.getRole());
+    }
+    
+    private void clearEmployeeFields() {
+        txtFirstName.setText("");
+        txtLastName.setText("");
+        txtPhone.setText("");
+        txtAddress.setText("");
+        txtEmergencyContact.setText("");
+        txtEmergencyPhone.setText("");
+        lblBirthDate.setText("");
+        lblHireDate.setText("");
+        lblEmployeeRole.setText("");
+    }
+    
+    private void changePassword() {
+        try {
+            String currentPassword = new String(txtCurrentPassword.getPassword());
+            String newPassword = new String(txtNewPassword.getPassword());
+            String confirmPassword = new String(txtConfirmPassword.getPassword());
+            
+            if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "⚠️ Vui lòng điền đầy đủ thông tin mật khẩu.", 
+                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "⚠️ Mật khẩu mới và xác nhận mật khẩu không khớp.", 
+                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            if (newPassword.length() < 6) {
+                JOptionPane.showMessageDialog(this, "⚠️ Mật khẩu mới phải có ít nhất 6 ký tự.", 
+                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            User currentUser = SessionManager.getInstance().getLoggedInUser();
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "❌ Không tìm thấy thông tin người dùng đăng nhập.", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            boolean success = userController.resetPassword(currentUser.getEmail(), currentPassword, newPassword);
+            
+            if (success) {
+                JOptionPane.showMessageDialog(this, "🎉 Đổi mật khẩu thành công!", 
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Clear password fields
+                txtCurrentPassword.setText("");
+                txtNewPassword.setText("");
+                txtConfirmPassword.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "❌ Mật khẩu hiện tại không đúng hoặc có lỗi xảy ra.", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "❌ Lỗi khi đổi mật khẩu: " + e.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }

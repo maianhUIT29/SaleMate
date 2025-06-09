@@ -1,7 +1,5 @@
 package com.salesmate.dao;
 
-import com.salesmate.configs.DBConnection;
-import com.salesmate.model.LeaveRequest;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -14,11 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.salesmate.configs.DBConnection;
+import com.salesmate.model.LeaveRequest;
+
 public class LeaveRequestDAO {
 
     // Đếm số yêu cầu nghỉ đang chờ duyệt
     public int getPendingLeaveRequestsCount() {
-        String sql = "SELECT COUNT(*) FROM LEAVE_REQUEST WHERE status = 'PENDING'";
+        String sql = "SELECT COUNT(*) FROM LEAVE_REQUESTS WHERE status = 'PENDING'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -34,7 +35,7 @@ public class LeaveRequestDAO {
     // Thống kê số lượng yêu cầu nghỉ theo loại (leave_type)
     public Map<String, Integer> getLeaveRequestsByType() {
         Map<String, Integer> typeCount = new HashMap<>();
-        String sql = "SELECT leave_type, COUNT(*) as count FROM LEAVE_REQUEST " +
+        String sql = "SELECT leave_type, COUNT(*) as count FROM LEAVE_REQUESTS " +
                     "WHERE status = 'PENDING' GROUP BY leave_type";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -51,7 +52,7 @@ public class LeaveRequestDAO {
     // Lấy danh sách yêu cầu nghỉ đang chờ duyệt
     public List<LeaveRequest> getPendingLeaveRequests() {
         List<LeaveRequest> requests = new ArrayList<>();
-        String sql = "SELECT * FROM LEAVE_REQUEST WHERE status = 'PENDING'";
+        String sql = "SELECT * FROM LEAVE_REQUESTS WHERE status = 'PENDING'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -74,7 +75,7 @@ public class LeaveRequestDAO {
 
     // Duyệt yêu cầu nghỉ phép
     public boolean approveLeaveRequest(int requestId) {
-        String sql = "UPDATE LEAVE_REQUEST SET status = 'APPROVED' WHERE request_id = ?";
+        String sql = "UPDATE LEAVE_REQUESTS SET status = 'APPROVED' WHERE request_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, requestId);
@@ -87,7 +88,7 @@ public class LeaveRequestDAO {
 
     // Từ chối yêu cầu nghỉ phép
     public boolean rejectLeaveRequest(int requestId) {
-        String sql = "UPDATE LEAVE_REQUEST SET status = 'REJECTED' WHERE request_id = ?";
+        String sql = "UPDATE LEAVE_REQUESTS SET status = 'REJECTED' WHERE request_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, requestId);
@@ -100,7 +101,7 @@ public class LeaveRequestDAO {
 
     // Tạo mới yêu cầu nghỉ phép (trạng thái mặc định: PENDING)
     public boolean insertLeaveRequest(LeaveRequest lr) {
-        String sql = "INSERT INTO LEAVE_REQUEST "
+        String sql = "INSERT INTO LEAVE_REQUESTS "
                    + "(employee_id, leave_type, start_date, end_date, reason, status) "
                    + "VALUES (?, ?, ?, ?, ?, 'PENDING')";
         try (Connection conn = DBConnection.getConnection();
@@ -121,7 +122,7 @@ public class LeaveRequestDAO {
     public List<LeaveRequest> getLeaveRequestsByEmployee(int employeeId) {
         List<LeaveRequest> list = new ArrayList<>();
         String sql = "SELECT request_id, employee_id, leave_type, start_date, end_date, reason, status "
-                   + "FROM LEAVE_REQUEST WHERE employee_id = ?";
+                   + "FROM LEAVE_REQUESTS WHERE employee_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, employeeId);
@@ -147,7 +148,7 @@ public class LeaveRequestDAO {
     // Tìm yêu cầu nghỉ theo request_id
     public LeaveRequest findById(int requestId) {
         String sql = "SELECT request_id, employee_id, leave_type, start_date, end_date, reason, status "
-                   + "FROM LEAVE_REQUEST WHERE request_id = ?";
+                   + "FROM LEAVE_REQUESTS WHERE request_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, requestId);
@@ -171,7 +172,7 @@ public class LeaveRequestDAO {
     }
  public Set<Integer> getAllEmployeesWithLeave() {
         Set<Integer> result = new HashSet<>();
-        String sql = "SELECT DISTINCT employee_id FROM LEAVE_REQUEST";
+        String sql = "SELECT DISTINCT employee_id FROM LEAVE_REQUESTS";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {

@@ -40,11 +40,13 @@ import org.jfree.chart.ChartTheme;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.StandardCategoryItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import com.salesmate.controller.DetailController;
@@ -717,7 +719,7 @@ public class AdDashBoard extends javax.swing.JPanel {
         
         BarRenderer productRenderer = (BarRenderer) productsPlot.getRenderer();
         productRenderer.setSeriesPaint(0, SECONDARY_COLOR);
-        productRenderer.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
+        productRenderer.setBarPainter(new StandardBarPainter());
         productRenderer.setShadowVisible(false);
         
         ChartPanel productsCP = new ChartPanel(productsChart);
@@ -776,16 +778,14 @@ public class AdDashBoard extends javax.swing.JPanel {
         
         BarRenderer empRenderer = (BarRenderer) employeesPlot.getRenderer();
         empRenderer.setSeriesPaint(0, new Color(41, 128, 185));
-        empRenderer.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
+        empRenderer.setBarPainter(new StandardBarPainter());
         empRenderer.setShadowVisible(false);
-        empRenderer.setItemLabelGenerator(new org.jfree.chart.labels.StandardCategoryItemLabelGenerator());
-        empRenderer.setItemLabelsVisible(true);
-        empRenderer.setItemLabelFont(new Font("Segoe UI", Font.BOLD, 12));
-        empRenderer.setItemLabelPaint(Color.WHITE);
-        empRenderer.setPositiveItemLabelPosition(new org.jfree.chart.labels.ItemLabelPosition(
-            org.jfree.chart.labels.ItemLabelAnchor.CENTER,
-            org.jfree.ui.TextAnchor.CENTER
-        ));
+        
+        // Set up the labels
+        empRenderer.setDefaultItemLabelGenerator(new StandardCategoryItemLabelGenerator());
+        empRenderer.setDefaultItemLabelsVisible(true);
+        empRenderer.setDefaultItemLabelFont(new Font("Segoe UI", Font.PLAIN, 10));
+        empRenderer.setDefaultItemLabelPaint(Color.BLACK);
         
         ChartPanel employeesCP = new ChartPanel(employeesChart);
         employeesCP.setPreferredSize(new Dimension(400, 300));
