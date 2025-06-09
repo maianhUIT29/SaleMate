@@ -10,6 +10,8 @@ import java.util.List;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.salesmate.model.Product;
+
 public class ExcelImporter {
     
     public static List<Object[]> importFromExcel(File file) throws IOException {
@@ -146,4 +148,60 @@ public class ExcelImporter {
             return headers;
         }
     }
-} 
+    
+    public static List<Product> importProducts(File file) throws IOException {
+        List<Product> products = new ArrayList<>();
+        try (FileInputStream fis = new FileInputStream(file);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            boolean firstRow = true;
+            for (Row row : sheet) {
+                if (firstRow) { firstRow = false; continue; } // Bỏ qua header
+                Product p = new Product();
+                // Đảm bảo kiểm tra null cho từng cell
+                p.setProductName(getCellString(row.getCell(0)));
+                p.setPrice(getCellBigDecimal(row.getCell(1)));
+                p.setQuantity(getCellInt(row.getCell(2)));
+                p.setBarcode(getCellString(row.getCell(3)));
+                p.setCategory(getCellString(row.getCell(4)));
+                // ...set các trường khác nếu cần
+                products.add(p);
+            }
+        }
+        return products;
+    }
+
+    // Helper methods for safe cell extraction
+    private static String getCellString(Cell cell) {
+        if (cell == null) return null;
+        if (cell.getCellType() == CellType.STRING) return cell.getStringCellValue();
+        if (cell.getCellType() == CellType.NUMERIC) return String.valueOf(cell.getNumericCellValue());
+        return null;
+    }
+
+    private static BigDecimal getCellBigDecimal(Cell cell) {
+        if (cell == null) return null;
+        if (cell.getCellType() == CellType.NUMERIC) return BigDecimal.valueOf(cell.getNumericCellValue());
+        if (cell.getCellType() == CellType.STRING) {
+            try {
+                return new BigDecimal(cell.getStringCellValue());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private static int getCellInt(Cell cell) {
+        if (cell == null) return 0;
+        if (cell.getCellType() == CellType.NUMERIC) return (int) cell.getNumericCellValue();
+        if (cell.getCellType() == CellType.STRING) {
+            try {
+                return Integer.parseInt(cell.getStringCellValue());
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+}

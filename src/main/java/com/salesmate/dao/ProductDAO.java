@@ -149,6 +149,23 @@ public class ProductDAO {
         return null;  // Return null if no product is found
     }
 
+    // Lấy sản phẩm theo barcode
+    public Product getProductByBarcode(String barcode) {
+        Product product = null;
+        String sql = "SELECT * FROM product WHERE barcode = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, barcode);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                product = mapResultSetToProduct(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return product;
+    }
+
 // Đếm số lượng sản phẩm
     public int countProduct() {
         String sql = "SELECT COUNT(*) FROM product";
@@ -485,4 +502,70 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
         }
     }
 
+    // Lấy số lượng đã bán của sản phẩm
+    public int getSoldQuantity(int productId) {
+        int sold = 0;
+        String sql = "SELECT NVL(SUM(quantity),0) FROM detail WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                sold = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sold;
+    }
+
+    // Tìm kiếm sản phẩm theo tên
+    public List<Product> searchProductsByName(String keyword) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM product WHERE LOWER(product_name) LIKE ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, "%" + keyword.toLowerCase() + "%");
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Product p = new Product();
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setCategory(rs.getString("category"));
+                p.setBarcode(rs.getString("barcode"));
+                p.setQuantity(rs.getInt("quantity"));
+                // ...set các trường khác nếu cần
+                list.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean markProductDamaged(int productId, String reason) {
+        String sql = "UPDATE product SET status = 'Damaged', damaged_reason = ? WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, reason);
+            stmt.setInt(2, productId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private Product mapResultSetToProduct(ResultSet rs) throws SQLException {
+        Product product = new Product();
+        product.setProductId(rs.getInt("product_id"));
+        product.setProductName(rs.getString("product_name"));
+        product.setPrice(rs.getBigDecimal("price"));
+        product.setQuantity(rs.getInt("quantity"));
+        product.setBarcode(rs.getString("barcode"));
+        product.setImage(rs.getString("image"));
+        product.setCategory(rs.getString("category"));
+        // Nếu có thêm các trường khác, set tiếp ở đây
+        return product;
+    }
 }
