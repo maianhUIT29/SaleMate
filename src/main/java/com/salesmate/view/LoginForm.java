@@ -3,8 +3,6 @@ package com.salesmate.view;
 import com.salesmate.controller.UserController;
 import com.salesmate.model.User;
 import com.salesmate.utils.SessionManager;
-import com.github.sarxos.webcam.Webcam;
-import com.github.sarxos.webcam.WebcamPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +24,7 @@ public class LoginForm extends JFrame {
 
     private JTextField emailField;
     private JPasswordField passwordField;
-    private JButton loginButton, cameraLoginButton, forgotPasswordButton;
+    private JButton loginButton, forgotPasswordButton;
     private JLabel togglePasswordLabel;
     private boolean isPasswordVisible = false;
     private UserController userController;
@@ -94,12 +92,8 @@ public class LoginForm extends JFrame {
         loginButton.setBounds(50, 385, 300, 45); // Di chuyển lên 15px
         mainPanel.add(loginButton);
 
-        cameraLoginButton = createStyledButton("FaceID", new Color(40, 167, 69));
-        cameraLoginButton.setBounds(50, 440, 300, 45); // Di chuyển lên 20px
-        mainPanel.add(cameraLoginButton);
-
         forgotPasswordButton = createLinkButton("Quên mật khẩu?");
-        forgotPasswordButton.setBounds(50, 495, 300, 30); // Di chuyển lên 25px
+        forgotPasswordButton.setBounds(50, 440, 300, 30); // Di chuyển lên 25px
         mainPanel.add(forgotPasswordButton);
 
         add(mainPanel);
@@ -121,21 +115,6 @@ public class LoginForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 login();
             }
-        });
-
-        cameraLoginButton.addActionListener(e -> {
-            dispose(); // Đóng form login hiện tại
-            SwingUtilities.invokeLater(() -> {
-                try {
-                    new LoginFaceID(); // Mở form FaceID login mới
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null,
-                            "Không thể khởi động camera: " + ex.getMessage(),
-                            "Lỗi",
-                            JOptionPane.ERROR_MESSAGE);
-                    new LoginForm(); // Nếu có lỗi thì quay lại form login
-                }
-            });
         });
 
         setVisible(true);
