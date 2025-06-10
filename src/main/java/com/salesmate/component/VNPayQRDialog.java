@@ -2,7 +2,6 @@ package com.salesmate.component;
 
 import com.salesmate.utils.QRCodeGenerator;
 import com.salesmate.utils.VNPayUtil;
-import com.salesmate.utils.PaymentResult;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Map;
 
 public class VNPayQRDialog extends JDialog {
     
@@ -52,7 +50,6 @@ public class VNPayQRDialog extends JDialog {
     
     // Animation components
     private Timer countdownTimer;
-    private Timer loadingAnimationTimer;
     private Timer spinnerTimer;
     private int timeRemaining = 900; // 15 minutes in seconds
     private int spinnerAngle = 0;
@@ -60,27 +57,52 @@ public class VNPayQRDialog extends JDialog {
     
     public VNPayQRDialog(Frame parent, String orderId, BigDecimal amount, String orderInfo) {
         super(parent, "Thanh toán VNPay", true);
+        
+        System.out.println("=== VNPAY QR DIALOG CONSTRUCTOR ===");
+        System.out.println("Parent: " + (parent != null ? "Found" : "NULL"));
+        System.out.println("Order ID: " + orderId);
+        System.out.println("Amount: " + amount);
+        System.out.println("Order Info: " + orderInfo);
+        
         this.orderId = orderId;
         this.amount = amount;
         this.orderInfo = orderInfo;
         
-        initializeDialog();
-        showLoadingAnimation();
-        
-        // Create VNPay URL in background after a short delay to show loading effect
-        Timer urlCreationTimer = new Timer(1500, e -> {
-            createVNPayURL();
-            ((Timer) e.getSource()).stop();
-        });
-        urlCreationTimer.setRepeats(false);
-        urlCreationTimer.start();
+        try {
+            initializeDialog();
+            System.out.println("Dialog initialized successfully");
+            
+            showLoadingAnimation();
+            System.out.println("Loading animation started");
+            
+            // Create VNPay URL in background after a short delay to show loading effect
+            Timer urlCreationTimer = new Timer(1500, e -> {
+                System.out.println("Creating VNPay URL...");
+                createVNPayURL();
+                ((Timer) e.getSource()).stop();
+            });
+            urlCreationTimer.setRepeats(false);
+            urlCreationTimer.start();
+            
+            System.out.println("VNPayQRDialog constructor completed successfully");
+        } catch (Exception e) {
+            System.err.println("Error in VNPayQRDialog constructor: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create VNPayQRDialog", e);
+        }
     }
     
     private void initializeDialog() {
+        System.out.println("Initializing dialog components...");
+        
         setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setResizable(false);
+        
+        // **FORCE MODAL AND ALWAYS ON TOP**
+        setModal(true);
+        setAlwaysOnTop(true);
         
         // Set layout
         setLayout(new BorderLayout());
@@ -92,6 +114,8 @@ public class VNPayQRDialog extends JDialog {
         
         // Apply custom styling
         getContentPane().setBackground(LIGHT_COLOR);
+        
+        System.out.println("Dialog components initialized");
     }
     
     private JPanel createHeaderPanel() {
@@ -186,6 +210,7 @@ public class VNPayQRDialog extends JDialog {
         ));
         qrLabel.setBackground(WHITE_COLOR);
         qrLabel.setOpaque(true);
+        qrLabel.setText("Đang tạo QR Code...");
         
         qrPanel.add(qrLabel);
         return qrPanel;
@@ -246,19 +271,22 @@ public class VNPayQRDialog extends JDialog {
         copyUrlButton = createStyledButton("Sao chép URL", INFO_COLOR);
         copyUrlButton.setPreferredSize(new Dimension(200, BUTTON_HEIGHT));
         copyUrlButton.setEnabled(false); // Disable until URL is ready
+        copyUrlButton.addActionListener(e -> copyUrlToClipboard());
         actionPanel.add(copyUrlButton, gbc);
         
         gbc.gridx = 1;
         openBrowserButton = createStyledButton("Mở trình duyệt", PRIMARY_COLOR);
         openBrowserButton.setPreferredSize(new Dimension(200, BUTTON_HEIGHT));
         openBrowserButton.setEnabled(false); // Disable until URL is ready
+        openBrowserButton.addActionListener(e -> openInBrowser());
         actionPanel.add(openBrowserButton, gbc);
         
-        // Second row - Refresh button (center)
+        // Second row - Payment Status button (center)
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
-        refreshButton = createStyledButton("Kiểm tra thanh toán", WARNING_COLOR);
+        refreshButton = createStyledButton("Trạng thái thanh toán", WARNING_COLOR);
         refreshButton.setPreferredSize(new Dimension(200, BUTTON_HEIGHT));
         refreshButton.setEnabled(false); // Disable until URL is ready
+        refreshButton.addActionListener(e -> checkPaymentStatus());
         actionPanel.add(refreshButton, gbc);
         
         return actionPanel;
@@ -276,10 +304,12 @@ public class VNPayQRDialog extends JDialog {
         completeButton = createStyledButton("Hoàn thành thanh toán", SUCCESS_COLOR);
         completeButton.setPreferredSize(new Dimension(220, BUTTON_HEIGHT));
         completeButton.setVisible(false);
+        completeButton.addActionListener(e -> completePayment());
         
         // Cancel button
         cancelButton = createStyledButton("Hủy thanh toán", DANGER_COLOR);
         cancelButton.setPreferredSize(new Dimension(180, BUTTON_HEIGHT));
+        cancelButton.addActionListener(e -> cancelPayment());
         
         footerPanel.add(completeButton);
         footerPanel.add(cancelButton);
@@ -287,72 +317,92 @@ public class VNPayQRDialog extends JDialog {
         return footerPanel;
     }
     
-    private JButton createStyledButton(String text, Color backgroundColor) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    private void createVNPayURL() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                System.out.println("=== CREATE VNPAY URL START ===");
                 
-                Color bgColor;
-                if (getModel().isPressed()) {
-                    bgColor = backgroundColor.darker();
-                } else if (getModel().isRollover() && isEnabled()) {
-                    bgColor = backgroundColor.brighter();
-                } else {
-                    bgColor = isEnabled() ? backgroundColor : new Color(200, 200, 200);
+                // Stop spinner animation
+                if (spinnerTimer != null) {
+                    spinnerTimer.stop();
                 }
                 
-                g2d.setColor(bgColor);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2d.dispose();
+                // Show processing status
+                statusLabel.setText("Đang tạo liên kết thanh toán...");
+                statusLabel.setForeground(WARNING_COLOR);
                 
-                super.paintComponent(g);
+                // **THÊM VALIDATION VÀ DEBUG**
+                if (orderId == null || orderId.isEmpty()) {
+                    throw new Exception("Order ID is null or empty");
+                }
+                if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new Exception("Amount is null or zero");
+                }
+                if (orderInfo == null || orderInfo.isEmpty()) {
+                    throw new Exception("Order info is null or empty");
+                }
+                
+                System.out.println("Creating VNPay URL with:");
+                System.out.println("- Order ID: " + orderId);
+                System.out.println("- Amount: " + amount.longValue());
+                System.out.println("- Order Info: " + orderInfo);
+                
+                // Generate VNPay URL
+                vnpayUrl = VNPayUtil.createPaymentUrl(orderId, amount.longValue(), orderInfo) ;
+                System.out.println("vnp url : " +  vnpayUrl);
+                System.out.println("VNPay URL generated: " + (vnpayUrl != null && !vnpayUrl.isEmpty()));
+                
+                if (vnpayUrl != null && !vnpayUrl.isEmpty()) {
+                    System.out.println("Creating QR Code...");
+                    
+                    // **🎯 QUAN TRỌNG: TẠO QR CODE TỪ URL VNPAY** 
+                    BufferedImage qrImage = QRCodeGenerator.generateQRCode(vnpayUrl, QR_SIZE - 20, QR_SIZE - 20);
+                    if (qrImage != null) {
+                        qrLabel.setIcon(new ImageIcon(qrImage));
+                        qrLabel.setText("");
+                        System.out.println("QR Code created successfully");
+                    } else {
+                        throw new Exception("Failed to generate QR code image");
+                    }
+                    
+                    // Update status to ready
+                    statusLabel.setText("Quét mã QR hoặc nhấn nút để thanh toán");
+                    statusLabel.setForeground(SUCCESS_COLOR);
+                    
+                    // Enable action buttons
+                    copyUrlButton.setEnabled(true);
+                    openBrowserButton.setEnabled(true);
+                    refreshButton.setEnabled(true);
+                    
+                    // Show complete button for testing
+                    completeButton.setVisible(true);
+                    
+                    // Start countdown timer
+                    startCountdownTimer();
+                    
+                    System.out.println("VNPay URL creation completed successfully");
+                    
+                } else {
+                    throw new Exception("VNPay URL is null or empty");
+                }
+            } catch (Exception e) {
+                System.err.println("Error in createVNPayURL: " + e.getMessage());
+                e.printStackTrace();
+                showError("Lỗi tạo mã QR: " + e.getMessage());
             }
-        };
-        
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(WHITE_COLOR);
-        button.setBackground(backgroundColor);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setOpaque(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Add action listeners
-        if (text.contains("Sao chép")) {
-            button.addActionListener(e -> copyUrlToClipboard());
-        } else if (text.contains("Mở trình duyệt")) {
-            button.addActionListener(e -> openInBrowser());
-        } else if (text.contains("Kiểm tra")) {
-            button.addActionListener(e -> refreshPaymentStatus());
-        } else if (text.contains("Hoàn thành")) {
-            button.addActionListener(e -> completePayment());
-        } else if (text.contains("Hủy")) {
-            button.addActionListener(e -> cancelPayment());
-        }
-        
-        return button;
+        });
     }
     
     private void showLoadingAnimation() {
-        // Set initial loading state
-        qrLabel.setText("<html><div style='text-align: center;'>" +
-                       "<div style='font-size: 16px; color: #6c757d; margin-top: 60px;'>Đang tạo mã QR thanh toán...</div>" +
-                       "<div style='font-size: 14px; color: #6c757d; margin-top: 15px;'>Vui lòng đợi trong giây lát</div>" +
-                       "</html>");
+        qrLabel.setText("Đang tạo QR Code...");
+        qrLabel.setIcon(null);
         
         // Start spinner animation
-        spinnerTimer = new Timer(50, e -> {
-            spinnerAngle = (spinnerAngle + 6) % 360;
+        spinnerTimer = new Timer(100, e -> {
+            spinnerAngle = (spinnerAngle + 30) % 360;
             qrLabel.repaint();
         });
         spinnerTimer.start();
-        
-        // Update status
-        statusLabel.setText("Đang kết nối với VNPay...");
-        statusLabel.setForeground(INFO_COLOR);
     }
     
     private void drawSpinner(Graphics2D g2d, int x, int y) {
@@ -374,97 +424,15 @@ public class VNPayQRDialog extends JDialog {
         }
     }
     
-    private void createVNPayURL() {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                // Stop spinner animation
-                if (spinnerTimer != null) {
-                    spinnerTimer.stop();
-                }
-                
-                // Show processing status
-                statusLabel.setText("Đang tạo liên kết thanh toán...");
-                statusLabel.setForeground(WARNING_COLOR);
-                
-                // Generate VNPay URL
-                vnpayUrl = VNPayUtil.createPaymentUrl(orderId, amount.longValue(), orderInfo);
-                
-                if (vnpayUrl != null && !vnpayUrl.isEmpty()) {
-                    // Generate QR code
-                    BufferedImage qrImage = QRCodeGenerator.generateQRCode(vnpayUrl, QR_SIZE - 20, QR_SIZE - 20);
-                    qrLabel.setIcon(new ImageIcon(qrImage));
-                    qrLabel.setText("");
-                    
-                    // Update status to ready
-                    statusLabel.setText("Quét mã QR hoặc nhấn nút để thanh toán");
-                    statusLabel.setForeground(SUCCESS_COLOR);
-                    
-                    // Enable action buttons
-                    copyUrlButton.setEnabled(true);
-                    openBrowserButton.setEnabled(true);
-                    refreshButton.setEnabled(true);
-                    
-                    // Show complete button for testing
-                    completeButton.setVisible(true);
-                    
-                    // Start countdown timer
-                    startCountdownTimer();
-                    
-                    // Show success animation
-                    showReadyAnimation();
-                    
-                } else {
-                    throw new Exception("Không thể tạo URL VNPay");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                showError("Lỗi tạo mã QR: " + e.getMessage());
-            }
-        });
-    }
-    
-    private void showReadyAnimation() {
-        // Briefly highlight the QR code area to show it's ready
-        Timer highlightTimer = new Timer(100, null);
-        final int[] flashCount = {0};
-        
-        highlightTimer.addActionListener(e -> {
-            flashCount[0]++;
-            if (flashCount[0] % 2 == 0) {
-                qrLabel.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(SUCCESS_COLOR, 3),
-                    BorderFactory.createEmptyBorder(10, 10, 10, 10)
-                ));
-            } else {
-                qrLabel.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(222, 226, 230), 2),
-                    BorderFactory.createEmptyBorder(10, 10, 10, 10)
-                ));
-            }
-            
-            if (flashCount[0] >= 6) {
-                highlightTimer.stop();
-                qrLabel.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(222, 226, 230), 2),
-                    BorderFactory.createEmptyBorder(10, 10, 10, 10)
-                ));
-            }
-        });
-        
-        highlightTimer.start();
-    }
-    
     private void startCountdownTimer() {
-        countdownTimer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                timeRemaining--;
+        countdownTimer = new Timer(1000, e -> {
+            timeRemaining--;
+            if (timeRemaining <= 0) {
+                ((Timer) e.getSource()).stop();
+                showTimeout();
+            } else {
                 updateTimerDisplay();
-                
-                if (timeRemaining <= 0) {
-                    countdownTimer.stop();
-                    showTimeout();
-                }
+                progressBar.setValue(timeRemaining);
             }
         });
         countdownTimer.start();
@@ -474,81 +442,72 @@ public class VNPayQRDialog extends JDialog {
         int minutes = timeRemaining / 60;
         int seconds = timeRemaining % 60;
         timerLabel.setText(String.format("Thời gian còn lại: %02d:%02d", minutes, seconds));
+    }
+    
+    private void showTimeout() {
+        statusLabel.setText("⏰ Hết thời gian thanh toán");
+        statusLabel.setForeground(DANGER_COLOR);
         
-        // Update progress bar
-        progressBar.setValue(timeRemaining);
+        // Disable buttons
+        copyUrlButton.setEnabled(false);
+        openBrowserButton.setEnabled(false);
+        refreshButton.setEnabled(false);
+        completeButton.setVisible(false);
         
-        // Change color based on remaining time
-        if (timeRemaining <= 120) { // Last 2 minutes
-            timerLabel.setForeground(DANGER_COLOR);
-            progressBar.setForeground(DANGER_COLOR);
-        } else if (timeRemaining <= 300) { // Last 5 minutes
-            timerLabel.setForeground(WARNING_COLOR.darker());
-            progressBar.setForeground(WARNING_COLOR);
+        cancelButton.setText("Đóng");
+    }
+    
+    private void showError(String message) {
+        statusLabel.setText("❌ " + message);
+        statusLabel.setForeground(DANGER_COLOR);
+        
+        qrLabel.setIcon(null);
+        qrLabel.setText("<html><div style='text-align: center;'>Lỗi tạo QR Code<br>" + message + "</div></html>");
+        
+        if (spinnerTimer != null) {
+            spinnerTimer.stop();
         }
     }
     
     private void copyUrlToClipboard() {
-        try {
-            if (vnpayUrl != null) {
-                StringSelection selection = new StringSelection(vnpayUrl);
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
-                
-                // Show temporary success message with animation
-                String originalText = copyUrlButton.getText();
-                copyUrlButton.setText("Đã sao chép!");
-                copyUrlButton.setEnabled(false);
-                
-                Timer resetTimer = new Timer(2000, e -> {
-                    copyUrlButton.setText(originalText);
-                    copyUrlButton.setEnabled(true);
-                });
-                resetTimer.setRepeats(false);
-                resetTimer.start();
-            }
-        } catch (Exception e) {
-            showError("Không thể sao chép URL: " + e.getMessage());
+        if (vnpayUrl != null) {
+            StringSelection selection = new StringSelection(vnpayUrl);
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+            
+            // Show temporary success message
+            String originalText = statusLabel.getText();
+            Color originalColor = statusLabel.getForeground();
+            
+            statusLabel.setText("📋 Đã sao chép URL!");
+            statusLabel.setForeground(SUCCESS_COLOR);
+            
+            Timer resetTimer = new Timer(2000, e -> {
+                statusLabel.setText(originalText);
+                statusLabel.setForeground(originalColor);
+                ((Timer) e.getSource()).stop();
+            });
+            resetTimer.setRepeats(false);
+            resetTimer.start();
         }
     }
     
     private void openInBrowser() {
-        try {
-            if (vnpayUrl != null) {
+        if (vnpayUrl != null) {
+            try {
                 Desktop.getDesktop().browse(java.net.URI.create(vnpayUrl));
-                
-                // Show feedback animation
-                String originalText = openBrowserButton.getText();
-                openBrowserButton.setText("🌐 Đã mở!");
-                
-                Timer resetTimer = new Timer(2000, e -> {
-                    openBrowserButton.setText(originalText);
-                });
-                resetTimer.setRepeats(false);
-                resetTimer.start();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Không thể mở trình duyệt: " + e.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (Exception e) {
-            showError("Không thể mở trình duyệt: " + e.getMessage());
         }
     }
     
-    private void refreshPaymentStatus() {
-        // Show checking animation
-        statusLabel.setText("🔄 Đang kiểm tra trạng thái thanh toán...");
-        statusLabel.setForeground(INFO_COLOR);
-        
-        String originalText = refreshButton.getText();
-        refreshButton.setEnabled(false);
-        refreshButton.setText("🔄 Đang kiểm tra...");
-        
-        // Simulate checking process
-        Timer checkTimer = new Timer(1500, e -> {
-            statusLabel.setText("Quét mã QR hoặc nhấn nút để thanh toán");
-            statusLabel.setForeground(SUCCESS_COLOR);
-            refreshButton.setText(originalText);
-            refreshButton.setEnabled(true);
-        });
-        checkTimer.setRepeats(false);
-        checkTimer.start();
+    private void checkPaymentStatus() {
+        // Simulate payment status check
+        JOptionPane.showMessageDialog(this, 
+            "Tính năng kiểm tra trạng thái thanh toán sẽ được cập nhật trong phiên bản sau.",
+            "Trạng thái thanh toán", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void completePayment() {
@@ -558,10 +517,6 @@ public class VNPayQRDialog extends JDialog {
         
         paymentCompleted = true;
         
-        // Show success animation
-        showSuccessAnimation();
-        
-        // Update UI to show success
         statusLabel.setText("🎉 Thanh toán thành công!");
         statusLabel.setForeground(SUCCESS_COLOR);
         timerLabel.setText("Hoàn thành");
@@ -581,103 +536,44 @@ public class VNPayQRDialog extends JDialog {
         closeTimer.start();
     }
     
-    private void showSuccessAnimation() {
-        // Flash the QR area with success color
-        Timer successFlash = new Timer(150, null);
-        final int[] flashCount = {0};
-        
-        successFlash.addActionListener(e -> {
-            flashCount[0]++;
-            if (flashCount[0] % 2 == 0) {
-                qrLabel.setBackground(SUCCESS_COLOR.brighter());
-            } else {
-                qrLabel.setBackground(WHITE_COLOR);
-            }
-            
-            if (flashCount[0] >= 8) {
-                successFlash.stop();
-                qrLabel.setBackground(WHITE_COLOR);
-            }
-        });
-        
-        successFlash.start();
-    }
-    
     private void cancelPayment() {
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
-        
-        int result = JOptionPane.showConfirmDialog(
-            this,
-            "Bạn có chắc chắn muốn hủy thanh toán?",
-            "Xác nhận hủy",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE
-        );
-        
-        if (result == JOptionPane.YES_OPTION) {
-            paymentCompleted = false;
-            dispose();
-        } else if (countdownTimer != null && timeRemaining > 0) {
-            // Resume timer if cancelled the cancellation
-            countdownTimer.start();
+        if (spinnerTimer != null) {
+            spinnerTimer.stop();
         }
+        
+        paymentCompleted = false;
+        dispose();
     }
     
-    private void showTimeout() {
-        statusLabel.setText("⏰ Hết thời gian thanh toán");
-        statusLabel.setForeground(DANGER_COLOR);
-        timerLabel.setText("Đã hết thời gian");
+    private JButton createStyledButton(String text, Color backgroundColor) {
+        JButton button = new JButton(text);
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Disable all action buttons
-        copyUrlButton.setEnabled(false);
-        openBrowserButton.setEnabled(false);
-        refreshButton.setEnabled(false);
-        completeButton.setEnabled(false);
-        
-        // Show timeout animation
-        Timer timeoutFlash = new Timer(200, null);
-        final int[] flashCount = {0};
-        
-        timeoutFlash.addActionListener(e -> {
-            flashCount[0]++;
-            if (flashCount[0] % 2 == 0) {
-                qrLabel.setBackground(DANGER_COLOR.brighter());
-            } else {
-                qrLabel.setBackground(WHITE_COLOR);
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (button.isEnabled()) {
+                    button.setBackground(backgroundColor.brighter());
+                }
             }
             
-            if (flashCount[0] >= 6) {
-                timeoutFlash.stop();
-                qrLabel.setBackground(WHITE_COLOR);
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (button.isEnabled()) {
+                    button.setBackground(backgroundColor);
+                }
             }
         });
         
-        timeoutFlash.start();
-        
-        JOptionPane.showMessageDialog(
-            this,
-            "Thời gian thanh toán đã hết.\nVui lòng thực hiện lại giao dịch.",
-            "Hết thời gian",
-            JOptionPane.WARNING_MESSAGE
-        );
-    }
-    
-    private void showError(String message) {
-        statusLabel.setText("❌ " + message);
-        statusLabel.setForeground(DANGER_COLOR);
-        
-        // Stop all timers
-        if (spinnerTimer != null) spinnerTimer.stop();
-        if (countdownTimer != null) countdownTimer.stop();
-        
-        JOptionPane.showMessageDialog(
-            this,
-            message,
-            "Lỗi",
-            JOptionPane.ERROR_MESSAGE
-        );
+        return button;
     }
     
     public boolean isPaymentCompleted() {
@@ -689,49 +585,5 @@ public class VNPayQRDialog extends JDialog {
         if (completed) {
             completePayment();
         }
-    }
-    
-    // Thêm method để xử lý callback từ VNPay
-    public void handleVNPayCallback(String queryString) {
-        try {
-            // Lấy parameters từ query string
-            Map<String, String> vnpayData = VNPayUtil.getVNPayResponseParameters(queryString);
-            
-            // Validate chữ ký
-            boolean valid = VNPayUtil.validateSignature(vnpayData);
-            
-            if (!valid) {
-                // Chữ ký sai
-                VNPayUtil.showError("Sai chữ ký VNPAY. Vui lòng kiểm tra lại cấu hình.");
-                setPaymentCompleted(false);
-            } else {
-                // Xử lý kết quả thanh toán
-                PaymentResult result = VNPayUtil.processPaymentResult(vnpayData);
-                
-                if (result.isSuccess()) {
-                    VNPayUtil.showSuccess("Thanh toán thành công!\nMã giao dịch: " + result.getTransactionId());
-                    setPaymentCompleted(true);
-                } else {
-                    VNPayUtil.showError("Thanh toán thất bại: " + result.getMessage());
-                    setPaymentCompleted(false);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            VNPayUtil.showError("Lỗi xử lý callback VNPay: " + e.getMessage());
-            setPaymentCompleted(false);
-        }
-    }
-    
-    @Override
-    public void dispose() {
-        // Stop all timers before disposing
-        if (countdownTimer != null) {
-            countdownTimer.stop();
-        }
-        if (spinnerTimer != null) {
-            spinnerTimer.stop();
-        }
-        super.dispose();
     }
 }

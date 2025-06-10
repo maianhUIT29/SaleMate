@@ -12,9 +12,7 @@ public class PaymentResult {
     private String bankCode;
     private String cardType;
     
-    // Constructor
     public PaymentResult() {
-        this.success = false;
     }
     
     // Getters and Setters
@@ -96,21 +94,5 @@ public class PaymentResult {
     
     public void setCardType(String cardType) {
         this.cardType = cardType;
-    }
-    
-    @Override
-    public String toString() {
-        return "PaymentResult{" +
-                "success=" + success +
-                ", message='" + message + '\'' +
-                ", orderId='" + orderId + '\'' +
-                ", transactionId='" + transactionId + '\'' +
-                ", amount=" + amount +
-                ", responseCode='" + responseCode + '\'' +
-                ", transactionStatus='" + transactionStatus + '\'' +
-                ", payDate='" + payDate + '\'' +
-                ", bankCode='" + bankCode + '\'' +
-                ", cardType='" + cardType + '\'' +
-                '}';
     }
 }
