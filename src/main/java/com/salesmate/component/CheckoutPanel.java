@@ -568,7 +568,7 @@ public class CheckoutPanel extends javax.swing.JPanel {
         String paymentMethod = (String) paymentMethodComboBox.getSelectedItem();
         
         if (checkoutProducts.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng thêm sản phẩm vào giỏ hàng!");
+            JOptionPane.showMessageDialog(this, "Vui lòng thêm sản phẩm vào giỏ hàng", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -577,211 +577,98 @@ public class CheckoutPanel extends javax.swing.JPanel {
         System.out.println("Products in checkout: " + checkoutProducts.size());
         System.out.println("Total price: " + totalPrice);
 
-        // **KIỂM TRA VÀ DEBUG CONFIG VNPAY**
+        // Validate VNPay configuration if paying by bank transfer
         if ("Chuyển khoản".equals(paymentMethod)) {
-            System.out.println("=== VNPAY CONFIG CHECK ===");
-            
-            // In ra config để debug
-            VNPayConfig.printConfig();
-            
             if (!VNPayConfig.isConfigValid()) {
-                String errorMsg = "Cấu hình VNPay không hợp lệ:\n" +
-                                "- MERCHANT_ID: " + (VNPayConfig.MERCHANT_ID.isEmpty() ? "THIẾU" : "OK") + "\n" +
-                                "- SECRET_KEY: " + (VNPayConfig.SECRET_KEY.isEmpty() ? "THIẾU" : "OK") + "\n" +
-                                "- API_URL: " + (VNPayConfig.API_URL.isEmpty() ? "THIẾU" : "OK") + "\n" +
-                                "- RETURN_URL: " + (VNPayConfig.RETURN_URL.isEmpty() ? "THIẾU" : "OK");
-                
-                System.err.println(errorMsg);
-                JOptionPane.showMessageDialog(this, errorMsg, "Lỗi cấu hình VNPay", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, 
+                    "Cấu hình VNPay không hợp lệ. Vui lòng kiểm tra file config.properties",
+                    "Lỗi cấu hình", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            System.out.println("VNPay config is valid, proceeding...");
+        }
+
+        // Validate product quantities against current stock
+        ProductController productController = new ProductController();
+        for (Product cartProduct : checkoutProducts.values()) {
+            Product currentStock = productController.getProductById(cartProduct.getProductId());
+            if (currentStock == null || currentStock.getQuantity() < cartProduct.getQuantity()) {
+                JOptionPane.showMessageDialog(this,
+                    "Số lượng sản phẩm '" + cartProduct.getProductName() + "' trong giỏ vượt quá tồn kho!",
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
         try {
-            // Tạo hóa đơn
+            // Create invoice
             Invoice invoice = new Invoice();
-            invoice.setUsersId(SessionManager.getInstance().getLoggedInUser().getUsersId());
             invoice.setTotal(BigDecimal.valueOf(totalPrice));
             invoice.setCreatedAt(new Date());
+            invoice.setPaymentStatus("Chuyển khoản".equals(paymentMethod) ? "Unpaid" : "Paid");
             
-            // Xử lý theo phương thức thanh toán
-            if ("Chuyển khoản".equals(paymentMethod)) {
-                System.out.println("=== VNPAY PAYMENT PROCESS ===");
-                
-                // Thanh toán qua VNPay
-                invoice.setPaymentStatus("Unpaid"); // Chưa thanh toán, chờ VNPay
-                invoiceController.saveInvoice(invoice);
-                int invoiceId = invoice.getInvoiceId();
-                
-                System.out.println("Invoice created with ID: " + invoiceId);
-                
-                // Lưu chi tiết hóa đơn trước khi thanh toán
-                boolean detailsSaved = true;
-                for (Product product : checkoutProducts.values()) {
-                    Detail detail = new Detail();
-                    detail.setInvoiceId(invoiceId);
-                    detail.setProductId(product.getProductId());
-                    detail.setQuantity(product.getQuantity());
-                    detail.setPrice(product.getPrice());
-                    detail.setTotal(product.getPrice().multiply(BigDecimal.valueOf(product.getQuantity())));
-                    
-                    if (!detailController.addDetail(detail)) {
-                        detailsSaved = false;
-                        break;
-                    }
+            // Get current user ID from session
+            int userId = SessionManager.getInstance().getLoggedInUser().getUsersId();
+            invoice.setUsersId(userId);
+
+            // Save invoice to get ID
+            invoiceController.saveInvoice(invoice);
+            int invoiceId = invoice.getInvoiceId();
+            String invoiceNumber = generateInvoiceNumber(invoiceId);
+            System.out.println("Generated Invoice ID: " + invoiceId);
+
+            // Save details and update product quantities
+            for (Product product : checkoutProducts.values()) {
+                // Create and save invoice detail
+                Detail detail = new Detail();
+                detail.setInvoiceId(invoiceId);
+                detail.setProductId(product.getProductId());
+                detail.setQuantity(product.getQuantity());
+                detail.setPrice(product.getPrice());
+                detail.setTotal(product.getPrice().multiply(BigDecimal.valueOf(product.getQuantity())));
+                detailController.addDetail(detail);
+
+                // Update product stock
+                Product stockProduct = productController.getProductById(product.getProductId());
+                if (stockProduct != null) {
+                    stockProduct.setQuantity(stockProduct.getQuantity() - product.getQuantity());
+                    productController.updateProduct(stockProduct);
                 }
-                
-                if (!detailsSaved) {
-                    System.err.println("Failed to save invoice details");
-                    JOptionPane.showMessageDialog(this, "Lỗi lưu chi tiết hóa đơn", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                System.out.println("Invoice details saved successfully");
-                
-                // Cập nhật số lượng sản phẩm
-                for (Product product : checkoutProducts.values()) {
-                    ProductController productController = new ProductController();
-                    productController.updateProductQuantity(product.getProductId(), product.getQuantity());
-                }
-                
-                System.out.println("Product quantities updated");
-                
-                // **SỬA LỖI**: Tạo orderInfo có nội dung rõ ràng
-                String orderInfo = "Thanh toan hoa don " + invoiceId + " - So tien " + String.format("%,.0f", totalPrice) + " VND";
-                
-                System.out.println("Creating VNPay payment:");
-                System.out.println("- Invoice ID: " + invoiceId);
-                System.out.println("- Amount: " + totalPrice);
-                System.out.println("- Order Info: " + orderInfo);
-                
-                try {
-                    // Test tạo URL với orderInfo có nội dung
-                    System.out.println("=== CREATING VNPAY URL ===");
-                    String testUrl = VNPayUtil.createPaymentUrl(String.valueOf(invoiceId), (long)totalPrice, orderInfo);
-                    System.out.println("VNPay URL created: " + (testUrl != null && !testUrl.isEmpty()));
-                    
-                    // **DEBUG**: In ra URL để kiểm tra
-                    if (testUrl != null && testUrl.length() > 100) {
-                        System.out.println("URL Preview: " + testUrl.substring(0, 100) + "...");
-                    } else {
-                        System.out.println("Full URL: " + testUrl);
-                    }
-                    
-                    // Nếu URL hợp lệ, hiển thị dialog
-                    if (testUrl != null && !testUrl.isEmpty() && testUrl.contains("vnp_SecureHash")) {
-                        System.out.println("=== SHOWING VNPAY QR DIALOG ===");
-                        
-                        try {
-                            // **THÊM DEBUG CHO DIALOG CREATION**
-                            Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-                            System.out.println("Parent frame: " + (parentFrame != null ? "Found" : "NULL"));
-                            
-                            VNPayQRDialog vnpayDialog = new VNPayQRDialog(
-                                parentFrame,
-                                String.valueOf(invoiceId),
-                                BigDecimal.valueOf(totalPrice),
-                                orderInfo
-                            );
-                            
-                            System.out.println("VNPayQRDialog created successfully");
-                            
-                            // **FORCE DIALOG TO BE VISIBLE**
-                            SwingUtilities.invokeLater(() -> {
-                                try {
-                                    vnpayDialog.setVisible(true);
-                                    vnpayDialog.toFront();
-                                    vnpayDialog.requestFocus();
-                                    System.out.println("VNPayQRDialog set to visible");
-                                } catch (Exception dialogEx) {
-                                    System.err.println("Error showing VNPay dialog: " + dialogEx.getMessage());
-                                    dialogEx.printStackTrace();
-                                    JOptionPane.showMessageDialog(CheckoutPanel.this, 
-                                        "Lỗi hiển thị dialog VNPay: " + dialogEx.getMessage(),
-                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                }
-                            });
-                            
-                        } catch (Exception dialogException) {
-                            System.err.println("Error creating VNPay dialog: " + dialogException.getMessage());
-                            dialogException.printStackTrace();
-                            JOptionPane.showMessageDialog(this, 
-                                "Lỗi tạo dialog VNPay: " + dialogException.getMessage(),
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        }
-                        
-                    } else {
-                        throw new Exception("URL VNPay không hợp lệ - URL: " + (testUrl != null ? testUrl : "NULL"));
-                    }
-                    
-                } catch (Exception vnpayException) {
-                    System.err.println("VNPay URL creation failed: " + vnpayException.getMessage());
-                    vnpayException.printStackTrace();
-                    
-                    // Rollback transaction
-                    try {
-                        System.out.println("Rolling back transaction...");
-                        invoiceController.deleteInvoice(invoiceId);
-                        for (Product product : checkoutProducts.values()) {
-                            ProductController productController = new ProductController();
-                            productController.updateProductQuantity(product.getProductId(), -product.getQuantity());
-                        }
-                        System.out.println("Transaction rolled back successfully");
-                    } catch (Exception rollbackEx) {
-                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
-                    }
-                    
-                    String detailedError = "Không thể tạo thanh toán VNPay.\n\n" +
-                                         "Lỗi: " + vnpayException.getMessage() + "\n\n" +
-                                         "Kiểm tra:\n" +
-                                         "- Cấu hình VNPay\n" +
-                                         "- Kết nối mạng\n" +
-                                         "- Thông tin thanh toán";
-                    
-                    JOptionPane.showMessageDialog(this, detailedError, "Lỗi VNPay", JOptionPane.ERROR_MESSAGE);
-                }
-                
-            } else {
-                // Thanh toán tiền mặt (logic cũ)
-                invoice.setPaymentStatus("Paid");
-                invoiceController.saveInvoice(invoice);
-                int invoiceId = invoice.getInvoiceId();
-                
-                // Lưu chi tiết hóa đơn và cập nhật số lượng sản phẩm
-                Map<Integer, Integer> soldQuantities = new HashMap<>();
-                for (Product product : checkoutProducts.values()) {
-                    Detail detail = new Detail();
-                    detail.setInvoiceId(invoiceId);
-                    detail.setProductId(product.getProductId());
-                    detail.setQuantity(product.getQuantity());
-                    detail.setPrice(product.getPrice());
-                    detail.setTotal(product.getPrice().multiply(BigDecimal.valueOf(product.getQuantity())));
-                    detailController.addDetail(detail);
-                    
-                    ProductController productController = new ProductController();
-                    productController.updateProductQuantity(product.getProductId(), product.getQuantity());
-                    
-                    // Thêm vào danh sách đã bán
-                    soldQuantities.put(product.getProductId(), product.getQuantity());
-                }
-                
-                // Thông báo cho ProductSelectionPanel cập nhật số lượng
-                if (productSelectionPanel != null) {
-                    productSelectionPanel.updateProductQuantities(soldQuantities);
-                }
-                
-                showSuccessDialog(invoiceId);
-                clearTable();
             }
-            
+
+            // Handle payment based on method
+            if ("Tiền mặt".equals(paymentMethod)) {
+                // Show success toast
+                Toast.showToast(
+                    (JFrame) SwingUtilities.getWindowAncestor(this),
+                    String.format("Thanh toán hoá đơn #%s thành công!", invoiceNumber),
+                    "success"
+                );
+                clearTable(); // Clear cart after successful payment
+            } else if ("Chuyển khoản".equals(paymentMethod)) {
+                // Show VNPay QR Dialog
+                VNPayQRDialog vnPayDialog = new VNPayQRDialog(
+                    (Frame) SwingUtilities.getWindowAncestor(this),
+                    invoiceNumber,
+                    invoice.getTotal(),
+                    "Thanh toan don hang " + invoiceNumber,
+                    invoiceId
+                );
+                vnPayDialog.setVisible(true);
+                
+                // If VNPay payment successful
+                if (vnPayDialog.isPaymentCompleted()) {
+                    // Update status to Paid
+                    invoice.setPaymentStatus("Paid");
+                    invoiceController.updateInvoice(invoice);
+                    clearTable(); // Clear cart after successful payment
+                }
+            }
+
         } catch (Exception e) {
-            System.err.println("General payment processing error: " + e.getMessage());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, 
-                "Có lỗi xảy ra khi xử lý thanh toán: " + e.getMessage(),
-                "Lỗi", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                "Lỗi xử lý thanh toán: " + e.getMessage(),
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
         
         System.out.println("=== PROCESS PAYMENT END ===");

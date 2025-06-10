@@ -84,7 +84,7 @@ public class VNPayUtil {
 
     public static String createPaymentUrl(String orderId, long amount, String orderInfo) {
 		Map<String, String> vnpParamsMap = getVNPayConfig();
-		vnpParamsMap.put("vnp_Amount", String.valueOf(amount));
+		vnpParamsMap.put("vnp_Amount", String.valueOf(amount * 100)); // Nhân 100 theo chuẩn VNPay
 		vnpParamsMap.put("vnp_TxnRef", orderId);
 		vnpParamsMap.put("vnp_ReturnUrl", VNPayConfig.RETURN_URL);
 		vnpParamsMap.put("vnp_IpAddr", getIpAddress());

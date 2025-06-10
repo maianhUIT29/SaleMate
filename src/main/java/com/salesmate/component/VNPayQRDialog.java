@@ -36,6 +36,7 @@ public class VNPayQRDialog extends JDialog {
     private String orderId;
     private BigDecimal amount;
     private String orderInfo;
+    private int invoiceId; // Thêm invoiceId
     
     // UI Components
     private JLabel qrLabel;
@@ -55,7 +56,7 @@ public class VNPayQRDialog extends JDialog {
     private int spinnerAngle = 0;
     private String vnpayUrl;
     
-    public VNPayQRDialog(Frame parent, String orderId, BigDecimal amount, String orderInfo) {
+    public VNPayQRDialog(Frame parent, String orderId, BigDecimal amount, String orderInfo, int invoiceId) {
         super(parent, "Thanh toán VNPay", true);
         
         System.out.println("=== VNPAY QR DIALOG CONSTRUCTOR ===");
@@ -63,10 +64,12 @@ public class VNPayQRDialog extends JDialog {
         System.out.println("Order ID: " + orderId);
         System.out.println("Amount: " + amount);
         System.out.println("Order Info: " + orderInfo);
+        System.out.println("Invoice ID: " + invoiceId);
         
         this.orderId = orderId;
         this.amount = amount;
         this.orderInfo = orderInfo;
+        this.invoiceId = invoiceId;
         
         try {
             initializeDialog();
@@ -509,8 +512,7 @@ public class VNPayQRDialog extends JDialog {
             "Tính năng kiểm tra trạng thái thanh toán sẽ được cập nhật trong phiên bản sau.",
             "Trạng thái thanh toán", JOptionPane.INFORMATION_MESSAGE);
     }
-    
-    private void completePayment() {
+      private void completePayment() {
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
@@ -529,9 +531,12 @@ public class VNPayQRDialog extends JDialog {
         refreshButton.setEnabled(false);
         completeButton.setEnabled(false);
         cancelButton.setText("Đóng");
+
+        // Hiển thị toast thông báo thành công
+        Toast.showToast((JFrame)getOwner(), "Thanh toán đơn hàng #" + orderId + " thành công!", "success");
         
-        // Auto close after 3 seconds
-        Timer closeTimer = new Timer(3000, e -> dispose());
+        // Auto close after 2 seconds
+        Timer closeTimer = new Timer(2000, e -> dispose());
         closeTimer.setRepeats(false);
         closeTimer.start();
     }
@@ -585,5 +590,50 @@ public class VNPayQRDialog extends JDialog {
         if (completed) {
             completePayment();
         }
+    }
+
+    private void showSuccessDialog(int invoiceId) {
+        // Create a new dialog for success message
+        JDialog successDialog = new JDialog(this, "Thanh toán thành công", true);
+        successDialog.setSize(400, 300);
+        successDialog.setLocationRelativeTo(this);
+        successDialog.setResizable(false);
+        
+        // Panel for content
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Success icon
+        JLabel iconLabel = new JLabel(new ImageIcon("path/to/success_icon.png"));
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(iconLabel);
+        
+        // Success message
+        JLabel messageLabel = new JLabel("Thanh toán của bạn đã được thực hiện thành công!", SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        messageLabel.setForeground(SUCCESS_COLOR);
+        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(messageLabel);
+        
+        // Invoice ID
+        JLabel invoiceLabel = new JLabel("Mã hóa đơn: " + invoiceId, SwingConstants.CENTER);
+        invoiceLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        invoiceLabel.setForeground(DARK_COLOR);
+        invoiceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(invoiceLabel);
+        
+        // Close button
+        JButton closeButton = new JButton("Đóng");
+        closeButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        closeButton.setForeground(Color.WHITE);
+        closeButton.setBackground(PRIMARY_COLOR);
+        closeButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        closeButton.addActionListener(e -> successDialog.dispose());
+        panel.add(closeButton);
+        
+        successDialog.add(panel);
+        successDialog.setVisible(true);
     }
 }
