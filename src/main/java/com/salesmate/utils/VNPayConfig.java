@@ -54,10 +54,10 @@ public class VNPayConfig {
                         props.load(fis);
                         configLoaded = true;
                         configSource = configFile.getAbsolutePath();
-                        System.out.println("✅ Loaded config from file: " + configSource);
+                        System.out.println("Loaded config from file: " + configSource);
                         break;
                     } catch (IOException e) {
-                        System.out.println("❌ Cannot load from " + path + ": " + e.getMessage());
+                        System.out.println("Cannot load from " + path + ": " + e.getMessage());
                     }
                 }
             }
@@ -65,22 +65,11 @@ public class VNPayConfig {
         
         // 3. Nếu vẫn không tìm thấy, báo lỗi và sử dụng default values
         if (!configLoaded) {
-            System.err.println("🚨 CẢNH BÁO: Không tìm thấy file config.properties!");
-            System.err.println("📁 Vui lòng đặt file config.properties vào một trong các vị trí:");
-            System.err.println("   - src/main/resources/config.properties (khuyến nghị)");
-            System.err.println("   - config.properties (thư mục gốc dự án)");
+            System.err.println("CẢNH BÁO: Không tìm thấy file config.properties!");
+            System.err.println("Vui lòng đặt file config.properties vào một trong các vị trí:");
+            System.err.println(" - src/main/resources/config.properties (khuyến nghị)");
+            System.err.println(" - config.properties (thư mục gốc dự án)");
             System.err.println("🔧 Sử dụng cấu hình mặc định...");
-            
-            // Set default properties
-            props.setProperty("vnpay.merchant_id", "WTOPNN81");
-            props.setProperty("vnpay.secret_key", "O2LXOBSIGEC2UKBW1QTZSO2EO49M6X87");
-            props.setProperty("vnpay.api_url", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
-            props.setProperty("vnpay.return_url", "http://localhost:8080/vnpay-return");
-            props.setProperty("vnpay.version", "2.1.0");
-            props.setProperty("vnpay.command", "pay");
-            props.setProperty("vnpay.order_type", "other");
-            props.setProperty("vnpay.locale", "vn");
-            props.setProperty("vnpay.currency_code", "VND");
         }
         
         // Load VNPay settings from properties với default values
