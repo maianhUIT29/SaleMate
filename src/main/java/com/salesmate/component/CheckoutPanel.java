@@ -35,6 +35,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 import com.salesmate.utils.SessionManager;
+import com.salesmate.utils.VNPayConfig;
+
 import javax.swing.*;
 
 import java.awt.*;
@@ -45,6 +47,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Locale;
+import com.salesmate.utils.VNPayUtil;
 
 public class CheckoutPanel extends javax.swing.JPanel {
 
@@ -562,161 +565,113 @@ public class CheckoutPanel extends javax.swing.JPanel {
     }
 
     private void processPayment() {
+        String paymentMethod = (String) paymentMethodComboBox.getSelectedItem();
+        
         if (checkoutProducts.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Không có sản phẩm nào để thanh toán!", 
-                "Lỗi", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng thêm sản phẩm vào giỏ hàng", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        try {
-            // Create the invoice
-            Invoice invoice = new Invoice();
-            invoice.setUsersId(SessionManager.getInstance().getLoggedInUser().getUsersId());
-            invoice.setTotalAmount(new BigDecimal(totalPrice));
-            invoice.setCreatedAt(new Date());
-            invoice.setPaymentStatus("Paid");
-            
-            // Begin transaction (conceptually - don't have actual transaction management)
-            boolean allSuccess = true;
-            
-            try {
-                // Save invoice first
-                invoiceController.saveInvoice(invoice);
-                int invoiceId = invoice.getInvoiceId();
-                boolean detailsSuccess = true;
-                
-                Map<Integer, Integer> soldQuantities = new HashMap<>();
-                
-                // Add invoice details
-                for (Product product : checkoutProducts.values()) {
-                    Detail detail = new Detail();
-                    detail.setInvoiceId(invoiceId);
-                    detail.setProductId(product.getProductId());
-                    detail.setQuantity(product.getQuantity());
-                    detail.setPrice(product.getPrice());
-                    detail.setTotal(product.getPrice().multiply(new BigDecimal(product.getQuantity())));
-                    
-                    if (!detailController.addDetail(detail)) {
-                        detailsSuccess = false;
-                        break;
-                    }
-                    
-                    // Track quantities to update
-                    soldQuantities.put(product.getProductId(), product.getQuantity());
-                }
-                
-                // If details were successfully added, update product quantities
-                if (detailsSuccess) {
-                    ProductController productController = new ProductController();
-                    boolean allUpdatesSuccessful = true;
-                    
-                    // Process each product update separately for better error tracking
-                    for (Map.Entry<Integer, Integer> entry : soldQuantities.entrySet()) {
-                        int productId = entry.getKey();
-                        int soldQuantity = entry.getValue();
-                        
-                        System.out.println("Updating product ID: " + productId + ", quantity: -" + soldQuantity);
-                        boolean updateSuccess = productController.updateProductQuantity(productId, soldQuantity);
-                        
-                        if (!updateSuccess) {
-                            allUpdatesSuccessful = false;
-                            System.err.println("Failed to update quantity for product ID: " + productId);
-                        }
-                    }
-                    
-                    if (!allUpdatesSuccessful) {
-                        System.err.println("WARNING: Some product quantities were not updated successfully");
-                    } else {
-                        System.out.println("All product quantities updated successfully");
-                    }
-                    
-                    // Update the product selection panel if it exists
-                    if (productSelectionPanel != null) {
-                        try {
-                            System.out.println("Updating product display after checkout");
-                            
-                            // First try updating individual product cards
-                            boolean allCardsUpdated = true;
-                            for (Map.Entry<Integer, Integer> entry : soldQuantities.entrySet()) {
-                                int productId = entry.getKey();
-                                
-                                // Get current quantity from database to ensure accuracy
-                                Product updatedProduct = productController.getProductById(productId);
-                                if (updatedProduct != null) {
-                                    int newQuantity = updatedProduct.getQuantity();
-                                    System.out.println("Product " + productId + " new quantity from DB: " + newQuantity);
-                                    
-                                    if (!productSelectionPanel.updateSpecificProductCard(productId, newQuantity)) {
-                                        allCardsUpdated = false;
-                                        System.out.println("Failed to update card for product " + productId);
-                                    }
-                                } else {
-                                    allCardsUpdated = false;
-                                    System.err.println("Could not retrieve updated product " + productId);
-                                }
-                            }
-                            
-                            // If any individual updates failed, do a full refresh as backup
-                            if (!allCardsUpdated) {
-                                System.out.println("Some cards failed to update individually, performing full refresh");
-                                SwingUtilities.invokeLater(() -> {
-                                    productSelectionPanel.refreshProducts();
-                                });
-                            }
-                        } catch (Exception ex) {
-                            System.err.println("Error updating product display: " + ex.getMessage());
-                            ex.printStackTrace();
-                            
-                            // Final fallback - try a fresh reload
-                            try {
-                                SwingUtilities.invokeLater(() -> {
-                                    productSelectionPanel.loadProductData();
-                                });
-                            } catch (Exception e) {
-                                System.err.println("Even reload failed: " + e.getMessage());
-                            }
-                        }
-                    } else {
-                        System.out.println("ProductSelectionPanel reference is null, cannot update UI");
-                    }
-                    
-                    // Show the success dialog and clear the cart
-                    showSuccessDialog(invoiceId);
-                    clearTable();
-                    
-                } else {
-                    allSuccess = false;
-                    throw new Exception("Failed to save invoice details");
-                }
+        System.out.println("=== PROCESS PAYMENT DEBUG ===");
+        System.out.println("Payment method selected: " + paymentMethod);
+        System.out.println("Products in checkout: " + checkoutProducts.size());
+        System.out.println("Total price: " + totalPrice);
 
-            } catch (IllegalArgumentException e) {
-                allSuccess = false;
-                JOptionPane.showMessageDialog(this,
-                    "Validation error: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            } catch (Exception e) {
-                allSuccess = false;
-                JOptionPane.showMessageDialog(this,
-                    "Error saving invoice: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        // Validate VNPay configuration if paying by bank transfer
+        if ("Chuyển khoản".equals(paymentMethod)) {
+            if (!VNPayConfig.isConfigValid()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Cấu hình VNPay không hợp lệ. Vui lòng kiểm tra file config.properties",
+                    "Lỗi cấu hình", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+        }
+
+        // Validate product quantities against current stock
+        ProductController productController = new ProductController();
+        for (Product cartProduct : checkoutProducts.values()) {
+            Product currentStock = productController.getProductById(cartProduct.getProductId());
+            if (currentStock == null || currentStock.getQuantity() < cartProduct.getQuantity()) {
+                JOptionPane.showMessageDialog(this,
+                    "Số lượng sản phẩm '" + cartProduct.getProductName() + "' trong giỏ vượt quá tồn kho!",
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        try {
+            // Create invoice
+            Invoice invoice = new Invoice();
+            invoice.setTotal(BigDecimal.valueOf(totalPrice));
+            invoice.setCreatedAt(new Date());
+            invoice.setPaymentStatus("Chuyển khoản".equals(paymentMethod) ? "Unpaid" : "Paid");
             
-            // If anything failed, we could implement compensating actions here
-            if (!allSuccess) {
-                System.err.println("Transaction failed. Manual intervention may be required.");
+            // Get current user ID from session
+            int userId = SessionManager.getInstance().getLoggedInUser().getUsersId();
+            invoice.setUsersId(userId);
+
+            // Save invoice to get ID
+            invoiceController.saveInvoice(invoice);
+            int invoiceId = invoice.getInvoiceId();
+            String invoiceNumber = generateInvoiceNumber(invoiceId);
+            System.out.println("Generated Invoice ID: " + invoiceId);
+
+            // Save details and update product quantities
+            for (Product product : checkoutProducts.values()) {
+                // Create and save invoice detail
+                Detail detail = new Detail();
+                detail.setInvoiceId(invoiceId);
+                detail.setProductId(product.getProductId());
+                detail.setQuantity(product.getQuantity());
+                detail.setPrice(product.getPrice());
+                detail.setTotal(product.getPrice().multiply(BigDecimal.valueOf(product.getQuantity())));
+                detailController.addDetail(detail);
+
+                // Update product stock
+                Product stockProduct = productController.getProductById(product.getProductId());
+                if (stockProduct != null) {
+                    stockProduct.setQuantity(stockProduct.getQuantity() - product.getQuantity());
+                    productController.updateProduct(stockProduct);
+                }
+            }
+
+            // Handle payment based on method
+            if ("Tiền mặt".equals(paymentMethod)) {
+                // Show success toast
+                Toast.showToast(
+                    (JFrame) SwingUtilities.getWindowAncestor(this),
+                    String.format("Thanh toán hoá đơn #%s thành công!", invoiceNumber),
+                    "success"
+                );
+                clearTable(); // Clear cart after successful payment
+            } else if ("Chuyển khoản".equals(paymentMethod)) {
+                // Show VNPay QR Dialog
+                VNPayQRDialog vnPayDialog = new VNPayQRDialog(
+                    (Frame) SwingUtilities.getWindowAncestor(this),
+                    invoiceNumber,
+                    invoice.getTotal(),
+                    "Thanh toan don hang " + invoiceNumber,
+                    invoiceId
+                );
+                vnPayDialog.setVisible(true);
+                
+                // If VNPay payment successful
+                if (vnPayDialog.isPaymentCompleted()) {
+                    // Update status to Paid
+                    invoice.setPaymentStatus("Paid");
+                    invoiceController.updateInvoice(invoice);
+                    clearTable(); // Clear cart after successful payment
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Có lỗi xảy ra trong quá trình thanh toán:\n" + e.getMessage(),
-                "Lỗi thanh toán",
-                JOptionPane.ERROR_MESSAGE);
+                "Lỗi xử lý thanh toán: " + e.getMessage(),
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+        
+        System.out.println("=== PROCESS PAYMENT END ===");
     }
 
     private void showSuccessDialog(int invoiceId) {
@@ -883,77 +838,37 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
     private void showSaveSuccessDialog(String filePath, JasperPrint jasperPrint, int invoiceId) {
         JDialog dialog = new JDialog();
-        dialog.setTitle("Hoá đơn đã lưu");
+        dialog.setTitle("Xuất PDF thành công");
         dialog.setModal(true);
-        dialog.setSize(450, 200);
+        dialog.setSize(400, 200);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel panel = new JPanel(new BorderLayout());
         
-        JLabel messageLabel = new JLabel("<html><body><p style='font-size: 14px;'>Hoá đơn #" + invoiceId + " đã được lưu thành công tại:</p><p style='font-size: 12px; color: #666;'>" + filePath + "</p></body></html>");
+        JLabel messageLabel = new JLabel("<html><center>Đã xuất hóa đơn thành công!<br>Đường dẫn: " + filePath + "</center></html>");
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        JPanel buttonPanel = new JPanel(new FlowLayout());
         
-        JButton openButton = createStyledButton("Mở file", new Color(33, 150, 243));
-        JButton openFolderButton = createStyledButton("Mở thư mục", new Color(76, 175, 80));
-        JButton printButton = createStyledButton("In hoá đơn", new Color(255, 152, 0));
-        JButton closeButton = createStyledButton("Đóng", new Color(108, 117, 125));
-        
-        openButton.addActionListener(e -> {
+        JButton openFileButton = new JButton("Mở file");
+        openFileButton.addActionListener(e -> {
             try {
-                File file = new File(filePath);
-                if (file.exists()) {
-                    Desktop.getDesktop().open(file);
-                } else {
-                    JOptionPane.showMessageDialog(
-                        dialog,
-                        "Không tìm thấy file: " + filePath,
-                        "Lỗi",
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                }
+                java.awt.Desktop.getDesktop().open(new java.io.File(filePath));
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                    dialog,
-                    "Không thể mở file: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-                );
+                JOptionPane.showMessageDialog(dialog, "Không thể mở file: " + ex.getMessage());
             }
         });
         
-        openFolderButton.addActionListener(e -> {
-            try {
-                File folder = new File(filePath).getParentFile();
-                Desktop.getDesktop().open(folder);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(
-                    dialog,
-                    "Không thể mở thư mục: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-                );
-            }
-        });
-        
+        JButton printButton = new JButton("In hóa đơn");
         printButton.addActionListener(e -> {
-            try {
-                JasperPrintManager.printReport(jasperPrint, true);
-            } catch (JRException ex) {
-                JOptionPane.showMessageDialog(
-                    dialog,
-                    "Lỗi khi in: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-                );
-            }
+            dialog.dispose();
+            showPrintPreview(jasperPrint); // Use the parameter jasperPrint directly
         });
         
+        JButton closeButton = new JButton("Đóng");
         closeButton.addActionListener(e -> dialog.dispose());
         
-        buttonPanel.add(openButton);
-        buttonPanel.add(openFolderButton);
+        buttonPanel.add(openFileButton);
         buttonPanel.add(printButton);
         buttonPanel.add(closeButton);
         

@@ -237,5 +237,35 @@ public boolean deleteEmployee(int employeeId) {
     }
 }
 
+// 6. Lấy employee theo user_id (thông qua users table)
+public Employee getEmployeeByUserId(int userId) {
+    String sql = "SELECT e.* FROM EMPLOYEE e " +
+                 "JOIN USERS u ON e.EMPLOYEE_ID = u.EMPLOYEE_ID " +
+                 "WHERE u.USERS_ID = ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, userId);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return new Employee(
+                rs.getInt("EMPLOYEE_ID"),
+                rs.getString("FIRST_NAME"),
+                rs.getString("LAST_NAME"),
+                rs.getDate("BIRTH_DATE"),
+                rs.getDate("HIRE_DATE"),
+                rs.getString("PHONE"),
+                rs.getString("ADDRESS"),
+                rs.getString("EMERGENCY_CONTACT"),
+                rs.getString("EMERGENCY_PHONE"),
+                rs.getString("ROLE")
+            );
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+
 
 }

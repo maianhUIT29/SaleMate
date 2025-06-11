@@ -1,20 +1,36 @@
 package com.salesmate.view;
 
+import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
+import com.salesmate.component.CashierAccount;
+import com.salesmate.component.CashierHeader;
+import com.salesmate.component.CashierInvoicesPanel;
+import com.salesmate.component.CheckoutPanel;
+import com.salesmate.component.ProductSelectionPanel;
 import com.salesmate.controller.ProductController;
 import com.salesmate.model.Product;
 import com.salesmate.utils.UIHelper;
 
-public class CashierView extends javax.swing.JFrame {
+public class CashierView extends JFrame {
 
     private ProductController productController;
+    
+    // Components
+    private CashierHeader cashierHeader;
+    private JTabbedPane tpCashier;
+    private ProductSelectionPanel productSelectionPanel;
+    private CheckoutPanel checkoutPanel;
+    private CashierInvoicesPanel cashierInvoicesPanel;
+    private CashierAccount cashierAccount;
 
     public CashierView() {
         try {
@@ -24,12 +40,11 @@ public class CashierView extends javax.swing.JFrame {
             UIHelper.setupLookAndFeel();
             
             initComponents();
-            productSelectionPanel.setPreferredSize(new java.awt.Dimension(700, 500));
+            setupEventHandlers();
             
-            // Link panels with proper connection in both directions
             System.out.println("CashierView: Setting up bidirectional connection between panels");
-            productSelectionPanel.setCheckoutPanel(checkoutPanel2);
-            checkoutPanel2.setProductSelectionPanel(productSelectionPanel);
+            productSelectionPanel.setCheckoutPanel(checkoutPanel);
+            checkoutPanel.setProductSelectionPanel(productSelectionPanel);
             System.out.println("CashierView: Panel connection established");
             
             // Add window listener to maximize window after it becomes visible
@@ -40,14 +55,16 @@ public class CashierView extends javax.swing.JFrame {
                     setExtendedState(JFrame.MAXIMIZED_BOTH);
                     validate();
                     repaint();
+                    
+                    // Apply focus removal AFTER everything is loaded and visible
+                    SwingUtilities.invokeLater(() -> {
+                        UIHelper.removeFocusFromAll(CashierView.this);
+                    });
                 }
             });
             
             // Make sure window is visible before loading products
             setVisible(true);
-            
-            // Apply no-focus styling to all components
-            UIHelper.removeFocusFromAll(this);
             
             // Load products after UI is set up
             SwingUtilities.invokeLater(this::loadProductList);
@@ -62,6 +79,120 @@ public class CashierView extends javax.swing.JFrame {
         }
     }
 
+    private void initComponents() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("SalesMate - Hệ thống bán hàng");
+        setLayout(new BorderLayout());
+        
+        // Initialize header
+        cashierHeader = new CashierHeader();
+        
+        // Initialize main components
+        productSelectionPanel = new ProductSelectionPanel();
+        checkoutPanel = new CheckoutPanel();
+        cashierInvoicesPanel = new CashierInvoicesPanel();
+        cashierAccount = new CashierAccount();
+        
+        // Create tabbed pane
+        tpCashier = new JTabbedPane();
+        tpCashier.setFont(new java.awt.Font("Segoe UI", 1, 14));
+        
+        // Tab 1: Bán hàng (Sales)
+        JPanel salesPanel = createSalesPanel();
+        tpCashier.addTab("Bán hàng", salesPanel);
+        
+        // Tab 2: Lịch sử bán hàng (Sales History)
+        JPanel invoicesContainer = new JPanel(new BorderLayout());
+        invoicesContainer.add(cashierInvoicesPanel, BorderLayout.CENTER);
+        tpCashier.addTab("Lịch sử bán hàng", invoicesContainer);
+        
+        // Tab 3: Tài khoản (Account)
+        JPanel accountContainer = new JPanel(new BorderLayout());
+        accountContainer.add(cashierAccount, BorderLayout.CENTER);
+        tpCashier.addTab("Tài khoản", accountContainer);
+        
+        // Add components to main frame
+        add(cashierHeader, BorderLayout.NORTH);
+        add(tpCashier, BorderLayout.CENTER);
+        
+        // Set initial size
+        setBounds(0, 0, 1200, 800);
+    }
+    
+    private JPanel createSalesPanel() {
+        JPanel salesPanel = new JPanel(new BorderLayout());
+        
+        // Create main sales container with product selection and checkout
+        JPanel salesContainer = new JPanel();
+        salesContainer.setLayout(new javax.swing.BoxLayout(salesContainer, javax.swing.BoxLayout.X_AXIS));
+        
+        // Add spacing and borders
+        productSelectionPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createTitledBorder("Chọn sản phẩm"),
+            javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        checkoutPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createTitledBorder("Thanh toán"),
+            javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        // Set preferred sizes
+        productSelectionPanel.setPreferredSize(new java.awt.Dimension(750, 600));
+        checkoutPanel.setPreferredSize(new java.awt.Dimension(450, 600));
+        
+        // Add panels to container
+        salesContainer.add(productSelectionPanel);
+        salesContainer.add(javax.swing.Box.createHorizontalStrut(10)); // Add spacing
+        salesContainer.add(checkoutPanel);
+        
+        salesPanel.add(salesContainer, BorderLayout.CENTER);
+        
+        return salesPanel;
+    }
+    
+    private void setupEventHandlers() {
+        // Tab change listener to refresh data when switching tabs
+        tpCashier.addChangeListener(e -> {
+            int selectedIndex = tpCashier.getSelectedIndex();
+            
+            switch (selectedIndex) {
+                case 0: // Sales tab
+                    System.out.println("Switched to Sales tab");
+                    // Optionally refresh product data
+                    break;
+                    
+                case 1: // Invoices tab
+                    System.out.println("Switched to Invoices tab");
+                    // Refresh invoices data
+                    SwingUtilities.invokeLater(() -> {
+                        try {
+                            // Trigger refresh of invoices panel
+                            cashierInvoicesPanel.revalidate();
+                            cashierInvoicesPanel.repaint();
+                        } catch (Exception ex) {
+                            System.err.println("Error refreshing invoices: " + ex.getMessage());
+                        }
+                    });
+                    break;
+                    
+                case 2: // Account tab
+                    System.out.println("Switched to Account tab");
+                    // Refresh account data
+                    SwingUtilities.invokeLater(() -> {
+                        try {
+                            // Trigger refresh of account panel
+                            cashierAccount.revalidate();
+                            cashierAccount.repaint();
+                        } catch (Exception ex) {
+                            System.err.println("Error refreshing account: " + ex.getMessage());
+                        }
+                    });
+                    break;
+            }
+        });
+    }
+
     private void loadProductList() {
         try {
             System.out.println("Loading product list...");
@@ -69,143 +200,89 @@ public class CashierView extends javax.swing.JFrame {
             List<Product> products = productController.getAllProducts();
             if (products != null && !products.isEmpty()) {
                 System.out.println("Found " + products.size() + " products");
-                // Set products will trigger a single loading animation in ProductSelectionPanel
                 productSelectionPanel.setProducts(products);
             } else {
                 System.out.println("No products found");
-                // Show an error message if no products are found
-                javax.swing.JOptionPane.showMessageDialog(
+                JOptionPane.showMessageDialog(
                     this,
                     "Không tìm thấy sản phẩm nào trong cơ sở dữ liệu.",
                     "Thông báo",
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE
+                    JOptionPane.INFORMATION_MESSAGE
                 );
             }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Error loading products: " + e.getMessage());
+            JOptionPane.showMessageDialog(
+                this,
+                "Lỗi khi tải danh sách sản phẩm: " + e.getMessage(),
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        CashierViewContainer = new javax.swing.JPanel();
-        cashierHeader = new com.salesmate.component.CashierHeader();
-        tpCashier = new javax.swing.JTabbedPane();
-        panelSaleContainer = new javax.swing.JPanel();
-        PanelSale = new javax.swing.JPanel();
-        productSelectionPanel = new com.salesmate.component.ProductSelectionPanel();
-        checkoutPanel2 = new com.salesmate.component.CheckoutPanel();
-        panelInvoicesContainer = new javax.swing.JPanel();
-        cashierInvoicesPanel2 = new com.salesmate.component.CashierInvoicesPanel();
-        panelAccountContainer = new javax.swing.JPanel();
-        cashierAccount1 = new com.salesmate.component.CashierAccount();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setBackground(new java.awt.Color(204, 255, 255));
-
-        tpCashier.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        tpCashier.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-
-        panelSaleContainer.setLayout(new java.awt.BorderLayout());
-
-        productSelectionPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        checkoutPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        javax.swing.GroupLayout PanelSaleLayout = new javax.swing.GroupLayout(PanelSale);
-        PanelSale.setLayout(PanelSaleLayout);
-        PanelSaleLayout.setHorizontalGroup(
-            PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(PanelSaleLayout.createSequentialGroup()
-                .addComponent(productSelectionPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 554, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(checkoutPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        PanelSaleLayout.setVerticalGroup(
-            PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelSaleLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(PanelSaleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(productSelectionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(checkoutPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-
-        panelSaleContainer.add(PanelSale, java.awt.BorderLayout.CENTER);
-
-        tpCashier.addTab("Bán hàng", panelSaleContainer);
-
-        panelInvoicesContainer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-
-        cashierInvoicesPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-
-        javax.swing.GroupLayout panelInvoicesContainerLayout = new javax.swing.GroupLayout(panelInvoicesContainer);
-        panelInvoicesContainer.setLayout(panelInvoicesContainerLayout);
-        panelInvoicesContainerLayout.setHorizontalGroup(
-            panelInvoicesContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelInvoicesContainerLayout.createSequentialGroup()
-                .addGap(37, 37, 37)
-                .addComponent(cashierInvoicesPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 903, Short.MAX_VALUE)
-                .addGap(27, 27, 27))
-        );
-        panelInvoicesContainerLayout.setVerticalGroup(
-            panelInvoicesContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelInvoicesContainerLayout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addComponent(cashierInvoicesPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-                .addGap(41, 41, 41))
-        );
-
-        tpCashier.addTab("Lịch sử bán hàng", panelInvoicesContainer);
-
-        javax.swing.GroupLayout panelAccountContainerLayout = new javax.swing.GroupLayout(panelAccountContainer);
-        panelAccountContainer.setLayout(panelAccountContainerLayout);
-        panelAccountContainerLayout.setHorizontalGroup(
-            panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelAccountContainerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cashierAccount1, javax.swing.GroupLayout.PREFERRED_SIZE, 957, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        panelAccountContainerLayout.setVerticalGroup(
-            panelAccountContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelAccountContainerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cashierAccount1, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-                .addGap(22, 22, 22))
-        );
-
-        tpCashier.addTab("Tài Khoản", panelAccountContainer);
-
-        javax.swing.GroupLayout CashierViewContainerLayout = new javax.swing.GroupLayout(CashierViewContainer);
-        CashierViewContainer.setLayout(CashierViewContainerLayout);
-        CashierViewContainerLayout.setHorizontalGroup(
-            CashierViewContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(CashierViewContainerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cashierHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-            .addComponent(tpCashier)
-        );
-        CashierViewContainerLayout.setVerticalGroup(
-            CashierViewContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(CashierViewContainerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cashierHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tpCashier))
-        );
-
-        getContentPane().add(CashierViewContainer, java.awt.BorderLayout.CENTER);
-
-        setBounds(0, 0, 985, 589);
-    }// </editor-fold>//GEN-END:initComponents
+    /**
+     * Switch to a specific tab programmatically
+     * @param tabIndex 0 = Sales, 1 = Invoices, 2 = Account
+     */
+    public void switchToTab(int tabIndex) {
+        if (tabIndex >= 0 && tabIndex < tpCashier.getTabCount()) {
+            tpCashier.setSelectedIndex(tabIndex);
+        }
+    }
+    
+    /**
+     * Switch to Sales tab
+     */
+    public void switchToSalesTab() {
+        switchToTab(0);
+    }
+    
+    /**
+     * Switch to Invoices tab
+     */
+    public void switchToInvoicesTab() {
+        switchToTab(1);
+    }
+    
+    /**
+     * Switch to Account tab
+     */
+    public void switchToAccountTab() {
+        switchToTab(2);
+    }
+    
+    /**
+     * Get reference to product selection panel
+     */
+    public ProductSelectionPanel getProductSelectionPanel() {
+        return productSelectionPanel;
+    }
+    
+    /**
+     * Get reference to checkout panel
+     */
+    public CheckoutPanel getCheckoutPanel() {
+        return checkoutPanel;
+    }
+    
+    /**
+     * Get reference to invoices panel
+     */
+    public CashierInvoicesPanel getInvoicesPanel() {
+        return cashierInvoicesPanel;
+    }
+    
+    /**
+     * Get reference to account panel
+     */
+    public CashierAccount getAccountPanel() {
+        return cashierAccount;
+    }
 
     /**
-     * @param args the command line arguments
+     * Main method for testing
      */
     public static void main(String args[]) {
         try {
@@ -227,31 +304,6 @@ public class CashierView extends javax.swing.JFrame {
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Unexpected error in main: " + e.getMessage());
-        }
-    }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel CashierViewContainer;
-    private javax.swing.JPanel PanelSale;
-    private com.salesmate.component.CashierAccount cashierAccount1;
-    private com.salesmate.component.CashierHeader cashierHeader;
-    private com.salesmate.component.CashierInvoicesPanel cashierInvoicesPanel2;
-    private com.salesmate.component.CheckoutPanel checkoutPanel2;
-    private javax.swing.JPanel panelAccountContainer;
-    private javax.swing.JPanel panelInvoicesContainer;
-    private javax.swing.JPanel panelSaleContainer;
-    private com.salesmate.component.ProductSelectionPanel productSelectionPanel;
-    private javax.swing.JTabbedPane tpCashier;
-    // End of variables declaration//GEN-END:variables
-
-    private static class RunnableImpl implements Runnable {
-
-        public RunnableImpl() {
-        }
-
-        @Override
-        public void run() {
-            new CashierView().setVisible(true);
         }
     }
 }
