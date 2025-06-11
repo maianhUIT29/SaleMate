@@ -637,12 +637,8 @@ public class CheckoutPanel extends javax.swing.JPanel {
 
             // Handle payment based on method
             if ("Tiền mặt".equals(paymentMethod)) {
-                // Show success toast
-                Toast.showToast(
-                    (JFrame) SwingUtilities.getWindowAncestor(this),
-                    String.format("Thanh toán hoá đơn #%s thành công!", invoiceNumber),
-                    "success"
-                );
+                // Show success dialog with invoice details - RESTORED ORIGINAL BEHAVIOR
+                showSuccessDialog(invoiceId);
                 clearTable(); // Clear cart after successful payment
             } else if ("Chuyển khoản".equals(paymentMethod)) {
                 // Show VNPay QR Dialog
