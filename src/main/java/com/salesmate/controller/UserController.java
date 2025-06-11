@@ -62,6 +62,9 @@ public class UserController {
     public boolean updateUser(User user) {
         return userDAO.updateUser(user);
     }
+    public boolean updateUserInfo(User user) {
+        return userDAO.updateUserInfo(user);
+    }
 
     // Lấy thông tin người dùng theo ID
     public User getUserById(int id) {
@@ -105,6 +108,9 @@ public List<User> searchUsersByName(String keyword) {
             return getAllUsers();
         }
         return userDAO.filterUsersByRole(role);
+    }
+ public boolean updateAvatar(int userId, String avatarPath) {
+        return userDAO.updateAvatar(userId, avatarPath);
     }
 
 }

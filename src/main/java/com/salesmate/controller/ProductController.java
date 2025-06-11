@@ -190,4 +190,27 @@ public class ProductController {
         }
     }
 
+    // Lấy số lượng đã bán của sản phẩm
+    public int getSoldQuantity(int productId) {
+        try {
+            return productDAO.getSoldQuantity(productId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    // Tìm kiếm sản phẩm theo tên
+    public List<Product> searchProductsByName(String keyword) {
+        return productDAO.searchProductsByName(keyword);
+    }
+
+    public boolean markProductDamaged(int productId, String reason) {
+        return productDAO.markProductDamaged(productId, reason);
+    }
+
+    public Product getProductByBarcode(String barcode) {
+        return productDAO.getProductByBarcode(barcode);
+    }
+
 }
