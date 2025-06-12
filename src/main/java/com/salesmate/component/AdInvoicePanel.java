@@ -145,7 +145,6 @@ public class AdInvoicePanel extends JPanel {
 
         // Toolbar buttons with icons - now with Add button first
         JButton addBtn = createIconButton("Thêm hóa đơn", ADD_COLOR, "/icons/add.png");
-        JButton editBtn = createIconButton("Sửa", SECONDARY_COLOR, "/icons/edit.png");
         JButton deleteBtn = createIconButton("Xóa", ACCENT_COLOR, "/icons/delete.png");
         JButton exportBtn = createIconButton("Xuất Excel", EXPORT_COLOR, "/icons/export.png");
         JButton importBtn = createIconButton("Nhập Excel", IMPORT_COLOR, "/icons/import.png");
@@ -156,7 +155,6 @@ public class AdInvoicePanel extends JPanel {
         btnPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
         btnPanel.setBackground(CARD_COLOR);
         btnPanel.add(addBtn);
-        btnPanel.add(editBtn);
         btnPanel.add(deleteBtn);
         btnPanel.add(exportBtn);
         btnPanel.add(importBtn);

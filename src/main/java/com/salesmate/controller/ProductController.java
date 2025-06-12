@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -275,5 +276,30 @@ public class ProductController {
             return false;
         }
     }
-
+    
+    /**
+     * Get all products with their current stock information for AI prediction
+     * @return List of maps containing product_id, product_name, and quantity
+     */
+    public List<Map<String, Object>> getAllProductsWithStock() {
+        List<Map<String, Object>> results = new ArrayList<>();
+        try {
+            List<Product> allProducts = getAllProducts();
+            for (Product product : allProducts) {
+                if (product.getQuantity() > 0) { // Chỉ lấy sản phẩm có tồn kho > 0
+                    Map<String, Object> productInfo = new HashMap<>();
+                    productInfo.put("product_id", product.getProductId());
+                    productInfo.put("product_name", product.getProductName());
+                    productInfo.put("quantity", product.getQuantity());
+                    results.add(productInfo);
+                }
+            }
+            System.out.println("ProductController: Retrieved " + results.size() + " products with stock > 0");
+            return results;
+        } catch (Exception e) {
+            System.err.println("ProductController: Error getting products with stock: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
 }
