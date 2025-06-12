@@ -1469,14 +1469,50 @@ private void deleteInvoice() {
 
     // Add button actions
     deleteButton.addActionListener(e -> {
-        boolean success = controller.deleteInvoice(invoiceId);
-        confirmDialog.dispose();
-
-        if (success) {
-            showSuccessDialog("Xóa hóa đơn thành công!");
-            loadInvoices();
-        } else {
-            showErrorDialog("Không thể xóa hóa đơn. Vui lòng thử lại sau.");
+        try {
+            // Show loading state
+            deleteButton.setEnabled(false);
+            deleteButton.setText("Đang xóa...");
+            
+            // Perform deletion in a separate thread to avoid UI blocking
+            SwingUtilities.invokeLater(() -> {
+                boolean success = false;
+                String errorMessage = "Không xác định được lỗi";
+                
+                try {
+                    success = controller.deleteInvoice(invoiceId);
+                    if (!success) {
+                        errorMessage = "Không thể xóa hóa đơn. Có thể hóa đơn đang được sử dụng hoặc không tồn tại.";
+                    }
+                } catch (Exception ex) {
+                    success = false;
+                    errorMessage = "Lỗi khi xóa hóa đơn: " + ex.getMessage();
+                    ex.printStackTrace();
+                }
+                
+                // Reset button state
+                deleteButton.setEnabled(true);
+                deleteButton.setText("Xóa hóa đơn");
+                
+                // Close dialog first
+                confirmDialog.dispose();
+                
+                // Show result
+                if (success) {
+                    showSuccessDialog("Xóa hóa đơn thành công!");
+                    // Refresh the invoice list
+                    loadInvoices();
+                } else {
+                    showErrorDialog("Lỗi: " + errorMessage);
+                }
+            });
+        } catch (Exception ex) {
+            // Reset button state in case of immediate error
+            deleteButton.setEnabled(true);
+            deleteButton.setText("Xóa hóa đơn");
+            confirmDialog.dispose();
+            showErrorDialog("Lỗi không mong đợi: " + ex.getMessage());
+            ex.printStackTrace();
         }
     });
 
@@ -1825,7 +1861,7 @@ private void showErrorDialog(String message) {
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 30, 30));
         
         // Export button
-        JButton exportButton = createGradientButton("📄 Xuất Excel", new Color(39, 174, 96));
+        JButton exportButton = createGradientButton("Xuất Excel", new Color(39, 174, 96));
         exportButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         exportButton.setPreferredSize(new Dimension(140, 45));
         exportButton.addActionListener(e -> {
@@ -1863,26 +1899,13 @@ private void showErrorDialog(String message) {
             }
         });
         
-        // Print button
-        JButton printButton = createGradientButton("🖨️ In hóa đơn", INFO_COLOR);
-        printButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        printButton.setPreferredSize(new Dimension(140, 45));
-        printButton.addActionListener(e -> {
-            // Print functionality (placeholder)
-            JOptionPane.showMessageDialog(dialog, 
-                "Chức năng in hóa đơn sẽ được phát triển trong phiên bản tiếp theo.", 
-                "Thông báo", 
-                JOptionPane.INFORMATION_MESSAGE);
-        });
-        
         // Close button
-        JButton closeButton = createGradientButton("✖️ Đóng", SECONDARY_COLOR);
+        JButton closeButton = createGradientButton("Đóng", SECONDARY_COLOR);
         closeButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         closeButton.setPreferredSize(new Dimension(120, 45));
         closeButton.addActionListener(e -> dialog.dispose());
         
         buttonPanel.add(exportButton);
-        buttonPanel.add(printButton);
         buttonPanel.add(closeButton);
         
         // Main content panel
@@ -2289,8 +2312,8 @@ private void showErrorDialog(String message) {
             JDialog productDialog = new JDialog(dialog, "Thêm sản phẩm", true);
             productDialog.setLayout(new BorderLayout(10, 10));
             productDialog.getContentPane().setBackground(CARD_COLOR);
-            productDialog.setMinimumSize(new Dimension(600, 450)); // Increase dialog size
-            
+            productDialog.setMinimumSize(new Dimension(700, 550)); // Increased size for search
+
             // Header panel with gradient
             JPanel headerPanel = new JPanel() {
                 @Override
@@ -2314,6 +2337,31 @@ private void showErrorDialog(String message) {
             productTitleLabel.setForeground(Color.WHITE);
             headerPanel.add(productTitleLabel, BorderLayout.WEST);
 
+            // Search panel - NEW FEATURE
+            JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+            searchPanel.setBackground(CARD_COLOR);
+            searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+
+            JLabel searchLabel = new JLabel("Tìm kiếm sản phẩm:");
+            searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            searchLabel.setForeground(new Color(52, 73, 94));
+
+            JTextField productSearchField = new JTextField(20);
+            productSearchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            productSearchField.setPreferredSize(new Dimension(250, 35));
+            productSearchField.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedBorder(new Color(189, 195, 199), 8),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+            ));
+
+            JButton searchButton = createGradientButton("Tìm kiếm", new Color(52, 152, 219));
+            searchButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            searchButton.setPreferredSize(new Dimension(100, 35));
+
+            searchPanel.add(searchLabel);
+            searchPanel.add(productSearchField);
+            searchPanel.add(searchButton);
+
             // Main form panel
             JPanel productFormPanel = new JPanel(new GridBagLayout());
             productFormPanel.setBackground(CARD_COLOR);
@@ -2323,7 +2371,7 @@ private void showErrorDialog(String message) {
             pgbc.fill = GridBagConstraints.HORIZONTAL;
             pgbc.insets = new Insets(10, 10, 10, 10);
             
-            // Product selection dropdown (similar to employee selection)
+            // Product selection dropdown (enhanced with search functionality)
             List<Product> allProducts = productController.getAllProducts();
             JComboBox<String> productCombo = new JComboBox<>();
             productCombo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -2335,14 +2383,48 @@ private void showErrorDialog(String message) {
             productCombo.setBackground(Color.WHITE);
             productCombo.setFocusable(false);
             
-            // Add products to dropdown
-            for (Product product : allProducts) {
-                productCombo.addItem(product.getProductId() + ": " + product.getProductName() + " (Tồn: " + product.getQuantity() + ")");
-            }
+            // Store original products list for filtering
+            List<Product> filteredProducts = new ArrayList<>(allProducts);
             
-            if (productCombo.getItemCount() > 0) {
-                productCombo.setSelectedIndex(0);
-            }
+            // Method to update product combo based on search
+            Runnable updateProductCombo = () -> {
+                String searchText = productSearchField.getText().toLowerCase().trim();
+                productCombo.removeAllItems();
+                filteredProducts.clear();
+                
+                for (Product product : allProducts) {
+                    if (searchText.isEmpty() || 
+                        product.getProductName().toLowerCase().contains(searchText) ||
+                        String.valueOf(product.getProductId()).contains(searchText) ||
+                        (product.getBarcode() != null && product.getBarcode().toLowerCase().contains(searchText))) {
+                        
+                        filteredProducts.add(product);
+                        String stockInfo = product.getQuantity() > 0 ? 
+                            " (Tồn: " + product.getQuantity() + ")" : " (Hết hàng)";
+                        productCombo.addItem(product.getProductId() + ": " + product.getProductName() + stockInfo);
+                    }
+                }
+                
+                if (productCombo.getItemCount() > 0) {
+                    productCombo.setSelectedIndex(0);
+                }
+            };
+            
+            // Initialize combo with all products
+            updateProductCombo.run();
+            
+            // Wire up search button functionality
+            searchButton.addActionListener(ev -> {
+                updateProductCombo.run();
+            });
+            
+            // Add search functionality - real-time filtering
+            productSearchField.addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyReleased(java.awt.event.KeyEvent e) {
+                    updateProductCombo.run();
+                }
+            });
             
             // Product info fields with styling
             JTextField productNameField = new JTextField(20);
@@ -2366,7 +2448,9 @@ private void showErrorDialog(String message) {
             ));
             priceField.setPreferredSize(new Dimension(200, 40));
 
-            // Quantity spinner with modern look
+
+
+            // Quantity spinner with validation - ENHANCED
             JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
             quantitySpinner.setPreferredSize(new Dimension(200, 40));
             JSpinner.DefaultEditor spinnerEditor = (JSpinner.DefaultEditor) quantitySpinner.getEditor();
@@ -2427,7 +2511,7 @@ private void showErrorDialog(String message) {
             totalLabel2.setForeground(new Color(52, 73, 94)); // Dark blue
             productFormPanel.add(totalLabel2, pgbc);
             
-            pgbc.gridx = 1; pgbc.weightx = 1.0;
+            pgbc.gridx = 1; pgbc.gridy = 4; pgbc.weightx = 1.0;
             productFormPanel.add(totalProductField, pgbc);
 
             // Button panel with gradient buttons
@@ -2448,10 +2532,16 @@ private void showErrorDialog(String message) {
 
             // Add panels to dialog
             productDialog.add(headerPanel, BorderLayout.NORTH);
-            productDialog.add(productFormPanel, BorderLayout.CENTER);
+            
+            // Create center panel that includes search and form
+            JPanel centerPanel = new JPanel(new BorderLayout());
+            centerPanel.add(searchPanel, BorderLayout.NORTH);
+            centerPanel.add(productFormPanel, BorderLayout.CENTER);
+            
+            productDialog.add(centerPanel, BorderLayout.CENTER);
             productDialog.add(buttonPanel, BorderLayout.SOUTH);
 
-            // Product selection change listener - auto-fill product details
+            // Product selection change listener - auto-fill product details and update stock validation
             productCombo.addActionListener(ev -> {
                 if (productCombo.getSelectedItem() != null) {
                     try {
@@ -2462,12 +2552,35 @@ private void showErrorDialog(String message) {
                         if (product != null) {
                             productNameField.setText(product.getProductName());
                             priceField.setText(product.getPrice().toString());
+                            
+                            // Update quantity spinner maximum based on available stock
+                            int availableStock = product.getQuantity();
+                            SpinnerNumberModel spinnerModel = (SpinnerNumberModel) quantitySpinner.getModel();
+                            if (availableStock > 0) {
+                                spinnerModel.setMaximum(availableStock);
+                                spinnerModel.setMinimum(1);
+                                // Ensure the current value is valid, reset to 1 if needed
+                                int currentValue = (Integer) quantitySpinner.getValue();
+                                if (currentValue > availableStock || currentValue < 1) {
+                                    quantitySpinner.setValue(1);
+                                }
+                            } else {
+                                spinnerModel.setMaximum(0);
+                                spinnerModel.setMinimum(0);
+                                quantitySpinner.setValue(0);
+                            }
+                            
                             updateProductTotal(priceField, quantitySpinner, totalProductField);
                         }
                     } catch (Exception ex) {
                         productNameField.setText("");
                         priceField.setText("");
                         totalProductField.setText("");
+                        // Reset spinner to default state on error
+                        SpinnerNumberModel spinnerModel = (SpinnerNumberModel) quantitySpinner.getModel();
+                        spinnerModel.setMaximum(999);
+                        spinnerModel.setMinimum(1);
+                        quantitySpinner.setValue(1);
                     }
                 }
             });
@@ -2479,9 +2592,51 @@ private void showErrorDialog(String message) {
                 productCombo.getActionListeners()[0].actionPerformed(new java.awt.event.ActionEvent(productCombo, 0, ""));
             }
             
-            // Update total when quantity changes
-            quantitySpinner.addChangeListener(ev -> 
-                updateProductTotal(priceField, quantitySpinner, totalProductField));
+            // Update total when quantity changes with stock validation
+            quantitySpinner.addChangeListener(ev -> {
+                // Validate quantity against available stock
+                try {
+                    int requestedQuantity = (Integer) quantitySpinner.getValue();
+                    if (productCombo.getSelectedItem() != null) {
+                        String selected = (String) productCombo.getSelectedItem();
+                        int productId = Integer.parseInt(selected.split(":")[0].trim());
+                        Product product = productController.getProductById(productId);
+                        
+                        if (product != null) {
+                            // Check existing quantity in the invoice table to calculate available stock
+                            int existingQuantityInTable = 0;
+                            for (int row = 0; row < productModel.getRowCount(); row++) {
+                                int existingProductId = (int) productModel.getValueAt(row, 0);
+                                if (existingProductId == productId) {
+                                    existingQuantityInTable = (int) productModel.getValueAt(row, 2);
+                                    break;
+                                }
+                            }
+                            
+                            int maxAllowedQuantity = product.getQuantity() - existingQuantityInTable;
+                            if (requestedQuantity > maxAllowedQuantity && maxAllowedQuantity > 0) {
+                                // Reset to maximum allowed quantity
+                                quantitySpinner.setValue(maxAllowedQuantity);
+                                JOptionPane.showMessageDialog(productDialog,
+                                    "Số lượng yêu cầu (" + requestedQuantity + ") vượt quá số lượng có thể thêm (" + maxAllowedQuantity + ")\n" +
+                                    "Tồn kho: " + product.getQuantity() + ", Đã có trong hóa đơn: " + existingQuantityInTable,
+                                    "Vượt quá tồn kho",
+                                    JOptionPane.WARNING_MESSAGE);
+                            } else if (maxAllowedQuantity <= 0) {
+                                quantitySpinner.setValue(0);
+                                JOptionPane.showMessageDialog(productDialog,
+                                    "Sản phẩm này đã được thêm hết vào hóa đơn hoặc hết hàng",
+                                    "Không thể thêm",
+                                    JOptionPane.WARNING_MESSAGE);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    // Handle any parsing errors silently and reset to 1
+                    quantitySpinner.setValue(1);
+                }
+                updateProductTotal(priceField, quantitySpinner, totalProductField);
+            });
             
             // Add button action
             addToInvoiceBtn.addActionListener(ev -> {
@@ -2497,9 +2652,60 @@ private void showErrorDialog(String message) {
                     // Get product ID from selected combo item
                     String selected = (String) productCombo.getSelectedItem();
                     int productId = Integer.parseInt(selected.split(":")[0].trim());
+                    
+                    // Ensure spinner value is committed before reading
+                    try {
+                        quantitySpinner.commitEdit();
+                    } catch (java.text.ParseException pe) {
+                        // If commit fails, the current value in the editor might be invalid
+                        // Force the spinner to use its current valid value
+                    }
+                    
                     int quantity = (Integer) quantitySpinner.getValue();
+                    
+                    // Validate quantity is positive
+                    if (quantity <= 0) {
+                        JOptionPane.showMessageDialog(productDialog,
+                            "Số lượng phải lớn hơn 0",
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    
                     BigDecimal price = new BigDecimal(priceField.getText());
                     BigDecimal total = new BigDecimal(totalProductField.getText());
+                    
+                    // Validate stock availability before adding
+                    Product product = productController.getProductById(productId);
+                    if (product == null) {
+                        JOptionPane.showMessageDialog(productDialog,
+                            "Không tìm thấy thông tin sản phẩm",
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    
+                    // Check if we have enough stock (considering existing quantity in the table)
+                    int existingQuantityInTable = 0;
+                    for (int row = 0; row < productModel.getRowCount(); row++) {
+                        int existingProductId = (int) productModel.getValueAt(row, 0);
+                        if (existingProductId == productId) {
+                            existingQuantityInTable = (int) productModel.getValueAt(row, 2);
+                            break;
+                        }
+                    }
+                    
+                    int totalRequiredQuantity = existingQuantityInTable + quantity;
+                    if (totalRequiredQuantity > product.getQuantity()) {
+                        JOptionPane.showMessageDialog(productDialog,
+                            "Không đủ hàng tồn kho!\n" +
+                            "Tồn kho hiện tại: " + product.getQuantity() + "\n" +
+                            "Đã có trong hóa đơn: " + existingQuantityInTable + "\n" +
+                            "Số lượng có thể thêm tối đa: " + (product.getQuantity() - existingQuantityInTable),
+                            "Vượt quá tồn kho",
+                            JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
                     
                     // Check if product already exists in table
                     boolean productExists = false;
@@ -2719,11 +2925,38 @@ private void showErrorDialog(String message) {
 
     private void updateProductTotal(JTextField priceField, JSpinner quantitySpinner, JTextField totalField) {
         try {
-            BigDecimal price = new BigDecimal(priceField.getText());
-            int quantity = (Integer) quantitySpinner.getValue();
+            // Ensure we have valid price text
+            String priceText = priceField.getText().trim();
+            if (priceText.isEmpty()) {
+                totalField.setText("");
+                return;
+            }
+            
+            // Commit any pending edits to the spinner
+            try {
+                quantitySpinner.commitEdit();
+            } catch (java.text.ParseException pe) {
+                // If commit fails, use the spinner's current value
+            }
+            
+            BigDecimal price = new BigDecimal(priceText);
+            Integer quantityObj = (Integer) quantitySpinner.getValue();
+            
+            // Validate quantity is not null and positive
+            if (quantityObj == null || quantityObj <= 0) {
+                totalField.setText("0");
+                return;
+            }
+            
+            int quantity = quantityObj;
             BigDecimal total = price.multiply(BigDecimal.valueOf(quantity));
             totalField.setText(total.toString());
+            
         } catch (NumberFormatException e) {
+            totalField.setText("");
+        } catch (Exception e) {
+            // Log the error and clear the field
+            System.err.println("Error updating product total: " + e.getMessage());
             totalField.setText("");
         }
     }
