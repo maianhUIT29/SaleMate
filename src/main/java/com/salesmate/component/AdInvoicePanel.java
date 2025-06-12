@@ -13,6 +13,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.MediaTracker;
 import java.awt.RenderingHints;
@@ -22,10 +23,12 @@ import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -76,6 +79,7 @@ import static com.salesmate.utils.ColorPalette.BACKGROUND_COLOR;
 import static com.salesmate.utils.ColorPalette.TEXT_COLOR;
 import com.salesmate.utils.ExcelExporter;
 import com.salesmate.utils.ExcelImporter;
+import com.salesmate.utils.ExportDialog;
 import com.toedter.calendar.JDateChooser;
 
 public class AdInvoicePanel extends JPanel {
@@ -1556,20 +1560,10 @@ private void showErrorDialog(String message) {
 
 // Custom UI Components
     
-    // Shadow Border for panels
+    // Simple border for panels - Bootstrap style (no shadows)
     private static class ShadowBorder extends LineBorder {
         public ShadowBorder() {
-            super(BORDER_COLOR, 1, true);
-        }
-        
-        @Override
-        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-            super.paintBorder(c, g, x, y, width, height);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setColor(new Color(0, 0, 0, 20));
-            g2d.drawRoundRect(x, y, width-1, height-1, 1, 1);
-            g2d.dispose();
+            super(BORDER_COLOR, 1, false);
         }
     }
     
@@ -1655,8 +1649,8 @@ private void showErrorDialog(String message) {
         @Override
         public Object getCellEditorValue() {
             int invoiceId = (int) tableModel.getValueAt(currentRow, 0);
-            // Call the outer class method to show detail dialog
-            ((AdInvoicePanel)invoiceTable.getParent().getParent().getParent()).showDetailDialog(invoiceId);
+            // Use proper reference to outer class method
+            showDetailDialog(invoiceId);
             return "Xem chi tiết";
         }
     }
@@ -1670,20 +1664,21 @@ private void showErrorDialog(String message) {
         
         List<Detail> details = detailController.getDetailsByInvoiceId(invoiceId);
         
-        // Create detail dialog
+        // Create modern detail dialog with larger size
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Chi tiết hóa đơn #" + invoiceId, true);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(BACKGROUND_COLOR);
         
-        // Header panel
+        // Modern header panel with gradient background
         JPanel headerPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 GradientPaint gp = new GradientPaint(
                     0, 0, PRIMARY_COLOR,
-                    getWidth(), 0, PRIMARY_COLOR.darker()
+                    getWidth(), 0, new Color(41, 128, 185)
                 );
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -1691,19 +1686,40 @@ private void showErrorDialog(String message) {
             }
         };
         headerPanel.setLayout(new BorderLayout());
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
-        headerPanel.setPreferredSize(new Dimension(0, 70));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        headerPanel.setPreferredSize(new Dimension(0, 80));
+        
+        // Title with icon
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        titlePanel.setOpaque(false);
+        
+        JLabel iconLabel = new JLabel("📄");
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
         
         JLabel titleLabel = new JLabel("Chi tiết hóa đơn #" + invoiceId);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
-        headerPanel.add(titleLabel, BorderLayout.WEST);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         
-        // Status badge
-        JLabel statusLabel = new JLabel(invoice.getPaymentStatus());
+        titlePanel.add(iconLabel);
+        titlePanel.add(titleLabel);
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        
+        // Enhanced status badge with rounded corners
+        JLabel statusLabel = new JLabel(invoice.getPaymentStatus()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(getBackground());
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        statusLabel.setOpaque(true);
-        statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        statusLabel.setOpaque(false);
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
         statusLabel.setHorizontalAlignment(JLabel.CENTER);
         
         if ("Paid".equals(invoice.getPaymentStatus())) {
@@ -1716,17 +1732,10 @@ private void showErrorDialog(String message) {
         
         headerPanel.add(statusLabel, BorderLayout.EAST);
         
-        // Invoice info panel
-        JPanel infoPanel = new JPanel(new GridBagLayout());
-        infoPanel.setBackground(CARD_COLOR);
-        infoPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
-            BorderFactory.createEmptyBorder(15, 25, 15, 25)
-        ));
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 10, 5, 10);
+        // Enhanced invoice info panel with cards layout
+        JPanel infoMainPanel = new JPanel(new BorderLayout());
+        infoMainPanel.setBackground(BACKGROUND_COLOR);
+        infoMainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
         // Get employee/user who created the invoice
         User user = userController.getUserById(invoice.getUsersId());
@@ -1736,30 +1745,25 @@ private void showErrorDialog(String message) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         String dateStr = sdf.format(invoice.getCreatedAt());
         
-        // Add info fields
-        gbc.gridx = 0; gbc.gridy = 0;
-        infoPanel.add(createInfoLabel("Người lập:"), gbc);
+        // Info cards panel
+        JPanel cardsPanel = new JPanel(new GridLayout(1, 4, 15, 0));
+        cardsPanel.setBackground(BACKGROUND_COLOR);
         
-        gbc.gridx = 1;
-        infoPanel.add(createInfoValue(username), gbc);
+        // Create info cards
+        JPanel userCard = createInfoCard("👤", "Người lập", username);
+        JPanel dateCard = createInfoCard("📅", "Ngày lập", dateStr);
+        JPanel totalCard = createInfoCard("💰", "Tổng tiền", invoice.getTotal().toString() + " VND");
+        JPanel itemsCard = createInfoCard("📦", "Số sản phẩm", String.valueOf(details.size()) + " mặt hàng");
         
-        gbc.gridx = 2;
-        infoPanel.add(createInfoLabel("Ngày lập:"), gbc);
+        cardsPanel.add(userCard);
+        cardsPanel.add(dateCard);
+        cardsPanel.add(totalCard);
+        cardsPanel.add(itemsCard);
         
-        gbc.gridx = 3;
-        infoPanel.add(createInfoValue(dateStr), gbc);
+        infoMainPanel.add(cardsPanel, BorderLayout.CENTER);
         
-        gbc.gridx = 0; gbc.gridy = 1;
-        infoPanel.add(createInfoLabel("Tổng tiền:"), gbc);
-        
-        gbc.gridx = 1;
-        JLabel totalLabel = createInfoValue(invoice.getTotal().toString() + " VND");
-        totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        totalLabel.setForeground(PRIMARY_COLOR);
-        infoPanel.add(totalLabel, gbc);
-        
-        // Details table
-        String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá", "Thành tiền"};
+        // Enhanced details table with modern styling
+        String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá (VND)", "Thành tiền (VND)"};
         DefaultTableModel detailModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
@@ -1769,59 +1773,187 @@ private void showErrorDialog(String message) {
         
         JTable detailTable = new JTable(detailModel);
         styleModernTable(detailTable);
-        detailTable.setRowHeight(40);
+        detailTable.setRowHeight(45);
+        detailTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         
-        // Add data to table
+        // Enhanced table header styling
+        JTableHeader header = detailTable.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setBackground(new Color(236, 240, 241));
+        header.setForeground(TEXT_COLOR);
+        header.setPreferredSize(new Dimension(0, 50));
+        
+        // Add data to table with formatting
+        NumberFormat currencyFormat = NumberFormat.getInstance(Locale.forLanguageTag("vi-VN"));
         for (Detail detail : details) {
             String productName = productController.getProductNameById(detail.getProductId());
             if (productName == null) productName = "Sản phẩm không tồn tại";
             
             detailModel.addRow(new Object[]{
-                detail.getProductId(),
+                "#" + detail.getProductId(),
                 productName,
                 detail.getQuantity(),
-                detail.getPrice(),
-                detail.getTotal()
+                currencyFormat.format(detail.getPrice()),
+                currencyFormat.format(detail.getTotal())
             });
         }
         
+        // Enhanced scroll pane with modern borders
         JScrollPane scrollPane = new JScrollPane(detailTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(CARD_COLOR);
-        
-        JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBackground(CARD_COLOR);
-        tablePanel.setBorder(new CompoundBorder(
-            BorderFactory.createEmptyBorder(15, 15, 15, 15),
-            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(5, 0, 5, 0),
+            new ShadowBorder()
         ));
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        
+        // Table container with title
+        JPanel tableContainer = new JPanel(new BorderLayout());
+        tableContainer.setBackground(BACKGROUND_COLOR);
+        tableContainer.setBorder(BorderFactory.createEmptyBorder(0, 30, 20, 30));
+        
+        JLabel tableTitle = new JLabel("Danh sách sản phẩm");
+        tableTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        tableTitle.setForeground(TEXT_COLOR);
+        tableTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        
+        tableContainer.add(tableTitle, BorderLayout.NORTH);
+        tableContainer.add(scrollPane, BorderLayout.CENTER);
+        
+        // Enhanced button panel with multiple actions
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonPanel.setBackground(BACKGROUND_COLOR);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 30, 30));
+        
+        // Export button
+        JButton exportButton = createGradientButton("📄 Xuất Excel", new Color(39, 174, 96));
+        exportButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        exportButton.setPreferredSize(new Dimension(140, 45));
+        exportButton.addActionListener(e -> {
+            // Export functionality for invoice details
+            ExportDialog exportDialog = new ExportDialog((Frame) SwingUtilities.getWindowAncestor(this), detailTable);
+            exportDialog.setVisible(true);
+            
+            if (exportDialog.isExportConfirmed()) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Lưu chi tiết hóa đơn");
+                fileChooser.setSelectedFile(new File("ChiTiet_HoaDon_" + invoiceId + ".xlsx"));
+                
+                int userSelection = fileChooser.showSaveDialog(dialog);
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    File fileToSave = fileChooser.getSelectedFile();
+                    try {
+                        if (exportDialog.isXLSX()) {
+                            ExcelExporter.exportToExcel(detailTable, fileToSave, 
+                                exportDialog.includeHeaders(), exportDialog.getSelectedColumns());
+                        } else {
+                            ExcelExporter.exportToCSV(detailTable, fileToSave, 
+                                exportDialog.includeHeaders(), exportDialog.getSelectedColumns());
+                        }
+                        JOptionPane.showMessageDialog(dialog, 
+                            "Xuất file thành công!", 
+                            "Thành công", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "Lỗi khi xuất file: " + ex.getMessage(),
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+        
+        // Print button
+        JButton printButton = createGradientButton("🖨️ In hóa đơn", INFO_COLOR);
+        printButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        printButton.setPreferredSize(new Dimension(140, 45));
+        printButton.addActionListener(e -> {
+            // Print functionality (placeholder)
+            JOptionPane.showMessageDialog(dialog, 
+                "Chức năng in hóa đơn sẽ được phát triển trong phiên bản tiếp theo.", 
+                "Thông báo", 
+                JOptionPane.INFORMATION_MESSAGE);
+        });
         
         // Close button
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.setBackground(CARD_COLOR);
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
-        
-        JButton closeButton = createGradientButton("Đóng", SECONDARY_COLOR);
-        closeButton.setPreferredSize(new Dimension(120, 40));
+        JButton closeButton = createGradientButton("✖️ Đóng", SECONDARY_COLOR);
+        closeButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        closeButton.setPreferredSize(new Dimension(120, 45));
         closeButton.addActionListener(e -> dialog.dispose());
         
+        buttonPanel.add(exportButton);
+        buttonPanel.add(printButton);
         buttonPanel.add(closeButton);
+        
+        // Main content panel
+        JPanel mainContent = new JPanel(new BorderLayout());
+        mainContent.setBackground(BACKGROUND_COLOR);
+        mainContent.add(infoMainPanel, BorderLayout.NORTH);
+        mainContent.add(tableContainer, BorderLayout.CENTER);
+        mainContent.add(buttonPanel, BorderLayout.SOUTH);
         
         // Add panels to dialog
         dialog.add(headerPanel, BorderLayout.NORTH);
-        dialog.add(infoPanel, BorderLayout.CENTER);
+        dialog.add(mainContent, BorderLayout.CENTER);
         
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.add(tablePanel, BorderLayout.CENTER);
-        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        dialog.add(contentPanel, BorderLayout.SOUTH);
-        
-        // Show dialog
-        dialog.setSize(800, 600);
+        // Show dialog with larger, more modern size
+        dialog.setSize(1100, 750);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
+    }
+    
+    // Helper method to create info cards
+    private JPanel createInfoCard(String icon, String label, String value) {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(Color.WHITE);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                // Subtle shadow effect
+                g2d.setColor(new Color(0, 0, 0, 10));
+                g2d.fillRoundRect(2, 2, getWidth(), getHeight(), 15, 15);
+                
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        card.setLayout(new BorderLayout());
+        card.setOpaque(false);
+        card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        card.setPreferredSize(new Dimension(0, 100));
+        
+        // Icon panel
+        JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        iconPanel.setOpaque(false);
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        iconPanel.add(iconLabel);
+        
+        // Text panel
+        JPanel textPanel = new JPanel(new BorderLayout());
+        textPanel.setOpaque(false);
+        textPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        
+        JLabel labelText = new JLabel(label);
+        labelText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        labelText.setForeground(TEXT_SECONDARY);
+        labelText.setHorizontalAlignment(JLabel.CENTER);
+        
+        JLabel valueText = new JLabel(value);
+        valueText.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        valueText.setForeground(TEXT_COLOR);
+        valueText.setHorizontalAlignment(JLabel.CENTER);
+        
+        textPanel.add(labelText, BorderLayout.NORTH);
+        textPanel.add(valueText, BorderLayout.CENTER);
+        
+        card.add(iconPanel, BorderLayout.NORTH);
+        card.add(textPanel, BorderLayout.CENTER);
+        
+        return card;
     }
     
     private JLabel createInfoLabel(String text) {
@@ -2016,14 +2148,18 @@ private void showErrorDialog(String message) {
             employeeCombo.setSelectedIndex(0);
         }
         
-        // Total amount field with consistent styling
+        // Total amount field with consistent styling - Make it non-editable and auto-calculated
         JTextField totalField = new JTextField(10);
-        totalField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        totalField.setFont(new Font("Segoe UI", Font.BOLD, 16));
         totalField.setPreferredSize(new Dimension(200, 40));
         totalField.setBorder(BorderFactory.createCompoundBorder(
-            new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
+            new RoundedBorder(new Color(46, 204, 113), 8), // Green border to indicate calculated field
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
+        totalField.setEditable(false); // Make it non-editable
+        totalField.setBackground(new Color(245, 245, 245)); // Light gray background
+        totalField.setText("0.00"); // Initialize with 0.00
+        totalField.setHorizontalAlignment(JTextField.RIGHT); // Right-align for currency display
         
         // Payment status combo with consistent styling
         JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Paid", "Unpaid"});
@@ -2065,7 +2201,7 @@ private void showErrorDialog(String message) {
         gbc.weightx = 0;
         JLabel totalLabel = createFormLabel("Tổng tiền:");
         totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        totalLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+        totalLabel.setForeground(new Color(46, 204, 113)); // Green color to indicate auto-calculation
         formPanel.add(totalLabel, gbc);
         
         gbc.gridx = 1;
@@ -2135,7 +2271,8 @@ private void showErrorDialog(String message) {
         
         // Add delete button column
         productTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Xóa"));
-        productTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox(), "Xóa"));
+        ButtonEditor deleteButtonEditor = new ButtonEditor(new JCheckBox(), "Xóa");
+        productTable.getColumnModel().getColumn(5).setCellEditor(deleteButtonEditor);
         
         JScrollPane productScroll = new JScrollPane(productTable);
         productScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -2143,6 +2280,9 @@ private void showErrorDialog(String message) {
         
         // List to keep track of details
         List<Detail> details = new ArrayList<>();
+        
+        // Set references for the button editor to update total when products are deleted
+        deleteButtonEditor.setReferences(details, totalField, productTable);
         
         // Add action to add product button
         addProductBtn.addActionListener(e -> {
@@ -2183,19 +2323,26 @@ private void showErrorDialog(String message) {
             pgbc.fill = GridBagConstraints.HORIZONTAL;
             pgbc.insets = new Insets(10, 10, 10, 10);
             
-            // Product search field with better styling
-            JTextField productIdField = new JTextField(10);
-            productIdField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            productIdField.setPreferredSize(new Dimension(150, 40));
-            productIdField.setBorder(BorderFactory.createCompoundBorder(
+            // Product selection dropdown (similar to employee selection)
+            List<Product> allProducts = productController.getAllProducts();
+            JComboBox<String> productCombo = new JComboBox<>();
+            productCombo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            productCombo.setPreferredSize(new Dimension(350, 40));
+            productCombo.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(new Color(189, 195, 199), 8), // Lighter border
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
             ));
+            productCombo.setBackground(Color.WHITE);
+            productCombo.setFocusable(false);
             
-            // Search button
-            JButton searchBtn = createStyledButton("Tìm", new Color(52, 152, 219)); // Blue
-            searchBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            searchBtn.setPreferredSize(new Dimension(100, 40));
+            // Add products to dropdown
+            for (Product product : allProducts) {
+                productCombo.addItem(product.getProductId() + ": " + product.getProductName() + " (Tồn: " + product.getQuantity() + ")");
+            }
+            
+            if (productCombo.getItemCount() > 0) {
+                productCombo.setSelectedIndex(0);
+            }
             
             // Product info fields with styling
             JTextField productNameField = new JTextField(20);
@@ -2239,18 +2386,13 @@ private void showErrorDialog(String message) {
 
             // Add components with labels
             pgbc.gridx = 0; pgbc.gridy = 0;
-            JLabel pidLabel = createStyledLabel("Mã sản phẩm:");
-            pidLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            pidLabel.setForeground(new Color(52, 73, 94)); // Dark blue
-            productFormPanel.add(pidLabel, pgbc);
-            
-            JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
-            searchPanel.setBackground(CARD_COLOR);
-            searchPanel.add(productIdField, BorderLayout.CENTER);
-            searchPanel.add(searchBtn, BorderLayout.EAST);
+            JLabel productLabel = createStyledLabel("Chọn sản phẩm:");
+            productLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            productLabel.setForeground(new Color(52, 73, 94)); // Dark blue
+            productFormPanel.add(productLabel, pgbc);
             
             pgbc.gridx = 1; pgbc.weightx = 1.0;
-            productFormPanel.add(searchPanel, pgbc);
+            productFormPanel.add(productCombo, pgbc);
             
             pgbc.gridx = 0; pgbc.gridy = 1; pgbc.weightx = 0;
             JLabel pnameLabel = createStyledLabel("Tên sản phẩm:");
@@ -2309,29 +2451,33 @@ private void showErrorDialog(String message) {
             productDialog.add(productFormPanel, BorderLayout.CENTER);
             productDialog.add(buttonPanel, BorderLayout.SOUTH);
 
-            // Search button action
-            searchBtn.addActionListener(ev -> {
-                try {
-                    int productId = Integer.parseInt(productIdField.getText().trim());
-                    Product product = productController.getProductById(productId);
-                    
-                    if (product != null) {
-                        productNameField.setText(product.getProductName());
-                        priceField.setText(product.getPrice().toString());
-                        updateProductTotal(priceField, quantitySpinner, totalProductField);
-                    } else {
-                        JOptionPane.showMessageDialog(productDialog, 
-                            "Không tìm thấy sản phẩm với mã " + productId,
-                            "Không tìm thấy sản phẩm",
-                            JOptionPane.ERROR_MESSAGE);
+            // Product selection change listener - auto-fill product details
+            productCombo.addActionListener(ev -> {
+                if (productCombo.getSelectedItem() != null) {
+                    try {
+                        String selected = (String) productCombo.getSelectedItem();
+                        int productId = Integer.parseInt(selected.split(":")[0].trim());
+                        Product product = productController.getProductById(productId);
+                        
+                        if (product != null) {
+                            productNameField.setText(product.getProductName());
+                            priceField.setText(product.getPrice().toString());
+                            updateProductTotal(priceField, quantitySpinner, totalProductField);
+                        }
+                    } catch (Exception ex) {
+                        productNameField.setText("");
+                        priceField.setText("");
+                        totalProductField.setText("");
                     }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(productDialog,
-                        "Vui lòng nhập đúng mã sản phẩm",
-                        "Lỗi định dạng",
-                        JOptionPane.ERROR_MESSAGE);
                 }
             });
+            
+            // Initialize with first product if available
+            if (productCombo.getItemCount() > 0) {
+                productCombo.setSelectedIndex(0);
+                // Trigger the action listener to populate fields
+                productCombo.getActionListeners()[0].actionPerformed(new java.awt.event.ActionEvent(productCombo, 0, ""));
+            }
             
             // Update total when quantity changes
             quantitySpinner.addChangeListener(ev -> 
@@ -2348,7 +2494,9 @@ private void showErrorDialog(String message) {
                         return;
                     }
                     
-                    int productId = Integer.parseInt(productIdField.getText().trim());
+                    // Get product ID from selected combo item
+                    String selected = (String) productCombo.getSelectedItem();
+                    int productId = Integer.parseInt(selected.split(":")[0].trim());
                     int quantity = (Integer) quantitySpinner.getValue();
                     BigDecimal price = new BigDecimal(priceField.getText());
                     BigDecimal total = new BigDecimal(totalProductField.getText());
@@ -2444,12 +2592,7 @@ private void showErrorDialog(String message) {
         
         saveBtn.addActionListener(e -> {
             try {
-                // Validate form
-                if (totalField.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Vui lòng nhập tổng tiền");
-                    return;
-                }
-                
+                // Validate form - no need to check total field since it's auto-calculated
                 if (details.isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, 
                         "Vui lòng thêm ít nhất một sản phẩm vào hóa đơn",
@@ -2717,52 +2860,37 @@ private void showErrorDialog(String message) {
     }
 
     private JButton createGradientButton(String text, Color baseColor) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Create gradient
-                GradientPaint gp = new GradientPaint(
-                    0, 0, baseColor,
-                    0, getHeight(),
-                    baseColor.darker()
-                );
-                
-                g2.setPaint(gp);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                
-                // Add subtle highlight
-                g2.setColor(new Color(255, 255, 255, 50));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight()/2, 8, 8);
-                
-                g2.dispose();
-                
-                super.paintComponent(g);
-            }
-        };
-
+        JButton button = new JButton(text);
+        button.setBackground(baseColor);
         button.setForeground(Color.WHITE);
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
+        button.setContentAreaFilled(true);
+        button.setOpaque(true);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         
-        // Add rainbow effect on hover
+        // Add clean Bootstrap-style hover effect
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(baseColor.darker());
-                button.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+                if (button.isEnabled()) {
+                    // Create a slightly darker shade (85% of original brightness)
+                    Color darker = new Color(
+                        Math.max((int)(baseColor.getRed() * 0.85), 0),
+                        Math.max((int)(baseColor.getGreen() * 0.85), 0),
+                        Math.max((int)(baseColor.getBlue() * 0.85), 0)
+                    );
+                    button.setBackground(darker);
+                }
             }
             
             @Override 
             public void mouseExited(MouseEvent e) {
-                button.setBackground(baseColor);
-                button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+                if (button.isEnabled()) {
+                    button.setBackground(baseColor);
+                }
             }
         });
         
@@ -2799,6 +2927,9 @@ private void showErrorDialog(String message) {
         private String currentText;
         private boolean isPushed;
         private int row;
+        private List<Detail> detailsList; // Reference to details list
+        private JTextField totalFieldRef; // Reference to total field
+        private JTable tableRef; // Reference to table
         
         public ButtonEditor(JCheckBox checkBox, String text) {
             super(checkBox);
@@ -2814,12 +2945,20 @@ private void showErrorDialog(String message) {
             currentText = text;
         }
         
+        // Method to set references to details list and total field
+        public void setReferences(List<Detail> details, JTextField totalField, JTable table) {
+            this.detailsList = details;
+            this.totalFieldRef = totalField;
+            this.tableRef = table;
+        }
+        
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             currentText = (value == null) ? "" : value.toString();
             button.setText(currentText);
             isPushed = true;
             this.row = row;
+            this.tableRef = table; // Store table reference
             return button;
         }
         
@@ -2828,9 +2967,24 @@ private void showErrorDialog(String message) {
             isPushed = false;
             
             // If this is a delete button in the Add Invoice dialog
-            if (currentText.equals("Xóa")) {
-                DefaultTableModel model = (DefaultTableModel) ((JTable) this.getComponent().getParent()).getModel();
+            if (currentText.equals("Xóa") && tableRef != null) {
+                DefaultTableModel model = (DefaultTableModel) tableRef.getModel();
+                
+                // Get product ID from the row being deleted
+                int productId = (int) model.getValueAt(row, 0);
+                
+                // Remove the row from table
                 model.removeRow(row);
+                
+                // Remove corresponding detail from the details list
+                if (detailsList != null) {
+                    detailsList.removeIf(detail -> detail.getProductId() == productId);
+                    
+                    // Update total field if reference is available
+                    if (totalFieldRef != null) {
+                        updateInvoiceTotal(detailsList, totalFieldRef);
+                    }
+                }
             }
             
             return currentText;

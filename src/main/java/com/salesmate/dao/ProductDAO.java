@@ -1,9 +1,11 @@
 package com.salesmate.dao;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,24 +16,52 @@ import com.salesmate.model.Product;
 
 public class ProductDAO {
 
-    // CREATE a new product
+    // CREATE a new product using stored procedure
     public boolean createProduct(Product product) {
-        String query = "INSERT INTO product (product_name, price, quantity, barcode, image, category) VALUES (?, ?, ?, ?, ?, ?)";
+        String storedProcCall = "{CALL SP_ADD_PRODUCT(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection conn = DBConnection.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             CallableStatement stmt = conn.prepareCall(storedProcCall)) {
 
-            stmt.setString(1, product.getProductName());
-            stmt.setBigDecimal(2, product.getPrice());
-            stmt.setInt(3, product.getQuantity());
-            stmt.setString(4, product.getBarcode());
-            stmt.setString(5, product.getImage());
-            stmt.setString(6, product.getCategory()); // Add category
+            // Set input parameters (8 IN parameters)
+            stmt.setString(1, product.getProductName());      // p_product_name
+            stmt.setBigDecimal(2, product.getPrice());        // p_price
+            stmt.setInt(3, product.getQuantity());            // p_quantity
+            stmt.setString(4, product.getBarcode());          // p_barcode
+            stmt.setString(5, product.getCategory());         // p_category
+            stmt.setString(6, product.getImage());            // p_image
+            stmt.setString(7, product.getDescription());      // p_description
+            stmt.setInt(8, 1);                                // p_created_by (default user ID, you may want to get this from session)
+            
+            // Register output parameters
+            stmt.registerOutParameter(9, Types.INTEGER);      // p_product_id (OUT)
+            stmt.registerOutParameter(10, Types.VARCHAR);     // p_result (OUT)
 
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0; // If rows are affected, the insert was successful
+            // Execute the stored procedure
+            stmt.execute();
+            
+            // Get the results from the stored procedure
+            int generatedProductId = stmt.getInt(9);
+            String result = stmt.getString(10);
+            
+            // Log the results for debugging
+            System.out.println("SP_ADD_PRODUCT result: " + result);
+            System.out.println("Generated Product ID: " + generatedProductId);
+            
+            // Check if the operation was successful
+            boolean success = result != null && result.startsWith("Thêm sản phẩm thành công");
+            
+            if (success && generatedProductId > 0) {
+                // Set the generated ID back to the product object
+                product.setProductId(generatedProductId);
+                return true;
+            } else {
+                System.err.println("SP_ADD_PRODUCT failed: " + result);
+                return false;
+            }
+            
         } catch (SQLException e) {
-            System.err.println("Error executing query: " + e.getMessage());
+            System.err.println("Error executing stored procedure SP_ADD_PRODUCT: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -482,6 +512,41 @@ public List<Map<String, Object>> getTopSellingProducts() throws SQLException {
             System.err.println("Error updating product category: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+    
+    /**
+     * Get product stock quantity using Oracle function get_product_stock
+     * @param productId The ID of the product
+     * @return The stock quantity of the product, or 0 if product not found or error occurs
+     */
+    public int getProductStock(int productId) {
+        String functionCall = "{? = CALL get_product_stock(?)}";
+        
+        try (Connection conn = DBConnection.getConnection();
+             CallableStatement stmt = conn.prepareCall(functionCall)) {
+            
+            // Register the output parameter (return value)
+            stmt.registerOutParameter(1, Types.INTEGER);
+            
+            // Set the input parameter
+            stmt.setInt(2, productId);
+            
+            // Execute the function
+            stmt.execute();
+            
+            // Get the result
+            int stockQuantity = stmt.getInt(1);
+            
+            System.out.println("Product ID: " + productId + " - Stock Quantity: " + stockQuantity);
+            
+            return stockQuantity;
+            
+        } catch (SQLException e) {
+            System.err.println("Error calling get_product_stock function for product ID " + productId + ": " + e.getMessage());
+            e.printStackTrace();
+            // Return 0 as fallback, consistent with the Oracle function behavior
+            return 0;
         }
     }
 
