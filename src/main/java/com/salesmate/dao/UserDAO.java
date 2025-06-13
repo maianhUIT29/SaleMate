@@ -43,18 +43,15 @@ public class UserDAO {
 
     // Phương thức gửi mật khẩu mới
     public boolean updatePassword(String email, String oldPassword, String newPassword) {
-        if (!isPasswordCorrect(email, oldPassword)) {
-            return false; // Old password is incorrect
-        }
-
-        String query = "UPDATE users SET password = ? WHERE email = ?";
+        String query = "UPDATE users SET password = ? WHERE email = ? AND password = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query)) {
 
             stmt.setString(1, newPassword);
             stmt.setString(2, email);
+            stmt.setString(3, oldPassword);
 
-            return stmt.executeUpdate() > 0; // Return true if the update was successful
+            return stmt.executeUpdate() > 0; // Trả về true nếu cập nhật thành công
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -148,6 +145,21 @@ public class UserDAO {
         return false;
     }
 }
+
+    // NEW: Cập nhật thông tin người dùng (email, phone)
+    public boolean updateUserInfo(User user) {
+        String sql = "UPDATE users SET email = ? WHERE users_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getEmail());
+           // stmt.setString(2, user.getPhone());
+            stmt.setInt(2, user.getUsersId());
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     // Get user by ID
     public User getUserById(int userId) {
@@ -305,4 +317,32 @@ public boolean addUser(User user) {
         return user;
     }
 
+    public boolean updatePassword(int userId, String oldPassword, String newPassword) {
+    String sql = "UPDATE users SET password = ? WHERE users_id = ? AND password = ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, newPassword);
+        stmt.setInt(2, userId);
+        stmt.setString(3, oldPassword);
+        return stmt.executeUpdate() > 0;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+public boolean updateAvatar(int userId, String avatarPath) {
+    String query = "UPDATE users SET avatar = ? WHERE users_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement stmt = connection.prepareStatement(query)) {
+
+        stmt.setString(1, avatarPath);
+        stmt.setInt(2, userId);
+
+        return stmt.executeUpdate() > 0; // Trả về true nếu cập nhật thành công
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return false;
+}
 }

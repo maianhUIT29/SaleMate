@@ -8,10 +8,10 @@ import java.util.List;
 import java.math.BigDecimal;
 
 public class SalaryController {
-    private final SalaryDAO salaryDAO;
+    private SalaryDAO salaryDAO;
 
     public SalaryController() {
-        this.salaryDAO = new SalaryDAO();
+        salaryDAO = new SalaryDAO();
     }
 
     // Lấy danh sách tất cả lương
@@ -61,5 +61,7 @@ public class SalaryController {
         return salaryDAO.countSalariesWithEmployeeNameRaw(keyword, statusFilter);
     }
 
-
+    public Object[][] getSalaryInfo(int employeeId) {
+        return salaryDAO.getSalaryInfo(employeeId);
+    }
 }

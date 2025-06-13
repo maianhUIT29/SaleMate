@@ -298,4 +298,33 @@ public class SalaryDAO {
         }
         return 0;
     }
+
+    public Object[][] getSalaryInfo(int employeeId) {
+        String query = "SELECT payment_period, payment_date, basic_salary, total_salary, status, note " +
+                       "FROM salary WHERE employee_id = ?";
+        List<Object[]> salaryList = new ArrayList<>();
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setInt(1, employeeId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Object[] row = new Object[]{
+                    rs.getString("payment_period"),
+                    rs.getString("payment_date"),
+                    rs.getDouble("basic_salary"),
+                    rs.getDouble("total_salary"),
+                    rs.getString("status"),
+                    rs.getString("note")
+                };
+                salaryList.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return salaryList.toArray(new Object[0][]);
+    }
 }
