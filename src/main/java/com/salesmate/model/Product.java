@@ -14,7 +14,6 @@ public class Product {
     private String category; // New field for category
     private String description; // New field for product description
     private double discountPercent; // New field for discount percent
-    private String description;
 
     // Default constructor
     public Product() {
@@ -130,13 +129,7 @@ public class Product {
         this.discountPercent = discountPercent;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+   
 }
 
 
