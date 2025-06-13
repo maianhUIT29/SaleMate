@@ -1,0 +1,7 @@
+fastapi==0.110.2
+uvicorn[standard]==0.29.0
+pandas
+numpy
+statsmodels
+joblib
+prophet        # chỉ cần nếu bạn có model Prophet

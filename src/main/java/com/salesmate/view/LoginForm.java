@@ -261,13 +261,7 @@ public class LoginForm extends JFrame {
                             adminView.setVisible(true);
                             adminView.setExtendedState(JFrame.MAXIMIZED_BOTH);
                             System.out.println("AdminView opened successfully");
-                        } else if (role.contains("warehouse")) {
-                            System.out.println("Opening StockView...");
-                            StockView stockView = new StockView(user.getUsersId());
-                            stockView.setTitle("SalesMate - Quản Lý Tồn Kho (" + loggedInUser.getUsername() + ")");
-                            stockView.setLocationRelativeTo(null);
-                            stockView.setVisible(true);
-                            stockView.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                        } else if (role.contains("warehouse")) {   
                             System.out.println("StockView opened successfully");
                         } else {
                             // Vai trò không hỗ trợ

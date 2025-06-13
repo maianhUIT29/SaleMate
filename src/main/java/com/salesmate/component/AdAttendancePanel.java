@@ -1,23 +1,45 @@
 package com.salesmate.component;
 
-import com.salesmate.controller.AttendanceController;
-import com.salesmate.model.Attendance;
-import com.salesmate.model.AttendanceAdjustment;
-import com.salesmate.model.LeaveRequest;
-import com.toedter.calendar.JDateChooser;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Set;
+
+import com.salesmate.controller.AttendanceController;
+import com.salesmate.model.Attendance;
+import com.salesmate.model.AttendanceAdjustment;
+import com.salesmate.model.LeaveRequest;
+import com.toedter.calendar.JDateChooser;
 
 public class AdAttendancePanel extends JPanel {
     private final AttendanceController attendanceController;
@@ -37,13 +59,26 @@ public class AdAttendancePanel extends JPanel {
     private int rowsPerPage = 10;
     private List<Attendance> allData = new ArrayList<>();
 
-    private static final Color PRIMARY_COLOR    = new Color(41, 128, 185);
-    private static final Color SECONDARY_COLOR  = new Color(52, 152, 219);
-    private static final Color ACCENT_COLOR     = new Color(231, 76, 60);
-    private static final Color BACKGROUND_COLOR = new Color(245, 247, 250);
-    private static final Color TEXT_COLOR       = new Color(44, 62, 80);
-    private static final Color LIGHT_TEXT       = new Color(255, 255, 255);
-    private static final Color BORDER_COLOR     = new Color(189, 195, 199);
+    // Modern color scheme
+    private static final Color PRIMARY_COLOR      = new Color(25, 118, 210);    // Material Blue
+    private static final Color SECONDARY_COLOR    = new Color(66, 165, 245);    // Lighter Blue
+    private static final Color ACCENT_COLOR       = new Color(255, 82, 82);     // Modern Red
+    private static final Color SUCCESS_COLOR      = new Color(76, 175, 80);     // Green
+    private static final Color WARNING_COLOR      = new Color(255, 152, 0);     // Orange
+    private static final Color BACKGROUND_COLOR   = new Color(250, 250, 250);   // Almost White
+    private static final Color TABLE_HEADER_BG    = new Color(236, 239, 241);   // Light Gray Blue
+    private static final Color TABLE_STRIPE       = new Color(245, 245, 245);   // Stripe row color
+    private static final Color TEXT_COLOR         = new Color(33, 33, 33);      // Almost Black
+    private static final Color LIGHT_TEXT         = new Color(255, 255, 255);   // White
+    private static final Color BORDER_COLOR       = new Color(224, 224, 224);   // Light Gray
+    private static final Color HOVER_COLOR        = new Color(236, 239, 241);   // Light Gray Blue
+    
+    // UI Constants
+    private static final int BUTTON_RADIUS        = 8;     // Border radius for buttons
+    private static final int PANEL_RADIUS         = 12;    // Border radius for panels
+    private static final int DEFAULT_PADDING      = 15;    // Standard padding
+    private static final int ROW_HEIGHT           = 40;    // Table row height
+    private static final String FONT_FAMILY       = "Segoe UI"; // Modern font
 
     public AdAttendancePanel() {
         this.attendanceController = new AttendanceController();

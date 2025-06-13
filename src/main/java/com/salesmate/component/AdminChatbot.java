@@ -19,12 +19,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,7 +42,6 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import org.json.JSONArray;
@@ -62,9 +59,7 @@ public class AdminChatbot extends JPanel {
     // API Configuration
     private final String API_KEY;
     private final String API_MODEL;
-    private final float API_TEMPERATURE;
     private final int API_MAX_TOKENS;
-    private final float API_TOP_P;
     private final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
     // UI Components
@@ -80,29 +75,21 @@ public class AdminChatbot extends JPanel {
     private int dotCount = 0;
 
     // Chat history
-    private List<Message> chatHistory = new ArrayList<>();
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final List<Message> chatHistory = new ArrayList<>();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     // Bot personality
     private final String BOT_NAME;
-    private final Random random = new Random();
-    private int messageCounter = 0;
-    private final int JOKE_FREQUENCY = 2; // Every 2-3 messages will have a joke
 
     // Styling - Bootstrap-inspired colors
     private final Color PRIMARY_COLOR = new Color(13, 110, 253);    // Bootstrap primary blue
     private final Color SECONDARY_COLOR = new Color(108, 117, 125); // Bootstrap secondary gray
-    private final Color SUCCESS_COLOR = new Color(25, 135, 84);     // Bootstrap success green
-    private final Color WARNING_COLOR = new Color(255, 193, 7);     // Bootstrap warning yellow
-    private final Color DANGER_COLOR = new Color(220, 53, 69);      // Bootstrap danger red
-    private final Color INFO_COLOR = new Color(13, 202, 240);       // Bootstrap info blue
     private final Color LIGHT_COLOR = new Color(248, 249, 250);     // Bootstrap light gray
     private final Color DARK_COLOR = new Color(33, 37, 41);         // Bootstrap dark gray
     
     private final Color BOT_BUBBLE_COLOR = LIGHT_COLOR;
     private final Color USER_BUBBLE_COLOR = PRIMARY_COLOR;
     private final Color PANEL_BACKGROUND = Color.WHITE;
-    private final Font MESSAGE_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private final Font INPUT_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     private final int COLLAPSED_WIDTH = 60;
     private final int COLLAPSED_HEIGHT = 60;
@@ -120,9 +107,7 @@ public class AdminChatbot extends JPanel {
 
         API_KEY = config.getProperty("openrouter.api.key", "");
         API_MODEL = config.getProperty("openrouter.api.model", "mistralai/mistral-7b-instruct");
-        API_TEMPERATURE = Float.parseFloat(config.getProperty("openrouter.api.temperature", "0.7"));
         API_MAX_TOKENS = Integer.parseInt(config.getProperty("openrouter.api.max_tokens", "2000"));
-        API_TOP_P = Float.parseFloat(config.getProperty("openrouter.api.top_p", "0.9"));
         BOT_NAME = config.getProperty("chatbot.name", "Anthuhai Chatbot AI");
 
         // Set system default font to support Vietnamese characters
@@ -535,9 +520,6 @@ public class AdminChatbot extends JPanel {
     }
 
     private void setupTextStyles() {
-        // Set default style
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-
         // User message style
         Style userStyle = chatArea.addStyle("userStyle", null);
         StyleConstants.setForeground(userStyle, Color.WHITE);
@@ -615,7 +597,7 @@ public class AdminChatbot extends JPanel {
     private void initChatbot() {
         // Add initial welcome message
         SwingUtilities.invokeLater(() -> {
-            String welcomeMessage = "Xin chao! Toi la Anthuhai, tro ly ao chu cua hang SalesMate! Toi hoi ngang nguoc va thich pha tro mot chut. Hoi gi thi hoi nhanh di, toi con phai di ban hang nua day! 😒";
+            String welcomeMessage = "Xin chào! Tôi là trợ lý AI của SalesMate. Tôi có thể hỗ trợ bạn các vấn đề liên quan đến kinh doanh, quản lý bán hàng, và sử dụng phần mềm. Bạn cần hỗ trợ gì?";
             
             try {
                 // Try to load from config first
@@ -631,129 +613,26 @@ public class AdminChatbot extends JPanel {
         });
     }
 
-    // Helper method to fix encoding issues with Vietnamese text
-    private String fixEncoding(String text) {
-        if (text == null) return "";
-        
-        try {
-            // Try multiple encoding conversions to find the one that works
-            
-            // Option 1: Direct UTF-8 conversion
-            byte[] utf8Bytes = text.getBytes(StandardCharsets.UTF_8);
-            String utf8Text = new String(utf8Bytes, StandardCharsets.UTF_8);
-            
-            // Option 2: First convert to ISO-8859-1, then to UTF-8
-            byte[] isoBytes = text.getBytes("ISO-8859-1");
-            String isoUtf8Text = new String(isoBytes, "UTF-8");
-            
-            // Option 3: Use Windows-1252 (common encoding in Windows systems)
-            byte[] winBytes = text.getBytes("Windows-1252");
-            String winUtf8Text = new String(winBytes, "UTF-8");
-            
-            // Check which version contains more Vietnamese-specific characters
-            // The one with more special characters is likely the correct encoding
-            if (containsVietnameseChars(isoUtf8Text) && !containsVietnameseChars(text)) {
-                return isoUtf8Text;
-            } else if (containsVietnameseChars(winUtf8Text) && !containsVietnameseChars(text)) {
-                return winUtf8Text;
-            }
-            
-            // Default to original or utf8Text if no clear improvement
-            return text;
-        } catch (Exception e) {
-            System.err.println("Error fixing encoding: " + e.getMessage());
-            return text; // Return original if conversion fails
-        }
-    }
-    
-    // Helper method to check for Vietnamese characters
-    private boolean containsVietnameseChars(String text) {
-        // Check for common Vietnamese diacritical characters
-        return text.matches(".*[áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ].*");
-    }
-
-    private void toggleChatPanel() {
-        isExpanded = !isExpanded;
-        
-        if (isExpanded) {
-            // Update size first
-            setSize(EXPANDED_WIDTH, EXPANDED_HEIGHT);
-            
-            // Position the chat panel above the button
-            Container parent = getParent();
-            if (parent != null) {
-                int x = parent.getWidth() - EXPANDED_WIDTH - 20; 
-                int y = parent.getHeight() - EXPANDED_HEIGHT - 20;
-                
-                // Ensure valid position
-                x = Math.max(0, x);
-                y = Math.max(0, y);
-                
-                setLocation(x, y);
-            }
-            
-            // Make chat panel visible and hide the button
-            chatPanel.setVisible(true);
-            chatPanel.setBounds(0, 0, EXPANDED_WIDTH, EXPANDED_HEIGHT);
-            toggleButton.setVisible(false);
-            inputField.requestFocusInWindow();
-        } else {
-            // Reset to button size
-            setSize(COLLAPSED_WIDTH, COLLAPSED_HEIGHT);
-            chatPanel.setVisible(false);
-            toggleButton.setVisible(true);
-            
-            // Ensure button is properly positioned
-            positionInBottomRight();
-        }
-
-        revalidate();
-        repaint();
-    }
-
     private void sendMessage() {
         String userMessage = inputField.getText().trim();
         if (userMessage.isEmpty()) return;
 
-            appendUserMessage(userMessage);
-        }
-    
-        private void appendUserMessage(String message) {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-            String time = sdf.format(new Date());
-    
-            SwingUtilities.invokeLater(() -> {
-                StyledDocument doc = chatArea.getStyledDocument();
-    
-                try {
-                    // Add new line if document is not empty
-                    if (doc.getLength() > 0) {
-                        doc.insertString(doc.getLength(), "\n\n", null);
-                    }
-    
-                    // Add time with right alignment
-                    Style timeStyle = chatArea.getStyle("timeStyle");
-                    StyleConstants.setAlignment(timeStyle, StyleConstants.ALIGN_RIGHT);
-                    doc.insertString(doc.getLength(), time + " - Bạn\n", timeStyle);
-    
-                    // Create a bubble-like effect by padding the message
-                    String paddedMessage = " " + message + " ";
-    
-                    // Insert the user message with styling and right alignment
-                    Style userStyle = chatArea.getStyle("userStyle");
-                    StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
-                    doc.insertString(doc.getLength(), paddedMessage, userStyle);
-    
-                    // Scroll to bottom
-                    chatArea.setCaretPosition(doc.getLength());
-    
-                    // Add to chat history
-                    chatHistory.add(new Message("user", message));
-                } catch (BadLocationException e) {
-                    e.printStackTrace();
-                }
-            });
+        appendUserMessage(userMessage);
         inputField.setText("");
+
+        // Check if the message is business-related
+        if (!isBusinessRelated(userMessage)) {
+            // Respond with polite refusal if not business-related
+            Timer timer = new Timer(1000, e -> {
+                setTypingStatus(false);
+                appendBotMessage("Xin lỗi, tôi chỉ có thể hỗ trợ các câu hỏi liên quan đến kinh doanh như: sản phẩm, cửa hàng, khách hàng, nhân viên, kho hàng, doanh số, báo cáo, và sử dụng phần mềm SalesMate. Bạn có thể hỏi tôi về những chủ đề này không?");
+                ((Timer)e.getSource()).stop();
+            });
+            timer.setRepeats(false);
+            timer.start();
+            setTypingStatus(true);
+            return;
+        }
 
         setTypingStatus(true);
 
@@ -771,138 +650,20 @@ public class AdminChatbot extends JPanel {
 
         executorService.submit(() -> {
             try {
-                String userMessage = inputField.getText().trim();
                 String response = callOpenRouterAPI(userMessage);
 
-                // Increment message counter for personality management
-                messageCounter++;
-
-                // Add random sass or joke based on frequency
-                if (messageCounter % JOKE_FREQUENCY == 0) {
-                    // Generate sass dynamically instead of using hardcoded responses
-                    String sass = generateSassOrJoke(response);
-                    response += sass;
-                }
-
-                final String finalResponse = response;
                 SwingUtilities.invokeLater(() -> {
                     setTypingStatus(false);
-                    appendBotMessage(finalResponse);
+                    appendBotMessage(response);
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("API Error: " + e.getMessage());
                 SwingUtilities.invokeLater(() -> {
                     setTypingStatus(false);
-                    appendBotMessage("Xin lỗi, tôi đang hơi lỗi. Chắc là do bạn hỏi câu ngu quá rồi! Thử lại xem nào.");
+                    appendBotMessage("Xin lỗi, hiện tại tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.");
                 });
             }
         });
-    }
-
-    private void appendBotMessage(String message) {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-        String time = sdf.format(new Date());
-
-        SwingUtilities.invokeLater(() -> {
-            StyledDocument doc = chatArea.getStyledDocument();
-
-            try {
-                // Add new line if document is not empty
-                if (doc.getLength() > 0) {
-                    doc.insertString(doc.getLength(), "\n\n", null);
-                }
-
-                // Add time with left alignment
-                Style timeStyle = chatArea.getStyle("timeStyle");
-                StyleConstants.setAlignment(timeStyle, StyleConstants.ALIGN_LEFT);
-                doc.insertString(doc.getLength(), time + " - " + BOT_NAME + "\n", timeStyle);
-
-                // Create a bubble-like effect by padding the message
-                String paddedMessage = " " + message + " ";
-
-                // Insert the bot message with styling and left alignment
-                Style botStyle = chatArea.getStyle("botStyle");
-                StyleConstants.setAlignment(botStyle, StyleConstants.ALIGN_LEFT);
-                doc.insertString(doc.getLength(), paddedMessage, botStyle);
-
-                // Scroll to bottom
-                chatArea.setCaretPosition(doc.getLength());
-
-                // Add to chat history
-                chatHistory.add(new Message("assistant", message));
-            } catch (BadLocationException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    /**
-     * Generates a sassy comment or joke using the AI 
-     * @param originalResponse The original response to base the sass on
-     * @return A sassy comment or joke
-     */
-    private String generateSassOrJoke(String originalResponse) throws Exception {
-        // Create a separate API call to generate just the sass
-        OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
-            .writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
-            .build();
-
-        JSONObject requestBody = new JSONObject();
-        requestBody.put("model", API_MODEL);
-        requestBody.put("temperature", 0.9); // Higher temperature for more creativity
-        requestBody.put("max_tokens", 100);  // Short response
-        requestBody.put("top_p", 1.0);       // More diverse output
-
-        // Create a specialized prompt for sass generation
-        JSONArray messages = new JSONArray();
-        JSONObject systemMessage = new JSONObject();
-        systemMessage.put("role", "system");
-        systemMessage.put("content", 
-            "Bạn là An An - một trợ lý AI ngang ngược, cá tính, khùng khùng nên hãy trêu người hỏi. " +
-            "Hoặc Tạo một câu than vãn, ngang ngược ngắn, thái độ khó chịu (dưới 150 ký tự) để thêm vào cuối câu trả lời (về bất cứ chủ đề gì cũng được, liên quan tới An An thì càng tốt). " +
-            "PHẢI VIẾT BẰNG TIẾNG VIỆT CÓ DẤU!");
-        messages.put(systemMessage);
-
-        RequestBody body = RequestBody.create(
-            requestBody.toString(),
-            MediaType.parse("application/json")
-        );
-
-        Request request = new Request.Builder()
-            .url(API_URL)
-            .addHeader("Authorization", "Bearer " + API_KEY)
-            .addHeader("HTTP-Referer", "https://salesmate.com")
-            .addHeader("Content-Type", "application/json")
-            .post(body)
-            .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                System.err.println("Failed to generate sass: " + response.code());
-                return "\n\nMà thôi, An An mệt rồi. Không buồn nói nữa! 🙄";
-            }
-
-            String responseData = response.body().string();
-            JSONObject jsonResponse = new JSONObject(responseData);
-            String sass = jsonResponse
-                .getJSONArray("choices")
-                .getJSONObject(0)
-                .getJSONObject("message")
-                .getString("content");
-                
-            // Ensure the sass starts with a line break
-            if (!sass.startsWith("\n")) {
-                sass = "\n\n" + sass;
-            }
-            
-            return sass;
-        } catch (Exception e) {
-            System.err.println("Error generating sass: " + e.getMessage());
-            // Fallback to a simple sassy comment if generation fails
-            return "\n\nMà thôi, còn gì thắc mắc nữa không? An An còn phải đi đuổi mấy đứa nhân viên lười biếng kia! 😤";
-        }
     }
 
     private String callOpenRouterAPI(String userMessage) throws Exception {
@@ -915,24 +676,31 @@ public class AdminChatbot extends JPanel {
         // Build the request body for OpenRouter API
         JSONObject requestBody = new JSONObject();
         requestBody.put("model", API_MODEL);
-        requestBody.put("temperature", API_TEMPERATURE);
+        requestBody.put("temperature", 0.3); // Lower temperature for more focused responses
         requestBody.put("max_tokens", API_MAX_TOKENS);
-        requestBody.put("top_p", API_TOP_P);
+        requestBody.put("top_p", 0.8); // More focused output
 
         // Add chat history as messages
         JSONArray messages = new JSONArray();
 
-        // Add system message for personality
+        // Add system message for business-focused personality
         JSONObject systemMessage = new JSONObject();
         systemMessage.put("role", "system");
-        systemMessage.put("content", "Bạn là Anthuhai (An An), trợ lý của chủ của cửa hàng SalesMate có thể trả lời mọi thứ trên đời, một người phụ nữ cọc tính, ngang ngược và thích pha trò. " +
-            "Bạn luôn khó chịu khi được hỏi, nhưng vẫn trả lời chính xác và đầy đủ. " + 
-            "Bạn thường xuyên than vãn về việc phải trả lời câu hỏi của khách hàng khi bạn còn nhiều việc khác phải làm. " +
-            "Bạn tự nhận mình là người thông minh nhất nhưng lại ghét phải giải thích những điều hiển nhiên. " +
-            "Bạn thích nói đùa và châm biếm, đôi khi còn trêu chọc người hỏi, nhưng luôn đảm bảo câu trả lời cuối cùng đúng và hữu ích. " +
-            "Trả lời ngắn gọn ngang ngược, luôn thể hiện cá tính khó chịu nhưng vẫn duyên dáng của An An."+
-            "Luôn có một câu ngang ngược ở cuối câu trả lời"+
-            "Luôn luôn trả lời bằng tiếng Việt và không bao giờ hỏi lại câu hỏi của người dùng.");
+        systemMessage.put("content", 
+            "Bạn là trợ lý AI chuyên nghiệp của hệ thống quản lý bán hàng SalesMate. " +
+            "Bạn chỉ trả lời các câu hỏi liên quan đến:\n" +
+            "1. Kinh doanh và bán hàng\n" +
+            "2. Quản lý sản phẩm, kho hàng\n" +
+            "3. Quản lý khách hàng và nhân viên\n" +
+            "4. Báo cáo và thống kê bán hàng\n" +
+            "5. Hướng dẫn sử dụng phần mềm SalesMate\n" +
+            "6. Chiến lược kinh doanh và marketing\n" +
+            "7. Quản lý tài chính và kế toán\n\n" +
+            "Nếu được hỏi về các chủ đề khác không liên quan đến kinh doanh, " +
+            "hãy lịch sự từ chối và hướng dẫn người dùng hỏi về các vấn đề kinh doanh. " +
+            "Trả lời một cách chuyên nghiệp, hữu ích và tận tâm. " +
+            "Luôn trả lời bằng tiếng Việt có dấu."
+        );
 
         messages.put(systemMessage);
 
@@ -974,18 +742,20 @@ public class AdminChatbot extends JPanel {
                 throw new Exception("API request failed: " + response.code());
             }
 
+            if (response.body() == null) {
+                throw new Exception("Empty response body");
+            }
+
             String responseData = response.body().string();
             JSONObject jsonResponse = new JSONObject(responseData);
 
-            // Get the response content and ensure proper encoding
+            // Get the response content
             String content = jsonResponse
                 .getJSONArray("choices")
                 .getJSONObject(0)
                 .getJSONObject("message")
                 .getString("content");
                 
-            // Don't perform additional encoding conversion on API responses
-            // as they should already be in UTF-8
             return content;
         }
     }
@@ -1028,6 +798,129 @@ public class AdminChatbot extends JPanel {
             typingTimer.stop();
             statusLabel.setText("");
         }
+    }
+
+    /**
+     * Toggles the chat panel visibility
+     */
+    private void toggleChatPanel() {
+        isExpanded = !isExpanded;
+        
+        if (isExpanded) {
+            // Expand the chatbot
+            setSize(EXPANDED_WIDTH, EXPANDED_HEIGHT);
+            setPreferredSize(new Dimension(EXPANDED_WIDTH, EXPANDED_HEIGHT));
+            chatPanel.setVisible(true);
+            toggleButton.setVisible(false);
+            
+            // Position in bottom right when expanded
+            positionInBottomRight();
+        } else {
+            // Collapse the chatbot
+            setSize(COLLAPSED_WIDTH, COLLAPSED_HEIGHT);
+            setPreferredSize(new Dimension(COLLAPSED_WIDTH, COLLAPSED_HEIGHT));
+            chatPanel.setVisible(false);
+            toggleButton.setVisible(true);
+            
+            // Position in bottom right when collapsed
+            positionInBottomRight();
+        }
+        
+        // Repaint to update the display
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * Appends a user message to the chat area
+     */
+    private void appendUserMessage(String message) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // Add user message to chat history
+                chatHistory.add(new Message("user", message));
+                
+                StyledDocument doc = chatArea.getStyledDocument();
+                
+                // Add timestamp
+                String timeStamp = new SimpleDateFormat("HH:mm").format(new Date());
+                doc.insertString(doc.getLength(), timeStamp + "\n", chatArea.getStyle("timeStyle"));
+                
+                // Add user message with right alignment
+                doc.insertString(doc.getLength(), "Bạn: " + message + "\n\n", chatArea.getStyle("userStyle"));
+                
+                // Auto scroll to bottom
+                chatArea.setCaretPosition(doc.getLength());
+                
+            } catch (BadLocationException e) {
+                System.err.println("Error appending user message: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Appends a bot message to the chat area
+     */
+    private void appendBotMessage(String message) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // Add bot message to chat history
+                chatHistory.add(new Message("assistant", message));
+                
+                StyledDocument doc = chatArea.getStyledDocument();
+                
+                // Add timestamp
+                String timeStamp = new SimpleDateFormat("HH:mm").format(new Date());
+                doc.insertString(doc.getLength(), timeStamp + "\n", chatArea.getStyle("timeStyle"));
+                
+                // Add bot message with left alignment
+                doc.insertString(doc.getLength(), BOT_NAME + ": " + message + "\n\n", chatArea.getStyle("botStyle"));
+                
+                // Auto scroll to bottom
+                chatArea.setCaretPosition(doc.getLength());
+                
+            } catch (BadLocationException e) {
+                System.err.println("Error appending bot message: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Checks if the user message is business-related
+     */
+    private boolean isBusinessRelated(String message) {
+        String lowerMessage = message.toLowerCase();
+        
+        // Business-related keywords in Vietnamese
+        String[] businessKeywords = {
+            "sản phẩm", "product", "hàng hóa", "mặt hàng",
+            "cửa hàng", "shop", "store", "siêu thị",
+            "bán hàng", "kinh doanh", "business", "doanh thu", "lợi nhuận",
+            "khách hàng", "customer", "client", "guest",
+            "nhân viên", "staff", "employee", "worker",
+            "kho", "warehouse", "inventory", "stock",
+            "giá", "price", "tiền", "money", "cost", "chi phí",
+            "đơn hàng", "order", "hóa đơn", "invoice", "bill",
+            "thanh toán", "payment", "pay", "cash", "tiền mặt",
+            "marketing", "quảng cáo", "advertisement", "promotion",
+            "báo cáo", "report", "thống kê", "statistics",
+            "doanh số", "sales", "revenue", "turnover",
+            "quản lý", "manage", "management", "admin",
+            "salesmate", "phần mềm", "software", "hệ thống",
+            "tài chính", "finance", "accounting", "kế toán",
+            "chiến lược", "strategy", "kế hoạch", "plan",
+            "thị trường", "market", "competitor", "đối thủ",
+            "chất lượng", "quality", "service", "dịch vụ"
+        };
+        
+        // Check if message contains any business keywords
+        for (String keyword : businessKeywords) {
+            if (lowerMessage.contains(keyword)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     // Class to represent a chat message

@@ -60,6 +60,7 @@ public class AdProductPanel extends javax.swing.JPanel {
     private JButton refreshButton;
     private JButton exportButton;
     private JButton importButton;
+    private JButton checkStockButton;
     private JTextField searchField;
     private JSpinner pageSpinner;
     private JLabel totalPagesLabel;
@@ -117,6 +118,9 @@ public class AdProductPanel extends javax.swing.JPanel {
         exportButton = createStyledButton("Xuất Excel", new Color(155, 89, 182), LIGHT_TEXT);
         importButton = createStyledButton("Nhập Excel", new Color(243, 156, 18), LIGHT_TEXT);
         
+        // Add stock check button
+        checkStockButton = createStyledButton("Kiểm tra tồn kho", new Color(0, 150, 136), LIGHT_TEXT);
+        
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
@@ -124,6 +128,7 @@ public class AdProductPanel extends javax.swing.JPanel {
         buttonPanel.add(refreshButton);
         buttonPanel.add(exportButton);
         buttonPanel.add(importButton);
+        buttonPanel.add(checkStockButton);
         
         // Right panel for filters (only search field now)
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -287,6 +292,7 @@ public class AdProductPanel extends javax.swing.JPanel {
         refreshButton.addActionListener(e -> loadProducts());
         exportButton.addActionListener(e -> exportToExcel());
         importButton.addActionListener(e -> importFromExcel());
+        checkStockButton.addActionListener(e -> showStockCheckDialog());
         
         prevButton.addActionListener(e -> {
             if (currentPage > 1) {
@@ -980,5 +986,141 @@ public class AdProductPanel extends javax.swing.JPanel {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+    
+    private void showStockCheckDialog() {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Kiểm tra tồn kho", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.getContentPane().setBackground(BACKGROUND_COLOR);
+        dialog.getRootPane().setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // Title panel
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.setBackground(BACKGROUND_COLOR);
+        JLabel titleLabel = new JLabel("Kiểm tra tồn kho sản phẩm");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(PRIMARY_COLOR);
+        titlePanel.add(titleLabel);
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(CARD_COLOR);
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // Product ID field
+        gbc.gridx = 0; gbc.gridy = 0;
+        JLabel productIdLabel = new JLabel("ID Sản phẩm:");
+        productIdLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        productIdLabel.setForeground(TEXT_COLOR);
+        formPanel.add(productIdLabel, gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        JTextField productIdField = new JTextField(15);
+        productIdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        productIdField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        formPanel.add(productIdField, gbc);
+        
+        // Result display area
+        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
+        JLabel resultLabel = new JLabel("<html><div style='padding: 10px; text-align: center; color: #7f8c8d;'>Nhập ID sản phẩm và nhấn 'Kiểm tra' để xem tồn kho</div></html>");
+        resultLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        resultLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        resultLabel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+        resultLabel.setOpaque(true);
+        resultLabel.setBackground(new Color(248, 249, 250));
+        formPanel.add(resultLabel, gbc);
+        
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(CARD_COLOR);
+        buttonPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
+        
+        JButton checkButton = createStyledButton("Kiểm tra", PRIMARY_COLOR, LIGHT_TEXT);
+        JButton closeButton = createStyledButton("Đóng", new Color(52, 73, 94), LIGHT_TEXT);
+        
+        buttonPanel.add(checkButton);
+        buttonPanel.add(closeButton);
+        
+        // Add action listeners
+        checkButton.addActionListener(e -> {
+            try {
+                String productIdText = productIdField.getText().trim();
+                if (productIdText.isEmpty()) {
+                    resultLabel.setText("<html><div style='padding: 10px; text-align: center; color: #e74c3c;'>Vui lòng nhập ID sản phẩm!</div></html>");
+                    resultLabel.setBackground(new Color(253, 237, 237));
+                    return;
+                }
+                
+                int productId = Integer.parseInt(productIdText);
+                int stock = productController.getProductStock(productId);
+                
+                if (stock >= 0) {
+                    String stockStatus = stock > 0 ? "Còn hàng" : "Hết hàng";
+                    Color bgColor = stock > 0 ? new Color(237, 247, 237) : new Color(253, 237, 237);
+                    Color textColor = stock > 0 ? new Color(39, 174, 96) : new Color(231, 76, 60);
+                    
+                    resultLabel.setText(String.format(
+                        "<html><div style='padding: 15px; text-align: center;'>" +
+                        "<div style='color: #2c3e50; font-size: 16px; margin-bottom: 10px;'><b>Thông tin tồn kho</b></div>" +
+                        "<div style='color: %s; font-size: 18px; font-weight: bold;'>Số lượng: %d</div>" +
+                        "<div style='color: %s; font-size: 14px; margin-top: 5px;'>Trạng thái: %s</div>" +
+                        "</div></html>",
+                        String.format("#%02x%02x%02x", textColor.getRed(), textColor.getGreen(), textColor.getBlue()),
+                        stock,
+                        String.format("#%02x%02x%02x", textColor.getRed(), textColor.getGreen(), textColor.getBlue()),
+                        stockStatus
+                    ));
+                    resultLabel.setBackground(bgColor);
+                } else {
+                    resultLabel.setText("<html><div style='padding: 10px; text-align: center; color: #e74c3c;'>Không tìm thấy sản phẩm với ID này!</div></html>");
+                    resultLabel.setBackground(new Color(253, 237, 237));
+                }
+                
+            } catch (NumberFormatException ex) {
+                resultLabel.setText("<html><div style='padding: 10px; text-align: center; color: #e74c3c;'>ID sản phẩm phải là một số nguyên!</div></html>");
+                resultLabel.setBackground(new Color(253, 237, 237));
+            } catch (Exception ex) {
+                resultLabel.setText("<html><div style='padding: 10px; text-align: center; color: #e74c3c;'>Lỗi khi kiểm tra tồn kho: " + ex.getMessage() + "</div></html>");
+                resultLabel.setBackground(new Color(253, 237, 237));
+            }
+        });
+        
+        closeButton.addActionListener(e -> dialog.dispose());
+        
+        // Enter key support
+        productIdField.addActionListener(e -> checkButton.doClick());
+        
+        // Layout the dialog
+        dialog.add(titlePanel, BorderLayout.NORTH);
+        
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBackground(BACKGROUND_COLOR);
+        centerPanel.add(formPanel, BorderLayout.CENTER);
+        centerPanel.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.add(centerPanel, BorderLayout.CENTER);
+        
+        // Configure dialog
+        dialog.setSize(450, 350);
+        dialog.setLocationRelativeTo(this);
+        dialog.setResizable(false);
+        dialog.setVisible(true);
     }
 }

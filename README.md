@@ -140,6 +140,5 @@ SalesMate is released under the MIT License. See [LICENSE](LICENSE) file for det
 
 For support, please raise an issue on our GitHub repository or contact our support team at support@salesmate-app.com.
 
----
 
 © 2025 SalesMate Team. All rights reserved.

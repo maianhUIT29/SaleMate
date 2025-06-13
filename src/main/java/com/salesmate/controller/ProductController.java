@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,11 +21,45 @@ public class ProductController {
         productDAO = new ProductDAO();
     }
 
-    // CREATE
+    // CREATE - Add product using stored procedure
     public boolean addProduct(Product product) {
         try {
-            return productDAO.createProduct(product);
+            // Validate product data before calling stored procedure
+            if (product == null) {
+                System.err.println("ProductController: Product object is null");
+                return false;
+            }
+            
+            if (product.getProductName() == null || product.getProductName().trim().isEmpty()) {
+                System.err.println("ProductController: Product name is required");
+                return false;
+            }
+            
+            if (product.getPrice() == null || product.getPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                System.err.println("ProductController: Product price must be greater than zero");
+                return false;
+            }
+            
+            if (product.getQuantity() < 0) {
+                System.err.println("ProductController: Product quantity cannot be negative");
+                return false;
+            }
+            
+            System.out.println("ProductController: Adding product: " + product.getProductName());
+            
+            // Call the DAO method which now uses stored procedure
+            boolean result = productDAO.createProduct(product);
+            
+            if (result) {
+                System.out.println("ProductController: Product added successfully via stored procedure");
+            } else {
+                System.err.println("ProductController: Failed to add product via stored procedure");
+            }
+            
+            return result;
+            
         } catch (Exception e) {
+            System.err.println("ProductController: Exception while adding product: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -189,28 +224,82 @@ public class ProductController {
             return false;
         }
     }
-
-    // Lấy số lượng đã bán của sản phẩm
-    public int getSoldQuantity(int productId) {
+    
+    /**
+     * Get product stock quantity using Oracle function get_product_stock
+     * @param productId The ID of the product
+     * @return The current stock quantity of the product
+     */
+    public int getProductStock(int productId) {
         try {
-            return productDAO.getSoldQuantity(productId);
+            if (productId <= 0) {
+                System.err.println("ProductController: Invalid product ID: " + productId);
+                return 0;
+            }
+            
+            System.out.println("ProductController: Getting stock for product ID: " + productId);
+            
+            int stockQuantity = productDAO.getProductStock(productId);
+            
+            System.out.println("ProductController: Product ID " + productId + " has stock quantity: " + stockQuantity);
+            
+            return stockQuantity;
+            
         } catch (Exception e) {
+            System.err.println("ProductController: Error getting product stock for ID " + productId + ": " + e.getMessage());
             e.printStackTrace();
             return 0;
         }
     }
-
-    // Tìm kiếm sản phẩm theo tên
-    public List<Product> searchProductsByName(String keyword) {
-        return productDAO.searchProductsByName(keyword);
+    
+    /**
+     * Check if product has sufficient stock
+     * @param productId The ID of the product
+     * @param requiredQuantity The quantity needed
+     * @return true if sufficient stock available, false otherwise
+     */
+    public boolean hasEnoughStock(int productId, int requiredQuantity) {
+        try {
+            int currentStock = getProductStock(productId);
+            boolean hasEnough = currentStock >= requiredQuantity;
+            
+            System.out.println("ProductController: Product ID " + productId + 
+                              " - Current Stock: " + currentStock + 
+                              ", Required: " + requiredQuantity + 
+                              ", Has Enough: " + hasEnough);
+            
+            return hasEnough;
+            
+        } catch (Exception e) {
+            System.err.println("ProductController: Error checking stock availability for product ID " + productId + ": " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
-
-    public boolean markProductDamaged(int productId, String reason) {
-        return productDAO.markProductDamaged(productId, reason);
+    
+    /**
+     * Get all products with their current stock information for AI prediction
+     * @return List of maps containing product_id, product_name, and quantity
+     */
+    public List<Map<String, Object>> getAllProductsWithStock() {
+        List<Map<String, Object>> results = new ArrayList<>();
+        try {
+            List<Product> allProducts = getAllProducts();
+            for (Product product : allProducts) {
+                if (product.getQuantity() > 0) { // Chỉ lấy sản phẩm có tồn kho > 0
+                    Map<String, Object> productInfo = new HashMap<>();
+                    productInfo.put("product_id", product.getProductId());
+                    productInfo.put("product_name", product.getProductName());
+                    productInfo.put("quantity", product.getQuantity());
+                    results.add(productInfo);
+                }
+            }
+            System.out.println("ProductController: Retrieved " + results.size() + " products with stock > 0");
+            return results;
+        } catch (Exception e) {
+            System.err.println("ProductController: Error getting products with stock: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
-
-    public Product getProductByBarcode(String barcode) {
-        return productDAO.getProductByBarcode(barcode);
-    }
-
 }
